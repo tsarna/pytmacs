@@ -5,5 +5,25 @@ sniff:
 	
 implement tclayer write w/ unicode encode
 
+test for uniqify
+
+start unicode .txt/tests
+
+init from unicode
+init w/o unicode
+
+implement str
+implement length
+implement grow
+implement gapto
+subscript
+delslice
+insert
+ass_subscript
+
+
+
+
+
 write keysyms repr doctests
 write termioscap description
