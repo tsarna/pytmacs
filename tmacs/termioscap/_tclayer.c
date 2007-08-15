@@ -7,7 +7,8 @@
 #include <sys/ioctl.h>
 
 
-#define MAXINHOLD 16            /* max length of encoded input seq */
+#define MAXINHOLD       16      /* max length of encoded input seq */
+#define OBUFSIZ         64
 
 extern char PC, *BC, *UP;       /* termcap upgliness */
 extern short ospeed;
@@ -38,15 +39,29 @@ typedef struct {
     struct termios new_termios;
     
     char tcstrs[1024];
-    char *CL, *CM, *CE, *SE, *TI, *TE, *SO;
+    char *CL, *CM, *CE, *SE, *TI, *TE, *SO, *BL;
+
     unsigned char inhold[MAXINHOLD];
+    int inholdlen;
+
+    char obuf[OBUFSIZ];
+    int obuflen;
     
     int li, co;
     
-    int inholdlen;
     int fd;
     int enclen;
 } TCLayerObject;
+
+
+
+static TCLayerObject *layer = NULL;
+
+
+
+
+static void putpad(TCLayerObject *, const char *);
+
 
 
 
@@ -129,6 +144,10 @@ tclayer_dealloc(TCLayerObject *self)
     Py_XDECREF(self->send);
     
     self->ob_type->tp_free((PyObject *)self);
+    
+    if (layer == self) {
+        layer = NULL;
+    }
 }
 
 
@@ -233,6 +252,24 @@ decode_and_send(TCLayerObject *self)
 
 
 
+static void
+termcap_arrow_hack(TCLayerObject *self, int okind, int bkind)
+{
+    if ((okind == 4) && (bkind == 0)) {
+        PutMap(self->map, (unsigned char *)"\x1b[A", 3, 0xEC40);
+        PutMap(self->map, (unsigned char *)"\x1b[B", 3, 0xEC41);
+        PutMap(self->map, (unsigned char *)"\x1b[C", 3, 0xEC43);
+        PutMap(self->map, (unsigned char *)"\x1b[D", 3, 0xEC42);
+    } else if ((okind == 0) && (bkind == 4)) {
+        PutMap(self->map, (unsigned char *)"\x1bOA", 3, 0xEC40);
+        PutMap(self->map, (unsigned char *)"\x1bOB", 3, 0xEC41);
+        PutMap(self->map, (unsigned char *)"\x1bOC", 3, 0xEC43);
+        PutMap(self->map, (unsigned char *)"\x1bOD", 3, 0xEC42);
+    }
+}
+
+
+
 static int
 termcap_init(TCLayerObject *self, char *term, char *termenc)
 {
@@ -241,6 +278,7 @@ termcap_init(TCLayerObject *self, char *term, char *termenc)
     char termcap[1024], tccode[3] = "\0\0\0", *p, *t;
     unsigned char c;
     int r, i, n, l;
+    int okind = 0, bkind = 0;
 
     if (term) {
         r = tgetent(termcap, term);
@@ -266,6 +304,7 @@ termcap_init(TCLayerObject *self, char *term, char *termenc)
     self->TI = tgetstr("ti", &p);   /* term init            */
     self->TE = tgetstr("te", &p);   /* term end             */
     self->SO = tgetstr("so", &p);   /* standout             */
+    self->BL = tgetstr("bl", &p);   /* bell                 */
 
     self->li = tgetnum("li");       /* lines                */
     self->co = tgetnum("co");       /* columns              */
@@ -296,7 +335,19 @@ termcap_init(TCLayerObject *self, char *term, char *termenc)
                 
                 return 0;
             }
-              
+
+            /* hack for messed up termcaps to get arrows right */
+            
+            if ((l == 3) && (t[0] == '\x1b')) {
+                if ((t[2] >= 'A') && (t[2] <= 'D')) {
+                    if (t[1] == 'O') {
+                        okind++;
+                    } else if (t[1] == '[') {
+                        bkind++;
+                    }                    
+                }
+            }
+            
             if (!PutMap(self->map, (unsigned char *)t, l, tck->unichar)) {
                 return 0;
             }
@@ -304,6 +355,9 @@ termcap_init(TCLayerObject *self, char *term, char *termenc)
         
         tck++;
     }
+
+    termcap_arrow_hack(self, okind, bkind);
+
 
     /* if utf8, put in length bytes */
     
@@ -410,11 +464,19 @@ termios_init(TCLayerObject *self)
         cfmakeraw(&(self->new_termios));
     
         tcsetattr(0, TCSASOFT | TCSAFLUSH, &(self->new_termios));
-
-        window_size(self);
     }
     
     return 1;
+}
+
+
+
+static int
+output_init(TCLayerObject *self)
+{
+    putpad(self, self->TI);
+
+    window_size(self);
 }
 
 
@@ -427,13 +489,28 @@ termios_cleanup(TCLayerObject *self)
 
 
 
+static int
+output_cleanup(TCLayerObject *self)
+{
+    putpad(self, self->TE);
+}
+
+
+
 static PyObject *
 tclayer_new(PyTypeObject *type, PyObject *args, PyObject *kdws)
 {
     TCLayerObject *self;
     char *term = NULL, *termenc = NULL;
 
-    self = (TCLayerObject *)type->tp_alloc(type, 0);
+    if (layer) {
+        PyErr_SetString(PyExc_OSError,
+            "only one instance allowed due to termcap");
+
+        return NULL;
+    }
+
+    layer = self = (TCLayerObject *)type->tp_alloc(type, 0);
     if (!self) {
         return NULL;
     }
@@ -455,7 +532,9 @@ tclayer_new(PyTypeObject *type, PyObject *args, PyObject *kdws)
     if (termcap_init(self, term, termenc)) {
         if (target_init(self)) {
             if (termios_init(self)) {
-                return (PyObject *)self;
+                if (output_init(self)) {
+                    return (PyObject *)self;
+                }
             }
         }
     }
@@ -464,6 +543,82 @@ failnew:
     tclayer_dealloc(self);
 
     return NULL;
+}
+
+
+
+/* Output Functions */
+
+
+
+static int
+ttputc(int c)
+{
+    if (layer->obuflen < OBUFSIZ) {
+        layer->obuf[layer->obuflen++] = c;
+    } else {
+        exit(7);
+    }
+}
+
+
+
+static void
+putpad(TCLayerObject *self, const char *str)
+{
+    int r;
+    
+    tputs(str, 1, ttputc);
+    
+    write(self->fd, layer->obuf, layer->obuflen);
+
+    layer->obuflen = 0;
+}
+
+
+
+static PyObject *
+TCLayer_moveto(TCLayerObject *self, PyObject *args)
+{
+    int x, y;
+    
+    if (!PyArg_ParseTuple(args, "ii:moveto", &x, &y)) {
+        return NULL;
+    } 
+
+    putpad(self, tgoto(self->CM, x, y));
+    
+    Py_RETURN_NONE;
+}
+
+
+
+static PyObject *
+TCLayer_eeol(TCLayerObject *self, PyObject *args)
+{
+    putpad(self, self->CE);
+    
+    Py_RETURN_NONE;
+}
+
+
+
+static PyObject *
+TCLayer_eeop(TCLayerObject *self, PyObject *args)
+{
+    putpad(self, self->CL);
+    
+    Py_RETURN_NONE;
+}
+
+
+
+static PyObject *
+TCLayer_beep(TCLayerObject *self, PyObject *args)
+{
+    putpad(self, self->BL);
+    
+    Py_RETURN_NONE;
 }
 
 
@@ -477,6 +632,7 @@ TCLayer_cleanup(TCLayerObject *self, PyObject *args)
 {
     PyObject *o = NULL, *a = NULL, *ret = NULL;
 
+    output_cleanup(self);
     termios_cleanup(self);
 
     o = PyObject_GetAttrString(self->reactor, "stop");
@@ -495,9 +651,7 @@ TCLayer_cleanup(TCLayerObject *self, PyObject *args)
         return NULL;
     }
 
-    Py_INCREF(Py_None);
-
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -525,9 +679,7 @@ TCLayer_got_SIGWINCH(TCLayerObject *self, PyObject *args)
 {
     window_size(self);
     
-    Py_INCREF(Py_None);
-    
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -600,9 +752,7 @@ TCLayer_send(TCLayerObject *self, PyObject *args)
         inbuf++; inlen--;
     }
 
-    Py_INCREF(Py_None);
-    
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
@@ -616,14 +766,17 @@ TCLayer_timeout(TCLayerObject *self, PyObject *args)
         }
     }
 
-    Py_INCREF(Py_None);
-
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 
 
 static PyMethodDef TCLayer_methods[] = {
+    {"moveto",      (PyCFunction)TCLayer_moveto,        METH_VARARGS},
+    {"eeol",        (PyCFunction)TCLayer_eeol,          METH_NOARGS},
+    {"eeop",        (PyCFunction)TCLayer_eeop,          METH_NOARGS},
+    {"beep",        (PyCFunction)TCLayer_beep,          METH_NOARGS},
+
     {"cleanup",     (PyCFunction)TCLayer_cleanup,       METH_NOARGS},
     {"fileno",      (PyCFunction)TCLayer_fileno,        METH_NOARGS},
     {"getmap",      (PyCFunction)TCLayer_getmap,        METH_NOARGS},

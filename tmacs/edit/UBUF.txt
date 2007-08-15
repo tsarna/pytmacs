@@ -1,0 +1,16 @@
+===============
+Unicode Buffers
+===============
+
+:Author: Ty Sarna
+
+.. contents ::
+
+Basics
+------
+
+Unicode buffer-gap object implemented in C are provided by the 
+``tmacs.edit.ubuf`` module::
+
+    >>> from tmacs.edit.ubuf import UBuf
+

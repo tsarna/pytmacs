@@ -1,0 +1,166 @@
+===================
+TMACS File Sniffing
+===================
+
+:Author: Ty Sarna
+
+.. contents ::
+
+What is "Sniffing"?
+-------------------
+
+Sniffing is the process of examining a file in various ways to
+determine modes, encoding and other settings that should be used
+for editing.
+
+Examples
+--------
+
+the ``tmacs.edit.sniff`` module implements sniffing::
+
+    >>> from tmacs.edit.sniff import *
+
+the ``preSniff`` function is given a filename and the first two lines of
+the file, as byte strings. First, it looks for a GNU Emacs stile "stars"
+line, setting variables. This may be a simple mode-only setting::
+
+    >>> v=preSniff('x', '# This file is -*-python-*-\n', 'coding: utf8\n')[0]
+    >>> v=={'coding': 'utf8', 'sniff_method': 'stars', 'mode': ['python']}
+    True
+    
+Whitespace around the mode is ignored::
+    
+    >>> v=preSniff('x', '# This file is -*- python -*-\n', 'coding:utf8\n')[0]
+    >>> v=={'coding': 'utf8', 'sniff_method': 'stars', 'mode': ['python']}
+    True
+    
+The fancier style of a "stars line" lists key-value pairs::
+
+    >>> v=preSniff('x', '# -*- coding: latin1; mode: python -*-\n', '')[0]
+    >>> v=={'coding': 'latin1', 'sniff_method': 'stars', 'mode': ['python']}
+    True
+    
+In order to deal with "pound-bang" lines, if the first line isn't a
+stars-line, the second line will be checked::
+
+    >>> v=preSniff('x', '#!/bin/sh\n', '# -*- coding: latin1; mode: sh -*-\n')[0]
+    >>> v=={'coding': 'latin1', 'sniff_method': 'stars', 'mode': ['sh']}
+    True
+    
+Normally if a variable is set multiple times, later settings override
+the first ones (note also that only what is between the ``-*-`` markers
+is parsed, leading and trailing text doesn't matter, so you can put this
+in various kinds of comments)::
+
+    >>> v=preSniff('x', '// -*- x: a; x: b; coding: latin1; -*- hi!\n', '')[0]
+    >>> v=={'coding': 'latin1', 'x': 'b', 'sniff_method' : 'stars'}
+    True
+    
+An exception to this is the variable mode, which is a list that will be
+appended to::
+
+    >>> v=preSniff('', '-*- mode: stx; mode: wrap; coding: latin1; -*-\n', '')[0]
+    >>> v=={'coding': 'latin1', 'mode': ['stx', 'wrap'], 'sniff_method' : 'stars'}
+    True
+    
+Note the ``sniff_method`` setting is ``"stars"``. This is so that later
+it is possible to tell which method of sniffing succeeded.
+
+If there is no stars line, ``preSniff`` next checks if the file starts
+with a ``#!`` line. If it does, the module ``__tmacs__`` is consulted.
+If it contains a dictionary named sniff_shells, it is assumed to be a
+dictionary mapping the remainder of the first line to a dictionary of
+settings. For example::
+
+    >>> import __tmacs__
+    >>> __tmacs__.default_coding = 'utf8'
+    >>> __tmacs__.sniff_shells = {
+    ...     '/bin/sh' : {'mode' : ['sh']},
+    ...     '/usr/bin/env python' : {'mode' : ['python'], 'coding' : 'latin1'}
+    ... }
+    >>> v=preSniff('', '#!/usr/bin/env python\n', '')[0]
+    >>> v=={'coding': 'latin1', 'mode': ['python'], 'sniff_method' : 'shell'}
+    True
+    >>> v=preSniff('', '#!/bin/sh\n', 'exit 0\n')[0]
+    >>> v=={'coding': 'utf8', 'mode': ['sh'], 'sniff_method' : 'shell'}
+    True
+
+Note that now ``sniff_method`` is ``"shell"``. Note that stars lines
+prevent even trying to use shell-based settings::
+
+    >>> v=preSniff('', '#!/bin/sh\n', '# -*-c-*-\n')[0]
+    >>> v=={'coding': 'utf8', 'sniff_method' : 'stars', 'mode' : ["c"]}
+    True
+
+***regex here***
+
+If regex-based settings fail, rules based on the filename are tried. 
+``__tmacs__.sniff_extensions``, if it exists, is a list of rules.  Each
+rule is a dictionary.  The dictionary should contain an entry "pattern",
+which is a regular expression for matching a filename.  A trailing ``$``
+is not assumed, in other words, the regex may match anywhere in the
+filename unless explicity specified.
+
+Each rule is consulted in turn. If the regular expression matches the
+filename, the rule is applied. Other elements in the dictionary may be
+"mode", which specifies a mode to be appended, "coding" which specifies
+a coding to be set, "also", which is a dictionary of other values to
+set, and finally "continue". Normally only the first rule is applied. If
+continue is true, the current working filename for matching is stripped of
+the matching part, and rules processing continues. The continue feature is
+similar to the one in GNU Emacs, but maybe it is overkill...
+
+Here are some examples::
+	
+    >>> __tmacs__.sniff_extensions = [
+    ...     {'pattern' : '\\.c', 'mode' : 'c', 'also' : {'x' : 1, 'y' : 2},
+    ...         'continue' : True},
+    ...     {'pattern' : '\\.zot', 'mode' : 'zot', 'also' : {'x' : 3},
+    ...         'continue' : True},
+    ...     {'pattern' : '\\.py', 'mode' : 'python', 'coding' : 'latin1'}
+    ... ]
+    >>> v=preSniff('x.c', '\n', '\n')[0]
+    >>> v=={'coding': 'utf8', 'sniff_method' : 'filename', 'mode' : ["c"],
+    ...     'x' : 1, 'y': 2}
+    True
+    >>> v=preSniff('x.c.zot', '\n', '\n')[0]
+    >>> v=={'coding': 'utf8', 'sniff_method' : 'filename', 'mode' :
+    ...     ['c', 'zot'], 'x' : 3, 'y': 2}
+    True
+    >>> v=preSniff('x.py', '\n', '\n')[0]
+    >>> v=={'coding': 'latin1', 'sniff_method' : 'filename',
+    ...     'mode' : ["python"]}
+    True
+
+*** note other modes override filename
+
+Finally, if a coding has not been otherwise set, various methods are
+tried to discover one. First, if the first or second line of the file
+matches the regex ``coding[:=]\s*([-\w.]+)``, the value of the first
+group will be used. This follows the Python PEP 263 fallback mechanism::
+
+    >>> preSniff('', '// coding: latin2', '')[0]
+    {'coding': 'latin2'}
+    >>> preSniff('', '#!/bin/somesh', '# coding=latin3')[0]
+    {'coding': 'latin3'}
+    
+Next, if a utf8 byte order mark is present, utf8 is assumed::
+
+    >>> __tmacs__.default_coding='latin4'
+    >>> preSniff('', '#!/bin/somesh', '# \xef\xbb\xbf xyz')[0]
+    {'coding': 'utf8'}
+
+Failing that, the value of __tmacs__.default_coding is used:
+
+    >>> v=preSniff('', '#!/bin/somesh\n', '# xyz\n')
+    >>> v[0]
+    {'coding': 'latin4'}
+
+Note how all along we've been looking only at the first returned value.
+The second value is the first two lines of the file, decoded using the
+specified encoding::
+
+    >>> v[1]
+    u'#!/bin/somesh\n# xyz\n'
+
+This is ready to be inserted into the buffer. 

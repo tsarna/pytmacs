@@ -1,7 +1,7 @@
 from keysym_tab import *
 from unicodedata import lookup
 
-def ParseKeyDef(k):
+def ParseKeySym(k):
     r = []
 
     while k:
@@ -40,7 +40,7 @@ def ParseKeyDef(k):
     return u''.join(r)
 
 
-def ReprKeyDef(u):
+def ReprKeySym(u):
     r = []
     
     for b in u:

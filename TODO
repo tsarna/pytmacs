@@ -1,11 +1,29 @@
+sniff:
+	regex
+	postSniff
+	safe eval?
+	
+implement tclayer write w/ unicode encode
+
+test for uniqify
+
+start unicode .txt/tests
+
+init from unicode
+init w/o unicode
+
+implement str
+implement length
+implement grow
+implement gapto
+subscript
+delslice
+insert
+ass_subscript
+
+
+
+
+
 write keysyms repr doctests
-
-write arrow compensator
-
-write output funcs
-write init and end (TI/TE)
-
-write timeout logic
-
 write termioscap description
-
