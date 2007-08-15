@@ -1,0 +1,136 @@
+==================
+TMACS Input System
+==================
+
+:Author: Ty Sarna
+
+.. contents ::
+
+Input
+-----
+
+From the point of view of the application proper, keyboard input comes
+in the form of unicode characters.  Both for regular characters, like
+regular ASCII characters, Unicode "foreign" characters, etc, and for
+control characters.  For control characters like Tab that have a Unicode
+assignment, we use that, for keys that don't (cursors keys, etc), we
+have assigned a mapping using Unicode Private Use Area codes (U+ECxx,
+specifically). 
+
+We do not use, eg Unicode's ``LEFTWARDS ARROW`` character for the left
+cursor key, as it is intended to represent the *symbol* of a left arrow,
+not the key.  If the user is using something like Apple's Terminal.app
+and uses the "Special Characters" menu to find and insert the Unicode
+``LEFTWARDS ARROW``, they expect a left-arrow glyph to be inserted, not
+the cursor to move left. 
+
+Since from the point of view of the application the input is in unicode,
+hitting ``<^Q> <Left>`` will insert a ``U+ECxx`` character, not an
+escape-leftbracket-something that is terminal dependant. 
+
+Keysyms
+-------
+
+To make describing input keys easier, TMACS has the notion of "Keysyms",
+a (unicode) string containing more human-readable descriptions of key
+sequences.  These can be converted back and forth to raw unicode strings.
+This is implemented by a pair of functions in the ``tmacs.ui.keysym``
+module::
+
+    >>> from tmacs.ui.keysym import ParseKeyDef, ReprKeyDef
+
+``ParseKeyDef`` converts the friendly "keysym" form to a regular unicode
+string, and ``ReprKeyDef`` converts back to the friendly form.
+For uninteresting string, the results are uninteresting::
+
+    >>> ParseKeyDef(u'hello!')
+    u'hello!'
+    >>> ReprKeyDef(u'hello!')
+    u'hello!'
+
+Inside square brackets, Unicode characters may be named by hex number in
+a variety of formats::
+
+    >>> ParseKeyDef(u'[U+0327]')
+    u'\u0327'
+    >>> ParseKeyDef(u'[u+0327]')
+    u'\u0327'
+    >>> ParseKeyDef(u'[U0327]')
+    u'\u0327'
+    >>> ParseKeyDef(u'[u0327]')
+    u'\u0327'
+    >>> ParseKeyDef(u'[0327]')
+    u'\u0327'
+    >>> ParseKeyDef(u'[327]')
+    u'\u0327'
+    >>> ParseKeyDef(u'[U+327]')
+    u'\u0327'
+
+Characters also may be named by the Unicode character name (case doesn't
+matter)::
+
+    >>> ParseKeyDef(u'[COMBINING CEDILLA]')
+    u'\u0327'
+    >>> ParseKeyDef(u'[Combining Cedilla]')
+    u'\u0327'
+    >>> ParseKeyDef(u'[combining cedilla]')
+    u'\u0327'
+
+TMACS also defines its own names for somecharacters, namely control
+characters and for the ``U+ECxx`` cursor and control keys characters it
+defines::
+
+    >>> ParseKeyDef(u'<Left>')
+    u'\uec42'
+    >>> ParseKeyDef(u'<Esc>')
+    u'\x1b'
+
+Like the others, these names are also case-insensitve::
+
+    >>> ParseKeyDef(u'<SPACE>')
+    u' '
+    >>> ParseKeyDef(u'<^j>')
+    u'\n'
+
+Because the square and angle brackets are used for these purposes in
+keysyms, there are also special names for them::
+
+    >>> ParseKeyDef(u'<[>')
+    u'['
+    >>> ParseKeyDef(u'<]>')
+    u']'
+    >>> ParseKeyDef('<lt>')
+    u'<'
+    >>> ParseKeyDef('<gt>')
+    u'>'
+    
+Of course, trying to use the special characters alone won't work::
+
+    >>> ParseKeyDef(u'<')
+    Traceback (most recent call last):
+        ...
+    ValueError: Unterminated <> key symbol
+    >>> ParseKeyDef(u'[')
+    Traceback (most recent call last):
+        ...
+    ValueError: Unterminated [] key symbol
+    
+repr
+
+
+bInput Chain
+-----------
+
+The input side works like this::
+
+    (...Something...)-->TermioscapInput--->UI
+
+Something at a lower level interfaces with the event loop.  reads raw
+input bytes and other events and sends them to the platform-specific
+TermioscapInput module, which runs a state machine to translate them to
+calls to an input method on WindowSystem as Unicode characters. 
+WindowSystem is the first platform-independant part of the input chain,
+and it is intended that stuff to the "left" of it would be replaced with
+something else in a non-Unix/TTY "platform". 
+
+

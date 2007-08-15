@@ -1,0 +1,11 @@
+write keysyms repr doctests
+
+write arrow compensator
+
+write output funcs
+write init and end (TI/TE)
+
+write timeout logic
+
+write termioscap description
+
