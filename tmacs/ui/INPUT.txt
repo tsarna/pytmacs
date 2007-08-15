@@ -37,80 +37,80 @@ sequences.  These can be converted back and forth to raw unicode strings.
 This is implemented by a pair of functions in the ``tmacs.ui.keysym``
 module::
 
-    >>> from tmacs.ui.keysym import ParseKeyDef, ReprKeyDef
+    >>> from tmacs.ui.keysym import ParseKeySym, ReprKeySym
 
-``ParseKeyDef`` converts the friendly "keysym" form to a regular unicode
-string, and ``ReprKeyDef`` converts back to the friendly form.
+``ParseKeySym`` converts the friendly "keysym" form to a regular unicode
+string, and ``ReprKeySym`` converts back to the friendly form.
 For uninteresting string, the results are uninteresting::
 
-    >>> ParseKeyDef(u'hello!')
+    >>> ParseKeySym(u'hello!')
     u'hello!'
-    >>> ReprKeyDef(u'hello!')
+    >>> ReprKeySym(u'hello!')
     u'hello!'
 
 Inside square brackets, Unicode characters may be named by hex number in
 a variety of formats::
 
-    >>> ParseKeyDef(u'[U+0327]')
+    >>> ParseKeySym(u'[U+0327]')
     u'\u0327'
-    >>> ParseKeyDef(u'[u+0327]')
+    >>> ParseKeySym(u'[u+0327]')
     u'\u0327'
-    >>> ParseKeyDef(u'[U0327]')
+    >>> ParseKeySym(u'[U0327]')
     u'\u0327'
-    >>> ParseKeyDef(u'[u0327]')
+    >>> ParseKeySym(u'[u0327]')
     u'\u0327'
-    >>> ParseKeyDef(u'[0327]')
+    >>> ParseKeySym(u'[0327]')
     u'\u0327'
-    >>> ParseKeyDef(u'[327]')
+    >>> ParseKeySym(u'[327]')
     u'\u0327'
-    >>> ParseKeyDef(u'[U+327]')
+    >>> ParseKeySym(u'[U+327]')
     u'\u0327'
 
 Characters also may be named by the Unicode character name (case doesn't
 matter)::
 
-    >>> ParseKeyDef(u'[COMBINING CEDILLA]')
+    >>> ParseKeySym(u'[COMBINING CEDILLA]')
     u'\u0327'
-    >>> ParseKeyDef(u'[Combining Cedilla]')
+    >>> ParseKeySym(u'[Combining Cedilla]')
     u'\u0327'
-    >>> ParseKeyDef(u'[combining cedilla]')
+    >>> ParseKeySym(u'[combining cedilla]')
     u'\u0327'
 
-TMACS also defines its own names for somecharacters, namely control
-characters and for the ``U+ECxx`` cursor and control keys characters it
+TMACS also defines its own names for some characters, namely control
+characters and for the ``U+ECxx`` cursor and control key characters it
 defines::
 
-    >>> ParseKeyDef(u'<Left>')
+    >>> ParseKeySym(u'<Left>')
     u'\uec42'
-    >>> ParseKeyDef(u'<Esc>')
+    >>> ParseKeySym(u'<Esc>')
     u'\x1b'
 
 Like the others, these names are also case-insensitve::
 
-    >>> ParseKeyDef(u'<SPACE>')
+    >>> ParseKeySym(u'<SPACE>')
     u' '
-    >>> ParseKeyDef(u'<^j>')
+    >>> ParseKeySym(u'<^j>')
     u'\n'
 
 Because the square and angle brackets are used for these purposes in
 keysyms, there are also special names for them::
 
-    >>> ParseKeyDef(u'<[>')
+    >>> ParseKeySym(u'<[>')
     u'['
-    >>> ParseKeyDef(u'<]>')
+    >>> ParseKeySym(u'<]>')
     u']'
-    >>> ParseKeyDef('<lt>')
+    >>> ParseKeySym('<lt>')
     u'<'
-    >>> ParseKeyDef('<gt>')
+    >>> ParseKeySym('<gt>')
     u'>'
     
 Of course, trying to use the special characters alone won't work::
 
-    >>> ParseKeyDef(u'<')
+    >>> ParseKeySym(u'<')
     Traceback (most recent call last):
         ...
     ValueError: Unterminated <> key symbol
-    >>> ParseKeyDef(u'[')
+    >>> ParseKeySym(u'[')
     Traceback (most recent call last):
         ...
     ValueError: Unterminated [] key symbol
@@ -118,7 +118,7 @@ Of course, trying to use the special characters alone won't work::
 repr
 
 
-bInput Chain
+Input Chain
 -----------
 
 The input side works like this::

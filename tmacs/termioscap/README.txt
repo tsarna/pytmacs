@@ -12,4 +12,6 @@ Module
 the ``tmacs.termioscap`` module needs more documentation than this::
 
     >>> from tmacs.termioscap import TCLayer
-    >>> t = TCLayer(0)
+    >>> import os
+    >>> fd = os.open('/dev/null', os.O_RDWR)
+    >>> t = TCLayer(fd)

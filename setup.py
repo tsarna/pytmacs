@@ -17,6 +17,9 @@ extensions = [
 #        define_macros=[('XML_STATIC',1),('HAVE_MEMMOVE',1)]   # XXX
         libraries=['termcap'],
     ),
+    Extension("tmacs.edit.ubuf",
+        ["tmacs/edit/ubuf.c"]
+    ),
 ]
 
 setup(

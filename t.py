@@ -18,11 +18,17 @@ class T(object):
     def send(self, x):
         print "sent: %s (%d)" % (`x`, len(x))
 
+
+class reactor:
+    def addReader(self, r):
+        pass
+        
 g = T()
 
 fd = os.open('/dev/null', os.O_RDWR)
 
-t = TCLayer(fd, g)
+t = TCLayer(fd, g, reactor())
+t = TCLayer(fd, g, reactor())
 
 t.send('A\x1bOAA\x1b')
 print
