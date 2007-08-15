@@ -18,7 +18,7 @@ extensions = [
         libraries=['termcap'],
     ),
     Extension("tmacs.edit.ubuf",
-        ["tmacs/edit/ubuf.c", "tmacs/edit/ubuf.c"]
+        ["tmacs/edit/ubuf.c", "tmacs/edit/marker.c"]
     ),
 ]
 

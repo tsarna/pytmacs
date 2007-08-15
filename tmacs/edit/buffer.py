@@ -1,54 +1,100 @@
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
+from tmacs.edit.ubuf import ubuf
 import __tmacs__
 
-
-try:
-    __tmacs__.buffers
-except:
+if not hasattr(__tmacs__, "buffers"):
     __tmacs__.buffers = {}
 
-_protected_attr = {
-    'name' : 1,
-    'dirname' : 1,
-    'filename' : 1
-}.has_key    
-
-
-class FakeBuffer(object):
-    buf = u""
+class Buffer(ubuf):
+    # settings defaults
+    fill_column = 78
+    tab_stop = 8
+    softspace = 0       # used by python "print" statement
+    # start_line = 0    # line for editing to start on set
+                        # by +nn args on command line
     
-    def append(self, txt):
-        self.buf = self.buf + txt
-
-    def __str__(self):
-        return self.buf
-
-    def __len__(self):
-        return len(self.buf)
+    def __init__(self, name, *args, **kw):
+        self._set_name(name)
         
-    def __setitem__(self, i, v):
-        self.buf = u''        
-        
-    def __delitem__(self, i):
-        self.buf = u''   
+        if not kw.has_key('encoding'):
+            kw['encoding'] = getattr(__tmacs__, 'default_encoding', 'utf8')
 
+        apply(super(Buffer, self).__init__, args, kw)
 
+    ### special attributes
     
-class Buffer(FakeBuffer):
-    def __init__(self, name):
-        buffers = __tmacs__.buffers
-        if buffers.has_key(name):
-            raise KeyError, "buffer named '%s' already exists" % name
+    def _get_name(self):
+        return self.__dict__['name']
+
+    def _set_name(self, newname):
+        oldname = self.__dict__.get('name')
+        bl = __tmacs__.buffers
+        if newname == oldname:
+            pass
+        elif bl.has_key(newname):
+            raise KeyError, 'Already a buffer named "%s"' % newname
+        else:
+            if oldname is not None:
+                del bl[oldname]
+            bl[newname] = self
+            self.__dict__['name'] = newname
+
+    name = property(_get_name, _set_name)
+
+    ### File-like interface
+    
+    def flush(self):
+        """A no-op, part of the file-like interface)"""
+        pass
+    
+    def write(self, text):
+        """Alias for append(), part of the file-like interface"""
+        return self.append(text)
         
-        self.name = name
-        buffers[name] = self
+    def writelines(self, aniter):
+        """Write each item in iter in turn (file-like interface)"""
+        for x in aniter:
+            self.write(x)
 
-        self.coding = __tmacs__.default_coding
+    ### Misc functions
+    
+    def execute(self):
+        exec self[:] in __tmacs__.__dict__
 
-    def loadFile(self, filename, coding=None, nofileok=False):
-        self.dirname = os.path.dirname(filename)
-        self.filename = os.path.basename(filename)
+    def get_display_name(self):
+        dn = getattr(self, 'filename', '')
+        if not dn:
+            dn = getattr(self, 'display_name', '')
+            if dn:
+                dn = '[%s]' % dn
+        return dn
+            
+    def next_buffer(self):
+        names = __tmacs__.buffers.keys()
+        names.sort()
+        newname = names[(names.index(self.name) + 1) % len(names)]
+        return __tmacs__.buffers[newname]
+
+    ### File operations
+            
+    def save(self, filename=None):
+        if filename is not None:
+            self.filename = filename
+        else:
+            filename = getattr(self, 'filename', None)
+
+        if filename is None:
+            raise IOError, "no filename to save"
+
+        f = open_for_write(self, filename)
+        f.write(self[:])
+        f.close()
+        
+        self.changed = False
+                
+    def load(self, filename, encoding=None, nofileok=False):
+        self.filename = filename
         
         try:
             f = open(filename, 'r')
@@ -60,17 +106,17 @@ class Buffer(FakeBuffer):
             else:
                 raise
 
-        self[:] = u''
+        del self[:]
         
         vars, top = preSniff(self.filename, l1, l2)
         
-        if coding:
-            vars['coding'] = coding
+        if encoding:
+            vars['encoding'] = encoding
             
         if f is not None:
             self.append(top)
 
-            for data in codecs.iterdecode(f, vars['coding']):
+            for data in codecs.iterdecode(f, vars['encoding']):
                 self.append(data)
 
             # postSniff(self, vars, self[-3036:])
@@ -102,7 +148,7 @@ def uniqify(n):
     
 
 
-def loadFile(filename, bufname=None, coding=None):
+def loadFile(filename, bufname=None, encoding=None):
     if bufname is None:
         fn = bufname = os.path.basename(filename)
 
@@ -110,12 +156,12 @@ def loadFile(filename, bufname=None, coding=None):
         bufname = uniqify(bufname)
         
     b = Buffer(bufname)
-    b.loadFile(filename, coding=coding, nofileok=True)
+    b.loadFile(filename, encoding=encoding, nofileok=True)
         
     return b
 
 
-def findBuffer(name):
+def find_buffer(name):
     b = __tmacs__.buffers.get(name)
     if b is None:
         b = Buffer(name)
@@ -131,35 +177,49 @@ def _bufnamecmp(a, b):
         return 1
     else:
         return -1
-     
-def makeBufferList():
+
+
+def make_buffer_list():
     l = []
     
     for n, b in __tmacs__.buffers.items():
-        modes = ','.join(getattr(b, 'modes', ['-'])) # XXX
+        f = " %"[b.read_only]
+        f += " *"[b.changed]
         
         l.append([
-            n, str(len(b)), modes, getattr(b, 'filename', ''),
-            getattr(b, 'coding', ''), getattr(b, 'dirname', '')
+            f + n, str(len(b)),
+            getattr(b, 'encoding', ''),
+            b.get_display_name()
         ])
         
     l.sort(cmp=_bufnamecmp)
-    l.insert(0, ['Name', 'Size', 'Modes', 'Filename', 'Coding', 'Directory'])
+    l.insert(0, ['  Buffer', 'Size', 'Enc', 'File'])
     
     dl = []
     for c in range(len(l[0])):
         dl.append(max([len(x[c]) for x in l]))
     
     for r in l:
-        for c in range(len(r)):
-            r[c] = r[c].ljust(dl[c])
+        for c in range(len(r)-1):
+            if c == 1: # size column
+                r[c] = r[c].rjust(dl[c])
+            else:            
+                r[c] = r[c].ljust(dl[c])
             
     dl = ['-' * x for x in dl]
     l.insert(1, dl)
     
-    b = findBuffer('__buffers__')
-    b[:] = u""
-    b.append(u'\n'.join([u' '.join(x) for x in l]))
+    b = find_buffer('__buffers__')
+    
+    b[:] = u'\n'.join([u' '.join(x) for x in l])
 
-    return b        
+    b.changed = False
+    b.display_name = 'List of Buffers'
+    
+    return b 
         
+
+
+def open_for_write(buffer, filename):
+    f = open(filename, 'w', encoding=buffer.encoding)
+

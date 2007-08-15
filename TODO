@@ -1,3 +1,27 @@
+ubuf:
+	textarg		from ubuf
+	.borrow()	with args
+	dealloc		point uobj to full memory
+	
+	efficient grow
+
+Buffer:
+	tests:
+		.save()
+		display name, filename
+
+	.filter()
+	.load()
+	redo write_file based on iterator of buffer
+	del_buffer()
+	.set()
+	rework sniff based on set
+	
+	illegal-attributes:
+		closed
+		softspace
+		display_name
+
 sniff:
 	regex
 	postSniff
@@ -5,25 +29,7 @@ sniff:
 	
 implement tclayer write w/ unicode encode
 
-test for uniqify
-
-start unicode .txt/tests
-
-init from unicode
-init w/o unicode
-
-implement str
-implement length
-implement grow
-implement gapto
-subscript
-delslice
-insert
-ass_subscript
-
-
-
-
-
 write keysyms repr doctests
 write termioscap description
+
+

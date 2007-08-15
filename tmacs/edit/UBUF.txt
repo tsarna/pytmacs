@@ -1,6 +1,6 @@
-===============
-Unicode Buffers
-===============
+==========================
+Unicode Buffer-Gap Buffers
+==========================
 
 :Author: Ty Sarna
 
@@ -12,5 +12,299 @@ Basics
 Unicode buffer-gap object implemented in C are provided by the 
 ``tmacs.edit.ubuf`` module::
 
-    >>> from tmacs.edit.ubuf import UBuf
+    >>> from tmacs.edit.ubuf import ubuf
+
+They can be initialized empty, or with a provided unistring, and len()
+works as expected::
+
+    >>> u = ubuf()
+    >>> len(u)
+    0
+    >>> del u
+    >>> u = ubuf(u"Hello")
+    >>> len(u)
+    5
+
+Simple subscripting works on a ubuf, and returns a new unicode string
+with a copy of the referenced character. Negative indexes work as
+expected (counting from the right side) and out-of-range indexes throw
+IndexError::
+
+    >>> u[1]
+    u'e'
+    >>> u[-1]
+    u'o'
+    >>> u[2] == u[-2]
+    True
+    >>> u[42]
+    Traceback (most recent call last):
+	...
+    IndexError: index out of range
+
+Ranges (slices) also work as expected::
+
+    >>> u[1:3]
+    u'el'
+    >>> u[1:-1]
+    u'ell'
+    >>> u[3:1]
+    u''
+    >>> u[:]
+    u'Hello'
+
+Except that steps other than 1 are disallowed::
+
+    >>> u[::-1]
+    Traceback (most recent call last):
+	...
+    IndexError: only a step of 1 is supported
+
+Slices can also be set, either replacing text with the same size::
+
+    >>> u[0] = u"h"
+    >>> u[:]
+    u'hello'
+
+Or replaced with something smaller::
+
+    >>> u[1:-1] = u"ih"
+    >>> len(u)
+    4
+
+The curious can examine the gap result (for debugging only)::
+
+    >>> u.gapstart, u.gapsize
+    (3, 1)
+
+We can see the result on the buffer::
+
+    >>> u[:]
+    u'hiho'
+
+Note how retrieving the text moved the gap::
+
+    >>> u.gapstart, u.gapsize
+    (4, 1)
+
+Or we can add something larger, that doesn't grow past the original size::
+
+    >>> u[:-1] = u'Hell'
+    >>> u[:]
+    u'Hello'
+    
+Or that does, causing the buffer to grow::
+
+    >>> u[len(u):] = u" World"
+    >>> len(u)
+    11
+    >>> u[:]
+    u'Hello World'
+
+append(x) is a shorthand for u[len(u):] = x::
+
+    >>> u.append(u"!\n")
+    >>> u[:]
+    u'Hello World!\n'
+    
+Deleting a slice also works::
+
+    >>> u.gapstart, u.gapsize
+    (13, 62)
+    >>> del u[5]
+    >>> u.gapstart, u.gapsize
+    (5, 63)
+    >>> u[:]
+    u'HelloWorld!\n'
+    >>> u.gapstart, u.gapsize
+    (12, 63)
+    >>> del u[3:6]
+    >>> u.gapstart, u.gapsize
+    (3, 66)
+    >>> u[:]
+    u'Helorld!\n'
+
+ 
+
+Encoding, and Strings as Replacement Text
+-----------------------------------------
+
+There is an "encoding" attribute of ubuf objects, which is a string that
+represents the default encoding when converting to/from byte strings. It
+defaults to "utf8", but may be changed (though not deleted)::
+
+    >>> u = ubuf()
+    >>> u.encoding
+    'utf8'
+    >>> u.encoding = 'latin1'
+    >>> u.encoding
+    'latin1'
+    >>> del u.encoding
+    Traceback (most recent call last):
+	...
+    TypeError: Cannot delete the encoding attribute
+
+Although we showed using unicode objects are replacement text above,
+regular strings (str objects) may also be used, and will be decoded
+using codec specified by "encoding" attribute::
+
+    >>> u.append("Hello World")
+    >>> u[:]
+    u'Hello World'
+    >>> u[5:6] = " There "
+    >>> u[:]
+    u'Hello There World'
+
+A buffer may also be initialized from a string::
+
+    >>> u = ubuf("Hello World")
+    >>> u[:]
+    u'Hello World'
+
+Let's demonstrate that the encoding attribute works::
+
+    >>> u.encoding = 'utf16'
+    >>> u[:] = '\xff\xfeH\x00e\x00l\x00l\x00o\x00'
+    >>> u[:]
+    u'Hello'
+
+A ubuf may also be created with a specified encoding::
+
+    >>> u = ubuf('\xff\xfeH\x00o\x00w\x00d\x00y\x00', encoding='utf16')
+    >>> u[:]
+    u'Howdy'
+
+
+Read-Only Flag
+--------------
+
+A Buffer has an attribute that marks it as read-only, defaulting off::
+
+    >>> u = ubuf(u"This is a test buffer")
+    >>> u.read_only
+    False
+
+While the flag is off the buffer may be modified, but if the flag is set
+an error will be thrown::
+
+    >>> u.append(u", which may be modified")
+    >>> u[:]
+    u'This is a test buffer, which may be modified'
+    >>> u.read_only = True
+    >>> u[33:33] = u"not "
+    Traceback (most recent call last):
+	...
+    ReadOnlyBufferError: buffer is read-only
+    >>> u[:]
+    u'This is a test buffer, which may be modified'
+
+The read-only flag may be set to any true or false value, but only the
+truth or falsehood will be remembered:
+
+    >>> u.read_only = ""
+    >>> u.read_only
+    False
+    >>> u.read_only = 1 + 3j
+    >>> u.read_only
+    True
+
+Once the flag is turned off the buffer may be modified again::
+
+    >>> u.read_only = False
+    >>> u.append(u'.')
+    >>> u[:]
+    u'This is a test buffer, which may be modified.'
+
+However, the attribute may never be deleted::
+
+    >>> del u.read_only
+    Traceback (most recent call last):
+	...
+    TypeError: Cannot delete the read_only attribute
+    
+
+Changed Flag
+------------
+
+A Buffer has an attribute that marks it as having changed, defaulting off::
+
+    >>> u = ubuf(u"This is a test buffer")
+    >>> u.changed
+    False
+
+Changes to the buffer set the flag, and it will remain set until cleared::
+
+    >>> u.append(u".")
+    >>> u[:]
+    u'This is a test buffer.'
+    >>> u.changed
+    True
+    >>> u[-1] = u"!"
+    >>> u[:]
+    u'This is a test buffer!'
+    >>> u.changed
+    True
+    >>> u.changed = False
+    >>> u.changed
+    False
+
+Whereupon further modifcations will set it again::
+
+    >>> u[-1] = u"?"
+    >>> u[:]
+    u'This is a test buffer?'
+    >>> u.changed
+    True
+
+The flag may be also be set manually, and like the Read-Only flag only
+the truth value of the flag is remembered, but it may not be deleted::
+
+    >>> u.changed = []
+    >>> u.changed
+    False
+    >>> u.changed = {1:2}
+    >>> u.changed
+    True
+    >>> del u.changed
+    Traceback (most recent call last):
+	...
+    TypeError: Cannot delete the changed attribute
+
+
+Borrowing/Loaning
+-----------------
+    
+A ubuf can be temporarily and efficiently converted to a unicode object. 
+This works by sharing the same underlying buffer memory as the buffer,
+and thus is very quick, but it also means that the ubuf must be made
+read-only for the duration.  While the unicode object returned has
+outstanding references, the buffer is considered "loaned". The operation
+of getting the loaned memory is called "borrowing".
+
+A ubuf has a loaned flag.  It is mainly intended for debugging and
+should not be used normally, but it is useful for illustrating the
+loaned state so we'll describe it here::
+
+    >>> u = ubuf(u"Hello")
+    >>> u.loaned
+    False
+    >>> u.borrow()
+    u'Hello'
+    >>> u.loaned
+    True
+
+Even though the reference to the unicode was dropped after it was
+printed, the loaned flag remains in effect. The next time a modification
+to the ubuf is attempted the unicode object will be checked for
+outstanding references and if none are left, only then will the loaned
+flag be reset. The loaned flag may not be changed manually:
+
+    >>> u.loaned = False
+    Traceback (most recent call last):
+	...
+    AttributeError: attribute is not writeable
+    >>> del u.loaned
+    Traceback (most recent call last):
+	...
+    AttributeError: attribute is not writeable
+
 
