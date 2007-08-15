@@ -1,0 +1,32 @@
+=========================
+Misc tmacs.edit functions
+=========================
+
+:Author: Ty Sarna
+
+.. contents ::
+
+Uniqify
+-------
+
+A utility function ``uniqify()`` is present in the tmacs.edit.buffer module
+and is used to generate unique buffer names, by appending a ``0`` if
+there is no number at the end, or incrementing it if there is::
+
+    >>> from tmacs.edit.buffer import uniqify
+    >>> uniqify('foo')
+    'foo0'
+    >>> uniqify('foo0')
+    'foo1'
+    >>> uniqify('foo1')
+    'foo2'
+    >>> uniqify('foo9')
+    'foo10'
+    >>> uniqify('foo99')
+    'foo100'
+
+Note it only recognizes non-negative numbers::
+
+    >>> uniqify('foo-1')
+    'foo-2'
+

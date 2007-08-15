@@ -1,0 +1,28 @@
+ubuf:
+	.changed	False
+	.encoding	"utf8"
+	.read_only	False
+	.loaned		False
+	.gapstart	int
+	.gaplen		in
+
+	.append()
+
+Buffer:
+	.tab_stop	8
+	.softspace	0
+
+	.write()
+	.writelines()
+	.flush() 	nop
+	.tell()
+	.truncate(size)
+
+	illegal-attributes:
+		closed
+		softspace
+
+
+
+AttributeError: attribute 'closed' of 'file' objects is not writable
+

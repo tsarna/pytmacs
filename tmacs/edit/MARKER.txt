@@ -1,0 +1,97 @@
+==================
+Buffer-Gap Markers
+==================
+
+:Author: Ty Sarna
+
+.. contents ::
+
+Basics
+------
+
+Markers for the ``ubuf`` Unicode buffer-gap objects are provided by the 
+``tmacs.edit.ubuf`` module::
+
+    >>> from tmacs.edit.ubuf import marker, ubuf
+
+A marker is only really useful when connected with a buffer. A marker
+may be created linked to one::
+
+    >>> b = ubuf(u"Hello World")
+    >>> m = marker(b)
+    >>> m.buffer is b
+    True
+    
+or may be created separately then linked::
+
+    >>> m2 = marker()
+    >>> print m2.buffer
+    None
+    >>> m2.buffer = b
+    >>> m2.buffer is b
+    True
+    
+a buffer may be linked to a different buffer as well, although this is
+of limited usefulness::
+
+    >>> b2 = ubuf()
+    >>> m2.buffer = b2
+    >>> m2.buffer is b
+    False
+    >>> m2.buffer is b2
+    True
+
+There is a weak-reference-like type of relationship between buffers and
+markers. If a buffer is deleted, markers that were associated with it
+become unlinked::
+
+    >>> del b2
+    >>> print m2.buffer
+    None
+    
+likewise if a marker is deleted, the buffer will no longer reference it,
+although the reference from the buffer side is not exposed::
+
+    >>> del m
+
+
+Marker Positions
+----------------
+
+The purpose of a marker is to indicate a position or range of positions
+in a buffer. A marker may be initialze with start and end positions if
+it is initialized with a buffer::
+
+    >>> m = marker(b, 1, 4)
+    >>> m.start, m.end
+    (1, 4)
+
+The positions may be set directly::
+
+    >>> m.start = 2
+    >>> m.start
+    2
+
+Negative numbers may be used, to count from the end, and out of range
+numbers are silently clipped::
+
+    >>> m.end = -5
+    >>> m.end
+    6
+    >>> m.start = -100
+    >>> m.start
+    0
+    >>> m.end = 400
+    >>> m.end
+    11
+    
+The end is always forced to be at or after the start::
+
+    >>> m.start = 5
+    >>> m.end = 2
+    >>> m.end
+    5
+    >>> m.start = 7
+    >>> m.end
+    7
+
