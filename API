@@ -1,0 +1,164 @@
+Buffer				API
+
+change-file-name         ^XN	Buffer.filename=
+write-file               ^X^W			.save(xxx)
+unmark-buffer            M-~	Buffer.changed=
+filter-buffer            ^X#			.filter()
+name-buffer              M-^N	Buffer.name=
+read-file                ^X^R			.load()
+set-fill-column          ^XF	Buffer.fill_column=
+save-file                ^X^S			.save()
+delete-buffer            ^XK			del_buffer()
+list-buffers             ^X^B	tmacs.edit.buffer.make_buffer_list()
+execute-buffer			Buffer.execute()
+next-buffer              ^XX	Buffer.next_buffer()		
+
+CURSOR MOVEMENT
+
+backward-character       ^B
+forward-character        ^F
+beginning-of-file        M-<
+end-of-file              M->
+beginning-of-line        ^A
+end-of-line              ^E
+goto-line                M-G
+next-word                M-F
+previous-word            M-B
+goto-matching-fence      M-^F
+next-line                ^N
+previous-line            ^P
+next-paragraph           M-N
+previous-paragraph       M-P
+
+CURSOR METHODS
+
+case-word-capitalize     M-C
+case-word-lower          M-L
+case-word-upper          M-U
+delete-next-character    ^D
+delete-next-word         M-D
+delete-previous-character^H
+delete-previous-word     M-^H
+trim-line                ^X^T
+detab-line               ^X^D
+entab-line
+fill-paragraph           M-Q
+insert-file              ^X^I
+insert-space             ^C
+insert-string
+newline                  ^M
+newline-and-indent       ^J
+open-line                ^O
+handle-tab               ^I
+transpose-characters     ^T
+
+SEARCHING
+
+hunt-backward
+hunt-forward
+incremental-search       ^XS
+search-forward           ^S
+search-reverse           ^R
+
+REGION
+
+case-region-lower        ^X^L
+case-region-upper        ^X^U
+copy-region              M-W
+count-words              M-^C
+delete-blank-lines       ^X^O
+
+VIEW
+
+exchange-point-and-mark  ^X^X
+set-mark                 M- 
+buffer-position          M-^[
+
+UI
+
+abort-command            ^G
+change-screen-size
+change-screen-width
+clear-and-redraw         ^L
+clear-message-line
+delete-other-windows     ^X1
+delete-window            ^X0
+universal-argument       ^U
+exit-emacs               ^X^C
+grow-window              ^X^
+meta-prefix              ^]
+move-window-down         ^X^N
+move-window-up           ^X^P
+next-window              ^XO
+previous-window          ^XP
+quick-exit               M-Z
+resize-window            ^XW
+restore-window
+split-current-window     ^X2
+shrink-window            ^X^Z
+save-window
+update-screen
+next-page                ^V
+previous-page            M-V
+
+MODES
+
+add-global-mode          M-M
+add-mode                 ^XM
+delete-global-mode       M-^M
+delete-mode              ^X^M
+
+INFORMATIONAL
+
+apropos                  M-A
+
+UNKNOWN
+
+back-from-tag-word       M-^T
+
+MACROS
+
+begin-macro              ^X(
+end-macro                ^X)
+execute-macro            ^XE
+execute-macro-1..40
+store-macro
+
+BINDINGS
+
+bind-to-key              M-K
+ctlx-prefix              ^X
+unbind-key               M-^K
+describe-bindings
+describe-key             ^X?
+
+UNSORTED
+
+execute-command-line
+execute-file
+execute-named-command    M-X
+find-file                ^X^F
+help                     M-?
+i-shell
+kill-paragraph           M-^W
+kill-region              ^W
+kill-to-end-of-line      ^K
+nop                      M-FNC
+pipe-command             ^X@
+query-replace-string     M-^R
+quote-character          ^Q
+re-tag-word
+redraw-display           M-^L
+replace-string           M-R
+reverse-incremental-search^XR
+scroll-next-down         M-^V
+scroll-next-up           M-^Z
+select-buffer            ^XB
+set                      ^XA
+shell-command            ^X!
+suspend-emacs            ^XD
+tag-word                 M-T
+view-file                ^X^V
+wrap-word                M-FNW
+write-message
+yank                     ^Y

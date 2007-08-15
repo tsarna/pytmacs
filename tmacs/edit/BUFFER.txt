@@ -1,0 +1,169 @@
+==============
+Editor Buffers
+==============
+
+:Author: Ty Sarna
+
+.. contents ::
+
+Basics
+------
+
+Editor buffers are implemented in the ``tmacs.edit.buffer`` module::
+
+    >>> from tmacs.edit.buffer import *
+
+XXX ubuf basics
+
+File-Like Interface
+-------------------
+
+Buffer objects implement a subset of the file-like interface. Because
+buffers have no cursor position by themselves, the current file position
+is always treated as the end of file. Reading is thus not useful, and
+only the output part of the file-like interface is emulated. Still, this
+is useful for building up text in buffers with code that expects a
+writeable file-like.
+
+Let's explore the interface provided. The ``write`` method is simply an
+alias for ``append``, and supports unicode or regular strings. While on
+a regular file-like the "encoding" attribute specifies how unicode will
+be encoded as written, here the opposite is true, and it specified how
+strings written will be decoded into unicode before appending::
+
+    >>> b = Buffer('test-file-like')
+    >>> b.write("Hello")
+    >>> b.encoding = 'utf16'
+    >>> b.write('\xff\xfe \x00W\x00o\x00r\x00l\x00d\x00')
+    >>> b.encoding = 'utf8'
+    >>> b.write(u"!")
+    >>> b[:]
+    u'Hello World!'
+
+The ``writelines()`` method is also supported::
+
+    >>> b.writelines(["\n", u"How ", "are ", u"you?"])
+    >>> b[:]
+    u'Hello World!\nHow are you?'
+
+The ``flush()`` method is provided as a no-op::
+
+    >>> b.flush()
+
+Because the buffer supports a ``softspace`` attribute and ``write()``,
+the print statement may be used to append to a buffer::
+
+    >>> b2 = Buffer('file-like-2')
+    >>> b2.softspace
+    0
+    >>> print >>b2, u"Hello",
+    >>> b2.softspace
+    1
+    >>> print >>b2, "world!"
+    >>> b2.softspace
+    0
+    >>> b2[:]
+    u'Hello world!\n'
+
+
+Executing A Buffer
+------------------
+
+The ``exec()`` method runs the contents of a buffer as python code.
+The code is run as if at the global scope in the __tmacs__ module::
+
+    >>> b = Buffer('exec-test')
+    >>> print >>b, "print 'Hello, World!'"
+    >>> print >>b, "test_variable = 42"
+    >>> b.execute()
+    Hello, World!
+    >>> import __tmacs__
+    >>> __tmacs__.test_variable
+    42
+
+
+Renaming Buffers
+----------------
+
+A buffer may be renamed by setting its name attribute::
+
+    >>> b = find_buffer('file-like-2')
+    >>> b.name = 'renamed'
+    >>> b.name
+    'renamed'
+
+The name may not be changed to the name of an existing buffer::
+ 
+    >>> b.name = 'exec-test'
+    Traceback (most recent call last):
+    ...
+    KeyError: 'Already a buffer named "exec-test"'
+    >>> b.name
+    'renamed'
+
+However we can rename it back now that the original name is no longer used::
+
+    >>> b.name = 'file-like-2'
+    >>> b.name
+    'file-like-2'
+
+Also, changing the name to the name it already has is allowed::
+
+    >>> b.name = 'file-like-2'
+    >>> b.name
+    'file-like-2'
+
+Let's change it again so we can see the name change in later sections::
+
+    >>> b.name = 'file-like-1'
+    >>> b.name
+    'file-like-1'
+
+
+
+Buffer List
+-----------
+
+The ``make_buffer_list`` returns a buffer named ``__buffer__``
+containing a list of the buffers that exist and some details about them::
+
+    >>> from tmacs.edit.buffer import make_buffer_list
+    >>> b = make_buffer_list()
+    >>> print b[:].encode('utf8')
+      Buffer         Size Enc  File
+    ---------------- ---- ---- ----
+     *exec-test        41 utf8
+     *file-like-1      13 utf8
+     *test-file-like   25 utf8
+
+Note that if the buffer already exists, it will be reused::
+
+    >>> b = make_buffer_list()
+    >>> print b[:].encode('utf8')
+      Buffer         Size Enc  File
+    ---------------- ---- ---- -----------------
+      __buffers__     147 utf8 [List of Buffers]
+     *exec-test        41 utf8
+     *file-like-1      13 utf8
+     *test-file-like   25 utf8
+
+
+
+Finding The Next Buffer
+-----------------------
+
+For use with a user-interface command to cycle through buffers, the
+``next_buffer()`` method is provided.  It finds the next buffer in
+alphabetical order or starts back at the first buffer::
+
+    >>> b = find_buffer('file-like-1')
+    >>> print b.name; b = b.next_buffer()
+    file-like-1
+    >>> print b.name; b = b.next_buffer()
+    test-file-like
+    >>> print b.name; b = b.next_buffer()
+    __buffers__
+    >>> print b.name; b = b.next_buffer()
+    exec-test
+    >>> print b.name; b = b.next_buffer()
+    file-like-1
