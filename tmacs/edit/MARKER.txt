@@ -3,6 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
+:Version: $Id: MARKER.txt,v 1.2 2007-08-16 02:12:47 tsarna Exp $
 
 .. contents ::
 
@@ -31,7 +32,7 @@ or may be created separately then linked::
     >>> m2.buffer is b
     True
     
-a buffer may be linked to a different buffer as well, although this is
+a buffer may be relinked to a different buffer as well, although this is
 of limited usefulness::
 
     >>> b2 = ubuf()
@@ -59,7 +60,7 @@ Marker Positions
 ----------------
 
 The purpose of a marker is to indicate a position or range of positions
-in a buffer. A marker may be initialze with start and end positions if
+in a buffer. A marker may be initialized with start and end positions if
 it is initialized with a buffer::
 
     >>> m = marker(b, 1, 4)
@@ -94,4 +95,27 @@ The end is always forced to be at or after the start::
     >>> m.start = 7
     >>> m.end
     7
+
+The len() of a marker is the number of characters spanned (end - start)::
+
+    >>> m.end = 11
+    >>> len(m)
+    4
+    
+Spanning markers (where the start and end differ, spanning a range) are
+only used for change tracking.  Many operations only consider the start
+of a marker and ignore the end or reset it to be the same as the start. 
+The start of a marker may be converted to an int or long, and may be
+used direcly as a slice or subscript index::
+
+    >>> int(m)
+    7
+    >>> long(m)
+    7L
+    >>> b[m]
+    u'o'
+    >>> b[:m]
+    u'Hello W'
+    >>> b[m:]
+    u'orld'
 

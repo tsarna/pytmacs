@@ -1,3 +1,5 @@
+/* $Id: marker.c,v 1.2 2007-08-16 02:12:48 tsarna Exp $ */
+
 #include <Python.h>
 #include <structmember.h>
 
@@ -356,6 +358,18 @@ marker_set_start(marker *self, PyObject *value, void *closure)
 
 
 
+/* Begin marker mapping methods */
+
+static Py_ssize_t
+marker_mp_length(PyObject *self)
+{
+    marker *m = (marker *)self;
+    
+    return m->end - m->start;
+}
+
+
+
 /* Begin marker numeric methods */
 
 static PyObject *
@@ -406,7 +420,7 @@ marker_append(PyObject *selfo, PyObject *args)
 
     Py_XDECREF(tobefreed);
 
-    marker_SET_CHANGED(self);
+    MARKER_SET_CHANGED(self);
     
     Py_RETURN_NONE;
 }
@@ -422,8 +436,10 @@ static PyMethodDef marker_methods[] = {
 };
 
 
-static PyMemberDef marker_members[] = {
-    {NULL,          0,          0,                        0,        NULL}
+static PyMappingMethods marker_mapping = {   
+    marker_mp_length,       /* mp_length        */
+    0,                      /* mp_subscript     */
+    0,                      /* mp_ass_subscript */
 };
 
 
@@ -512,7 +528,7 @@ static PyTypeObject marker_type = {
     0,                          /*tp_repr*/
     &marker_number,             /*tp_as_number*/
     0,                          /*tp_as_sequence*/
-    0,                          /*tp_as_mapping*/
+    &marker_mapping,            /*tp_as_mapping*/
     0,                          /*tp_hash*/
     0,                          /*tp_call*/
     0,                          /*tp_str*/
@@ -528,7 +544,7 @@ static PyTypeObject marker_type = {
     0,                          /*tp_iter*/ 
     0,                          /*tp_iternext*/
     marker_methods,             /*tp_methods*/
-    marker_members,             /*tp_members*/
+    0,                          /*tp_members*/
     marker_getset,              /*tp_getset*/
     0,                          /*tp_base*/
     0,                          /*tp_dict*/

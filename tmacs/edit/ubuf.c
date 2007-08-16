@@ -1,3 +1,5 @@
+/* $Id: ubuf.c,v 1.3 2007-08-16 02:12:48 tsarna Exp $ */
+
 /* 6440931 */
 
 #include <Python.h>
@@ -663,10 +665,6 @@ static PyMethodDef ubuf_module_methods[] = {
 };
 
 
-static PyMemberDef ubuf_members[] = {
-    {NULL,          0,          0,                        0,        NULL}
-};
-
 
 static PyGetSetDef ubuf_getset[] = {
     {"changed",     (getter)ubuf_get_changed,
@@ -743,7 +741,7 @@ PyTypeObject ubuf_type = {
     0,                          /*tp_iter*/ 
     0,                          /*tp_iternext*/
     ubuf_methods,               /*tp_methods*/
-    ubuf_members,               /*tp_members*/
+    0,                          /*tp_members*/
     ubuf_getset,                /*tp_getset*/
     0,                          /*tp_base*/
     0,                          /*tp_dict*/
@@ -783,6 +781,3 @@ initubuf(void)
 
     add_marker_type(m);
 }
-
-
-
