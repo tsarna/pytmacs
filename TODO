@@ -1,4 +1,4 @@
-$Id: TODO,v 1.6 2007-08-16 04:17:19 tsarna Exp $
+$Id: TODO,v 1.7 2007-08-16 04:26:54 tsarna Exp $
 
 ubuf:
 	textarg		from ubuf
@@ -9,14 +9,24 @@ ubuf:
 	efficient grow
 
 marker:
+    numeric:
 	unary -
-	coerce for marker vs marker?
-	nonzero
+	add
+	subtract
 	invert?
+    basic:
 	repr
+	str
 	print?
+        hash?
 	(rich)compare?
+	call?
+	iter/iternext
+    sequence:
 	in
+    file:
+	...
+
 	
 Buffer:
 	tests:
