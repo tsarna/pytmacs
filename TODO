@@ -1,14 +1,16 @@
-$Id: TODO,v 1.5 2007-08-16 03:44:24 tsarna Exp $
+$Id: TODO,v 1.6 2007-08-16 04:17:19 tsarna Exp $
 
 ubuf:
 	textarg		from ubuf
 	.borrow()	with args
 	dealloc		point uobj to full memory
+	nonzero
 	
 	efficient grow
 
 marker:
-	unary +, -
+	unary -
+	coerce for marker vs marker?
 	nonzero
 	invert?
 	repr

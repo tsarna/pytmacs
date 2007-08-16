@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.5 2007-08-16 03:44:04 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.6 2007-08-16 04:17:23 tsarna Exp $
 
 .. contents ::
 
@@ -122,9 +122,11 @@ used direcly as a slice or subscript index::
     u'orld'
 
 Because a markers numeric value is always positive, abs() is equivalent
-to int for markers::
+to int for markers, as is the unary + operator::
 
     >>> abs(m)
+    7
+    >>> +m
     7
     
 The inplace addition and subtraction operators may be use to move the

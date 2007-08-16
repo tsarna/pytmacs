@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.5 2007-08-16 03:44:04 tsarna Exp $ */
+/* $Id: marker.c,v 1.6 2007-08-16 04:17:23 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -578,7 +578,7 @@ static PyNumberMethods marker_number = {
     0,                          /*nb_divmod*/
     0,                          /*nb_power*/
     0,                          /*nb_negative*/
-    0,                          /*nb_positive*/
+    marker_int,                 /*nb_positive*/
     marker_int,                 /*nb_absolute*/
     0,                          /*nb_nonzero*/
     0,                          /*nb_invert*/
