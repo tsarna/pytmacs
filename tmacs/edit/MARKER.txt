@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.4 2007-08-16 03:35:55 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.5 2007-08-16 03:44:04 tsarna Exp $
 
 .. contents ::
 
@@ -121,6 +121,12 @@ used direcly as a slice or subscript index::
     >>> b[m:]
     u'orld'
 
+Because a markers numeric value is always positive, abs() is equivalent
+to int for markers::
+
+    >>> abs(m)
+    7
+    
 The inplace addition and subtraction operators may be use to move the
 buffer forwards or backwards by a given amount. The marker is silently
 constrained to the begining or end of the buffer, and the end is reset
@@ -169,3 +175,4 @@ the other type::
     32L
     >>> m // 2L
     2L
+

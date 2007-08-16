@@ -5,6 +5,16 @@ ubuf:
 	
 	efficient grow
 
+marker:
+	unary +, -
+	abs
+	nonzero
+	invert?
+	repr
+	print?
+	(rich)compare?
+	in
+	
 Buffer:
 	tests:
 		.save()
