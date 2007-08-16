@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.3 2007-08-16 02:58:22 tsarna Exp $ */
+/* $Id: marker.c,v 1.4 2007-08-16 03:35:55 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -34,6 +34,7 @@ static int marker_set_start(marker *self, PyObject *value, void *closure);
 /* mapping protocol */
 static Py_ssize_t marker_mp_len(PyObject *self);
 /* numeric protocol */
+static int marker_coerce(PyObject **pv, PyObject **pw);
 static PyObject *marker_inplace_add(PyObject *self, PyObject *other);
 static PyObject *marker_int(PyObject *self);
 static PyObject *marker_long(PyObject *self);
@@ -395,6 +396,32 @@ marker_mp_length(PyObject *self)
 
 /* Begin marker numeric methods */
 
+static int
+marker_coerce(PyObject **pv, PyObject **pw)
+{
+    marker *m = (marker *)(*pv);
+
+    if (PyInt_Check(*pw)) {
+        *pv = PyInt_FromSsize_t(m->start);
+        Py_INCREF(*pw);
+        return 0;
+    }
+    else if (PyLong_Check(*pw)) {
+        *pv = PyLong_FromLong(m->start);
+        Py_INCREF(*pw);
+        return 0;
+    }
+    else if (PyFloat_Check(*pw)) {
+        *pv = PyFloat_FromDouble((double)(m->start));
+        Py_INCREF(*pw);
+        return 0;
+    }
+
+    return 1; /* Can't do it */
+}
+
+
+
 static PyObject *
 marker_inplace_add(PyObject *self, PyObject *other)
 {
@@ -560,7 +587,7 @@ static PyNumberMethods marker_number = {
     0,                          /*nb_and*/
     0,                          /*nb_xor*/
     0,                          /*nb_or*/
-    0,                          /*nb_coerce*/  
+    marker_coerce,              /*nb_coerce*/  
     marker_int,                 /*nb_int*/
     marker_long,                /*nb_long*/
     marker_float,               /*nb_float*/   

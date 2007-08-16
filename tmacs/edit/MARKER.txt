@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.3 2007-08-16 02:58:22 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.4 2007-08-16 03:35:55 tsarna Exp $
 
 .. contents ::
 
@@ -149,3 +149,23 @@ to the resulting start::
     >>> int(m)
     0
     
+In combination with other numeric types, a marker always coerces to
+the other type::
+
+    >>> m.start = 5
+    >>> m - 1
+    4
+    >>> 1 + m
+    6
+    >>> 2.0 * m
+    10.0
+    >>> m * 0.5
+    2.5
+    >>> m / 1.0
+    5.0
+    >>> 10.0 / m
+    2.0
+    >>> 2L ** m
+    32L
+    >>> m // 2L
+    2L
