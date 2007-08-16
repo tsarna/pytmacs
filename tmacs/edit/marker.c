@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.2 2007-08-16 02:12:48 tsarna Exp $ */
+/* $Id: marker.c,v 1.3 2007-08-16 02:58:22 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -19,6 +19,7 @@ static int marker_init(marker *self, PyObject *args, PyObject *kwds);
 static void marker_link_buffer(marker *self, ubuf *buf);
 static void marker_unlink_buffer(marker *self);
 /* internal */
+static int marker_to(marker *self, Py_ssize_t v);
 static int marker_start(marker *self, Py_ssize_t v);
 static int marker_end(marker *self, Py_ssize_t v);
 /* get/set */
@@ -30,7 +31,10 @@ static PyObject *marker_get_end(marker *self, void *closure);
 static int marker_set_end(marker *self, PyObject *value, void *closure);
 static PyObject *marker_get_start(marker *self, void *closure);
 static int marker_set_start(marker *self, PyObject *value, void *closure);
+/* mapping protocol */
+static Py_ssize_t marker_mp_len(PyObject *self);
 /* numeric protocol */
+static PyObject *marker_inplace_add(PyObject *self, PyObject *other);
 static PyObject *marker_int(PyObject *self);
 static PyObject *marker_long(PyObject *self);
 
@@ -172,6 +176,27 @@ marker_unlink_buffer(marker *self)
 /* Begin marker internal methods */
 
 static int
+marker_to(marker *self, Py_ssize_t v)
+{
+    if (self->buffer == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot modify when not linked to a buffer");
+        return 0;
+    }
+    
+    if (v > self->buffer->length) {
+        v = self->buffer->length;
+    } else if (v < 0) {
+        v = 0;
+    }            
+
+    self->start = self->end = v;
+    
+    return 1;
+}
+
+
+
+static int
 marker_start(marker *self, Py_ssize_t v)
 {
     if (self->buffer == NULL) {
@@ -181,8 +206,7 @@ marker_start(marker *self, Py_ssize_t v)
     
     if (v > self->buffer->length) {
         v = self->buffer->length;
-    }
-    if (v < 0) {
+    } else if (v < 0) {
         v += self->buffer->length;
     }
     if (v < 0) {
@@ -210,8 +234,7 @@ marker_end(marker *self, Py_ssize_t v)
     
     if (v > self->buffer->length) {
         v = self->buffer->length;
-    }
-    if (v < 0) {
+    } else if (v < 0) {
         v += self->buffer->length;
     }
     if (v < 0) {
@@ -373,6 +396,51 @@ marker_mp_length(PyObject *self)
 /* Begin marker numeric methods */
 
 static PyObject *
+marker_inplace_add(PyObject *self, PyObject *other)
+{
+    marker *m = (marker *)self;
+    Py_ssize_t v;
+    
+    v = PyNumber_AsSsize_t(other, PyExc_IndexError);
+    if (v == -1 && PyErr_Occurred()) {
+        return 0;
+    }
+    
+    if (!marker_to(m, m->start + v)) {
+        return 0;
+    }
+    
+    Py_INCREF(self);
+    
+    return self;
+}
+
+
+
+
+static PyObject *
+marker_inplace_subtract(PyObject *self, PyObject *other)
+{
+    marker *m = (marker *)self;
+    Py_ssize_t v;
+    
+    v = PyNumber_AsSsize_t(other, PyExc_IndexError);
+    if (v == -1 && PyErr_Occurred()) {
+        return 0;
+    }
+    
+    if (!marker_to(m, m->start - v)) {
+        return 0;
+    }
+    
+    Py_INCREF(self);
+    
+    return self;
+}
+
+
+
+static PyObject *
 marker_int(PyObject *self)
 {
     return PyInt_FromSsize_t(((marker *)self)->start);
@@ -387,6 +455,12 @@ marker_long(PyObject *self)
 }
 
 
+
+static PyObject *
+marker_float(PyObject *self)
+{
+        return PyFloat_FromDouble((double)(((marker *)self)->start));
+}
 
 /* Begin marker add-on methods */
 
@@ -469,45 +543,45 @@ static PyGetSetDef marker_getset[] = {
 
 
 static PyNumberMethods marker_number = {
-    0,              /*nb_add*/   
-    0,              /*nb_subtract*/
-    0,              /*nb_multiply*/
-    0,              /*nb_divide*/
-    0,              /*nb_remainder*/
-    0,              /*nb_divmod*/
-    0,              /*nb_power*/
-    0,              /*nb_negative*/
-    0,              /*nb_positive*/
-    0,              /*nb_absolute*/
-    0,              /*nb_nonzero*/
-    0,              /*nb_invert*/
-    0,              /*nb_lshift*/
-    0,              /*nb_rshift*/
-    0,              /*nb_and*/
-    0,              /*nb_xor*/
-    0,              /*nb_or*/
-    0,              /*nb_coerce*/  
-    marker_int,     /*nb_int*/
-    marker_long,    /*nb_long*/
-    0,              /*nb_float*/   
-    0,              /*nb_oct*/   
-    0,              /*nb_hex*/   
-    0,              /*nb_inplace_add*/
-    0,              /*nb_inplace_subtract*/
-    0,              /*nb_inplace_multiply*/
-    0,              /*nb_inplace_divide*/
-    0,              /*nb_inplace_remainder*/
-    0,              /*nb_inplace_power*/
-    0,              /*nb_inplace_lshift*/
-    0,              /*nb_inplace_rshift*/
-    0,              /*nb_inplace_and*/
-    0,              /*nb_inplace_xor*/
-    0,              /*nb_inplace_or*/ 
-    0,              /*nb_floor_divide*/  
-    0,              /*nb_true_divide*/
-    0,              /*nb_inplace_floor_divide*/
-    0,              /*nb_inplace_true_divide*/
-    marker_int,     /*nb_index*/
+    0,                          /*nb_add*/   
+    0,                          /*nb_subtract*/
+    0,                          /*nb_multiply*/
+    0,                          /*nb_divide*/
+    0,                          /*nb_remainder*/
+    0,                          /*nb_divmod*/
+    0,                          /*nb_power*/
+    0,                          /*nb_negative*/
+    0,                          /*nb_positive*/
+    0,                          /*nb_absolute*/
+    0,                          /*nb_nonzero*/
+    0,                          /*nb_invert*/
+    0,                          /*nb_lshift*/
+    0,                          /*nb_rshift*/
+    0,                          /*nb_and*/
+    0,                          /*nb_xor*/
+    0,                          /*nb_or*/
+    0,                          /*nb_coerce*/  
+    marker_int,                 /*nb_int*/
+    marker_long,                /*nb_long*/
+    marker_float,               /*nb_float*/   
+    0,                          /*nb_oct*/   
+    0,                          /*nb_hex*/   
+    marker_inplace_add,         /*nb_inplace_add*/
+    marker_inplace_subtract,    /*nb_inplace_subtract*/
+    0,                          /*nb_inplace_multiply*/
+    0,                          /*nb_inplace_divide*/
+    0,                          /*nb_inplace_remainder*/
+    0,                          /*nb_inplace_power*/
+    0,                          /*nb_inplace_lshift*/
+    0,                          /*nb_inplace_rshift*/
+    0,                          /*nb_inplace_and*/
+    0,                          /*nb_inplace_xor*/
+    0,                          /*nb_inplace_or*/ 
+    0,                          /*nb_floor_divide*/  
+    0,                          /*nb_true_divide*/
+    0,                          /*nb_inplace_floor_divide*/
+    0,                          /*nb_inplace_true_divide*/
+    marker_int,                 /*nb_index*/
 };
 
 
