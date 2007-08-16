@@ -1,3 +1,5 @@
+$Id: TODO,v 1.5 2007-08-16 03:44:24 tsarna Exp $
+
 ubuf:
 	textarg		from ubuf
 	.borrow()	with args
@@ -7,7 +9,6 @@ ubuf:
 
 marker:
 	unary +, -
-	abs
 	nonzero
 	invert?
 	repr
