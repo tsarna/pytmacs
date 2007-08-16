@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.6 2007-08-16 04:17:23 tsarna Exp $ */
+/* $Id: marker.c,v 1.7 2007-08-16 04:27:41 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -7,6 +7,7 @@
 
 extern PyObject *ReadOnlyBufferError;
 extern PyTypeObject ubuf_type;
+static PyTypeObject marker_type;
 
 #define D(x) /*x*/
 

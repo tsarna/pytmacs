@@ -1,6 +1,9 @@
+/* $Id: ubuf.h,v 1.2 2007-08-16 04:27:41 tsarna Exp $ */
+
 typedef struct marker marker;
 
 #define ubuf_check(op) PyObject_TypeCheck(op, &ubuf_type)
+#define marker_check(op) PyObject_TypeCheck(op, &marker_type)
 
 typedef struct {
     PyObject_HEAD
