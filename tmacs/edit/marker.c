@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.7 2007-08-16 04:27:41 tsarna Exp $ */
+/* $Id: marker.c,v 1.8 2007-08-17 14:16:01 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -35,10 +35,15 @@ static int marker_set_start(marker *self, PyObject *value, void *closure);
 /* mapping protocol */
 static Py_ssize_t marker_mp_len(PyObject *self);
 /* numeric protocol */
-static int marker_coerce(PyObject **pv, PyObject **pw);
-static PyObject *marker_inplace_add(PyObject *self, PyObject *other);
-static PyObject *marker_int(PyObject *self);
-static PyObject *marker_long(PyObject *self);
+static PyObject *marker_nb_add(PyObject *self, PyObject *other);
+static PyObject *marker_nb_subtract(PyObject *self, PyObject *other);
+static PyObject *marker_nb_negative(PyObject *self);
+static int marker_nb_coerce(PyObject **pv, PyObject **pw);
+static PyObject *marker_nb_int(PyObject *self);
+static PyObject *marker_nb_long(PyObject *self);
+static PyObject *marker_nb_float(PyObject *self);
+static PyObject *marker_nb_inplace_add(PyObject *self, PyObject *other);
+static PyObject *marker_nb_inplace_subtract(PyObject *self, PyObject *other);
 
 /* Begin marker create/delete methods */
 
@@ -397,8 +402,36 @@ marker_mp_length(PyObject *self)
 
 /* Begin marker numeric methods */
 
+static PyObject *
+marker_nb_add(PyObject *self, PyObject *other)
+{
+    marker *m = (marker *)self, *o = (marker *)other;
+    
+    return PyInt_FromSsize_t(m->start + o->start);
+}
+
+
+
+static PyObject *
+marker_nb_subtract(PyObject *self, PyObject *other)
+{
+    marker *m = (marker *)self, *o = (marker *)other;
+    
+    return PyInt_FromSsize_t(m->start - o->start);
+}
+
+
+
+static PyObject *
+marker_nb_negative(PyObject *self)
+{
+    return PyInt_FromSsize_t(- (((marker *)self)->start));
+}
+
+
+
 static int
-marker_coerce(PyObject **pv, PyObject **pw)
+marker_nb_coerce(PyObject **pv, PyObject **pw)
 {
     marker *m = (marker *)(*pv);
 
@@ -424,7 +457,31 @@ marker_coerce(PyObject **pv, PyObject **pw)
 
 
 static PyObject *
-marker_inplace_add(PyObject *self, PyObject *other)
+marker_nb_int(PyObject *self)
+{
+    return PyInt_FromSsize_t(((marker *)self)->start);
+}
+
+
+
+static PyObject *
+marker_nb_long(PyObject *self)
+{
+    return PyLong_FromLong((long)(((marker *)self)->start));
+}
+
+
+
+static PyObject *
+marker_nb_float(PyObject *self)
+{
+        return PyFloat_FromDouble((double)(((marker *)self)->start));
+}
+
+
+
+static PyObject *
+marker_nb_inplace_add(PyObject *self, PyObject *other)
 {
     marker *m = (marker *)self;
     Py_ssize_t v;
@@ -445,9 +502,8 @@ marker_inplace_add(PyObject *self, PyObject *other)
 
 
 
-
 static PyObject *
-marker_inplace_subtract(PyObject *self, PyObject *other)
+marker_nb_inplace_subtract(PyObject *self, PyObject *other)
 {
     marker *m = (marker *)self;
     Py_ssize_t v;
@@ -467,28 +523,6 @@ marker_inplace_subtract(PyObject *self, PyObject *other)
 }
 
 
-
-static PyObject *
-marker_int(PyObject *self)
-{
-    return PyInt_FromSsize_t(((marker *)self)->start);
-}
-
-
-
-static PyObject *
-marker_long(PyObject *self)
-{
-    return PyLong_FromLong((long)(((marker *)self)->start));
-}
-
-
-
-static PyObject *
-marker_float(PyObject *self)
-{
-        return PyFloat_FromDouble((double)(((marker *)self)->start));
-}
 
 /* Begin marker add-on methods */
 
@@ -571,16 +605,16 @@ static PyGetSetDef marker_getset[] = {
 
 
 static PyNumberMethods marker_number = {
-    0,                          /*nb_add*/   
-    0,                          /*nb_subtract*/
+    marker_nb_add,              /*nb_add*/   
+    marker_nb_subtract,         /*nb_subtract*/
     0,                          /*nb_multiply*/
     0,                          /*nb_divide*/
     0,                          /*nb_remainder*/
     0,                          /*nb_divmod*/
     0,                          /*nb_power*/
-    0,                          /*nb_negative*/
-    marker_int,                 /*nb_positive*/
-    marker_int,                 /*nb_absolute*/
+    marker_nb_negative,         /*nb_negative*/
+    marker_nb_int,              /*nb_positive*/
+    marker_nb_int,              /*nb_absolute*/
     0,                          /*nb_nonzero*/
     0,                          /*nb_invert*/
     0,                          /*nb_lshift*/
@@ -588,14 +622,14 @@ static PyNumberMethods marker_number = {
     0,                          /*nb_and*/
     0,                          /*nb_xor*/
     0,                          /*nb_or*/
-    marker_coerce,              /*nb_coerce*/  
-    marker_int,                 /*nb_int*/
-    marker_long,                /*nb_long*/
-    marker_float,               /*nb_float*/   
+    marker_nb_coerce,           /*nb_coerce*/  
+    marker_nb_int,              /*nb_int*/
+    marker_nb_long,             /*nb_long*/
+    marker_nb_float,            /*nb_float*/   
     0,                          /*nb_oct*/   
     0,                          /*nb_hex*/   
-    marker_inplace_add,         /*nb_inplace_add*/
-    marker_inplace_subtract,    /*nb_inplace_subtract*/
+    marker_nb_inplace_add,      /*nb_inplace_add*/
+    marker_nb_inplace_subtract, /*nb_inplace_subtract*/
     0,                          /*nb_inplace_multiply*/
     0,                          /*nb_inplace_divide*/
     0,                          /*nb_inplace_remainder*/
@@ -609,7 +643,7 @@ static PyNumberMethods marker_number = {
     0,                          /*nb_true_divide*/
     0,                          /*nb_inplace_floor_divide*/
     0,                          /*nb_inplace_true_divide*/
-    marker_int,                 /*nb_index*/
+    marker_nb_int,              /*nb_index*/
 };
 
 

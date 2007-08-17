@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.6 2007-08-16 04:17:23 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.7 2007-08-17 14:16:01 tsarna Exp $
 
 .. contents ::
 
@@ -128,6 +128,11 @@ to int for markers, as is the unary + operator::
     7
     >>> +m
     7
+
+The unary - operator also behaves as expected, returning a negative int::
+
+    >>> -m
+    -7
     
 The inplace addition and subtraction operators may be use to move the
 buffer forwards or backwards by a given amount. The marker is silently
@@ -178,3 +183,20 @@ the other type::
     >>> m // 2L
     2L
 
+Only two numeric oprtations are allowed between a pair of markers, and
+both return an int result.  Subtraction, for finding a difference in
+position::
+
+    >>> m2 = marker(m.buffer)
+    >>> m2.start = 7
+    >>> m2 - m
+    2
+    >>> m - m2
+    -2
+
+Addition is also supported for symmetry::
+
+    >>> m + m2
+    12
+    >>> type(m+m2) is int, type(m-m2) is int
+    (True, True)

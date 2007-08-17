@@ -1,4 +1,4 @@
-$Id: TODO,v 1.7 2007-08-16 04:26:54 tsarna Exp $
+$Id: TODO,v 1.8 2007-08-17 14:15:59 tsarna Exp $
 
 ubuf:
 	textarg		from ubuf
@@ -9,16 +9,10 @@ ubuf:
 	efficient grow
 
 marker:
-    numeric:
-	unary -
-	add
-	subtract
-	invert?
     basic:
 	repr
 	str
 	print?
-        hash?
 	(rich)compare?
 	call?
 	iter/iternext
@@ -33,6 +27,7 @@ Buffer:
 		.save()
 		display name, filename
 
+	.marker()
 	.filter()
 	.load()
 	redo write_file based on iterator of buffer
