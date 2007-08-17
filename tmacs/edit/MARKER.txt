@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.9 2007-08-17 16:44:09 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.10 2007-08-17 22:54:16 tsarna Exp $
 
 .. contents ::
 
@@ -101,7 +101,46 @@ The len() of a marker is the number of characters spanned (end - start)::
     >>> m.end = 11
     >>> len(m)
     4
-    
+
+The in (__contains__) operator may be used between an int and a marker.
+An integer is considered in the marker if it is between the markers
+start and end, inclusive::
+
+    >> 6 in m
+    False
+    >>> 7 in m
+    True
+    >>> 8 in m
+    True
+    >>> 10 in m
+    True
+    >>> 11 in m
+    True
+    >>> 12 in m
+    False
+
+A marker may also be checked for containment within another marker. In
+this case, both the beginning and end of the marker must be contained
+within the beginning and end of the other marker, inclusive::
+
+    >>> m2.buffer = m.buffer
+    >>> m.end = 10
+    >>> m2.start = 6; m2.end = 11
+    >>> m2 in m
+    False
+    >>> m2.start = 7
+    >>> m2 in m
+    False
+    >>> m2.start = 8; m2.end = 10
+    >>> m2 in m
+    True
+    >>> m2.end = 11
+    >>> m2 in m
+    False
+    >>> m2.start = 9; m2.end = 9
+    >>> m2 in m
+    True
+
 
 Numeric Operations
 ------------------

@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.10 2007-08-17 16:44:09 tsarna Exp $ */
+/* $Id: marker.c,v 1.11 2007-08-17 22:54:16 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -32,8 +32,9 @@ static PyObject *marker_get_end(marker *self, void *closure);
 static int marker_set_end(marker *self, PyObject *value, void *closure);
 static PyObject *marker_get_start(marker *self, void *closure);
 static int marker_set_start(marker *self, PyObject *value, void *closure);
-/* mapping protocol */
-static Py_ssize_t marker_mp_len(PyObject *self);
+/* sequence protocol */
+static Py_ssize_t marker_sq_length(PyObject *self);
+static int marker_sq_contains(PyObject *self, PyObject *other);
 /* numeric protocol */
 static PyObject *marker_nb_add(PyObject *self, PyObject *other);
 static PyObject *marker_nb_subtract(PyObject *self, PyObject *other);
@@ -388,14 +389,46 @@ marker_set_start(marker *self, PyObject *value, void *closure)
 
 
 
-/* Begin marker mapping methods */
+/* Begin marker sequence methods */
 
 static Py_ssize_t
-marker_mp_length(PyObject *self)
+marker_sq_length(PyObject *self)
 {
     marker *m = (marker *)self;
     
     return m->end - m->start;
+}
+
+
+
+
+static int
+marker_sq_contains(PyObject *self, PyObject *other)
+{
+    marker *m = (marker *)self;
+    Py_ssize_t v;
+    
+    if (marker_check(other)) {
+        marker *o = (marker *)other;
+        
+        if ((o->start >= m->start)
+        &&  (o->start <= m->end)
+        &&  (o->end >= m->start)
+        &&  (o->end <= m->end)) {
+            return 1;
+        }
+    } else {
+        v = PyNumber_AsSsize_t(other, PyExc_TypeError);
+        if (v == -1 && PyErr_Occurred()) {
+            return -1;
+        }
+        
+        if ((v >= m->start) && (v <= m->end)) {
+            return 1;
+        }
+    }
+    
+    return 0;
 }
 
 
@@ -621,10 +654,17 @@ static PyMethodDef marker_methods[] = {
 };
 
 
-static PyMappingMethods marker_mapping = {   
-    marker_mp_length,       /* mp_length        */
-    0,                      /* mp_subscript     */
-    0,                      /* mp_ass_subscript */
+static PySequenceMethods marker_as_sequence = {   
+    marker_sq_length,       /* sq_length */
+    0,                      /* sq_concat */
+    0,                      /* sq_repeat */
+    0,                      /* sq_item */
+    0,                      /* sq_slice */
+    0,                      /* sq_ass_item */
+    0,                      /* sq_ass_slice */
+    marker_sq_contains,     /* sq_contains */
+    0,                      /* sq_inplace_concat */
+    0,                      /* sq_inplace_repeat */
 };
 
 
@@ -653,7 +693,7 @@ static PyGetSetDef marker_getset[] = {
 };
 
 
-static PyNumberMethods marker_number = {
+static PyNumberMethods marker_as_number = {
     marker_nb_add,              /*nb_add*/   
     marker_nb_subtract,         /*nb_subtract*/
     0,                          /*nb_multiply*/
@@ -711,9 +751,9 @@ static PyTypeObject marker_type = {
     0,                          /*tp_setattr*/
     0,                          /*tp_compare*/
     0,                          /*tp_repr*/
-    &marker_number,             /*tp_as_number*/
-    0,                          /*tp_as_sequence*/
-    &marker_mapping,            /*tp_as_mapping*/
+    &marker_as_number,          /*tp_as_number*/
+    &marker_as_sequence,        /*tp_as_sequence*/
+    0,                          /*tp_as_mapping*/
     0,                          /*tp_hash*/
     0,                          /*tp_call*/
     0,                          /*tp_str*/
