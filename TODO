@@ -1,20 +1,19 @@
-$Id: TODO,v 1.9 2007-08-17 14:30:31 tsarna Exp $
+$Id: TODO,v 1.10 2007-08-17 15:47:30 tsarna Exp $
 
 ubuf:
-	textarg		from ubuf
-	.borrow()	with args
-	dealloc		point uobj to full memory
-	
-	efficient grow
+    textarg		from ubuf
+    .borrow()	with args
+    dealloc		point uobj to full memory
+    efficient grow
 
 marker:
     numeric:
-        nonzero
+        nonzero -- returns changed flag?
     basic:
 	repr
 	str
 	print?
-	(rich)compare?
+	richcompare -- vs ints
 	call?
 	iter/iternext
     sequence:

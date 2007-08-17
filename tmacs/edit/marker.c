@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.8 2007-08-17 14:16:01 tsarna Exp $ */
+/* $Id: marker.c,v 1.9 2007-08-17 15:47:31 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -523,7 +523,42 @@ marker_nb_inplace_subtract(PyObject *self, PyObject *other)
 }
 
 
+/* Begin marker basic methods */
 
+static PyObject *
+marker_richcompare(PyObject *v, PyObject *w, int op)
+{
+    Py_ssize_t vs, ws;
+    int cmp;
+    
+    if (!marker_check(v) || !marker_check(w)) {
+        Py_INCREF(Py_NotImplemented);
+        return Py_NotImplemented;
+    }
+    
+    vs = ((marker *)v)->start;
+    ws = ((marker *)w)->start;
+    
+    switch (op) {
+        case Py_LT: cmp = vs <  ws; break;
+        case Py_LE: cmp = vs <= ws; break;
+        case Py_EQ: cmp = vs == ws; break;
+        case Py_NE: cmp = vs != ws; break;
+        case Py_GT: cmp = vs >  ws; break;
+        case Py_GE: cmp = vs >= ws; break;
+        default: return NULL; /* cannot happen */
+    }
+    
+    if (cmp) {
+        Py_RETURN_TRUE;
+    } else {
+        Py_RETURN_FALSE;
+    }
+}
+
+
+
+    
 /* Begin marker add-on methods */
 
 
@@ -675,7 +710,7 @@ static PyTypeObject marker_type = {
     0,                          /*tp_doc*/ 
     0,                          /*tp_traverse*/ 
     0,                          /*tp_clear*/   
-    0,                          /*tp_richcompare*/
+    marker_richcompare,         /*tp_richcompare*/
     0,                          /*tp_weaklistoffset*/
     0,                          /*tp_iter*/ 
     0,                          /*tp_iternext*/

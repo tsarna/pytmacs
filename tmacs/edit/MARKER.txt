@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.7 2007-08-17 14:16:01 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.8 2007-08-17 15:47:31 tsarna Exp $
 
 .. contents ::
 
@@ -102,6 +102,10 @@ The len() of a marker is the number of characters spanned (end - start)::
     >>> len(m)
     4
     
+
+Numeric Operations
+------------------
+
 Spanning markers (where the start and end differ, spanning a range) are
 only used for change tracking.  Many operations only consider the start
 of a marker and ignore the end or reset it to be the same as the start. 
@@ -183,7 +187,7 @@ the other type::
     >>> m // 2L
     2L
 
-Only two numeric oprtations are allowed between a pair of markers, and
+Only two numeric operations are allowed between a pair of markers, and
 both return an int result.  Subtraction, for finding a difference in
 position::
 
@@ -200,3 +204,34 @@ Addition is also supported for symmetry::
     12
     >>> type(m+m2) is int, type(m-m2) is int
     (True, True)
+
+
+Comparisons
+-----------
+
+Markers support comparison, based on the "start" value. Or to put it
+another way, comparisons between markers are equivalent to comparison
+between the int()-converted values of the markers.
+
+    >>> m2 > m
+    True
+    >>> m2 >= m
+    True
+    >>> m2 == m
+    False
+    >>> m2 != m
+    True
+    >>> m > m2
+    False
+    >>> m >= m2
+    False
+    >>> m2.start = m
+    >>> m > m2
+    False
+    >>> m >= m2
+    True
+    >>> m < m2
+    False
+    >>> m <= m2
+    True
+    
