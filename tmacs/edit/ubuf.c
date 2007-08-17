@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.3 2007-08-16 02:12:48 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.4 2007-08-17 22:31:16 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -701,7 +701,7 @@ static PyGetSetDef ubuf_getset[] = {
 };
 
 
-static PyMappingMethods ubuf_mapping = {
+static PyMappingMethods ubuf_as_mapping = {
     ubuf_mp_length,         /* mp_length        */
     ubuf_mp_subscript,      /* mp_subscript     */
     ubuf_mp_ass_subscript,  /* mp_ass_subscript */
@@ -725,7 +725,7 @@ PyTypeObject ubuf_type = {
     0,                          /*tp_repr*/
     0,                          /*tp_as_number*/
     0,                          /*tp_as_sequence*/
-    &ubuf_mapping,              /*tp_as_mapping*/
+    &ubuf_as_mapping,           /*tp_as_mapping*/
     0,                          /*tp_hash*/
     0,                          /*tp_call*/
     0,                          /*tp_str*/
