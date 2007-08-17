@@ -1,14 +1,15 @@
-$Id: TODO,v 1.8 2007-08-17 14:15:59 tsarna Exp $
+$Id: TODO,v 1.9 2007-08-17 14:30:31 tsarna Exp $
 
 ubuf:
 	textarg		from ubuf
 	.borrow()	with args
 	dealloc		point uobj to full memory
-	nonzero
 	
 	efficient grow
 
 marker:
+    numeric:
+        nonzero
     basic:
 	repr
 	str
@@ -27,7 +28,6 @@ Buffer:
 		.save()
 		display name, filename
 
-	.marker()
 	.filter()
 	.load()
 	redo write_file based on iterator of buffer

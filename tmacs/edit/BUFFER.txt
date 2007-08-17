@@ -3,6 +3,7 @@ Editor Buffers
 ==============
 
 :Author: Ty Sarna
+:Version: $Id: BUFFER.txt,v 1.2 2007-08-17 14:30:33 tsarna Exp $
 
 .. contents ::
 
@@ -13,7 +14,11 @@ Editor buffers are implemented in the ``tmacs.edit.buffer`` module::
 
     >>> from tmacs.edit.buffer import *
 
-XXX ubuf basics
+A Buffer object is a tmacs.edit.ubuf.ubuf subclass::
+
+    >>> from tmacs.edit.ubuf import ubuf
+    >>> issubclass(Buffer, ubuf)
+    True
 
 File-Like Interface
 -------------------
@@ -167,3 +172,24 @@ alphabetical order or starts back at the first buffer::
     exec-test
     >>> print b.name; b = b.next_buffer()
     file-like-1
+
+Markers
+-------
+
+The `marker()` method returns an object that is a subclass of 
+
+    >>> from tmacs.edit.ubuf import marker
+    >>> m = b.marker()
+    >>> m.buffer is b
+    True
+    >>> issubclass(m.__class__, marker)
+    True
+
+It may be called with an optional start and end argument::
+
+    >>> m = b.marker(2)
+    >>> m.start
+    2
+    >>> m = b.marker(2, 3)
+    >>> m.start, m.end
+    (2, 3)

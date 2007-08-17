@@ -1,6 +1,8 @@
+# $Id: buffer.py,v 1.3 2007-08-17 14:30:33 tsarna Exp $
+
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
-from tmacs.edit.ubuf import ubuf
+from tmacs.edit.ubuf import ubuf, marker
 import __tmacs__
 
 if not hasattr(__tmacs__, "buffers"):
@@ -76,6 +78,12 @@ class Buffer(ubuf):
         newname = names[(names.index(self.name) + 1) % len(names)]
         return __tmacs__.buffers[newname]
 
+    ### Marker
+    
+    def marker(self, *args):
+        args = (self,) + args
+        return apply(marker, args)
+        
     ### File operations
             
     def save(self, filename=None):
