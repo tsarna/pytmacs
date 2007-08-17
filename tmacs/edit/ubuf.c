@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.4 2007-08-17 22:31:16 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.5 2007-08-17 23:46:43 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -30,6 +30,7 @@ static int ubuf_set_read_only(ubuf *self, PyObject *value, void *closure);
 static Py_ssize_t ubuf_mp_length(PyObject *self);
 static PyObject *ubuf_mp_subscript(PyObject *selfo, PyObject *o);
 static int ubuf_mp_ass_subscript(PyObject *selfo, PyObject *k, PyObject *v);
+static PyObject *ubuf_repr(PyObject *self);
 static PyObject *ubuf_append(PyObject *selfo, PyObject *args);
 static PyObject *ubuf_borrow(ubuf *self, PyObject *args);
 
@@ -602,9 +603,20 @@ D(fprintf(stderr, "\nLENS %d %d\n", l1, l2);)
 
 
 
+/* Begin ubuf basic methods */
+
+static PyObject *
+ubuf_repr(PyObject *self)
+{
+    ubuf *u = (ubuf *)self;
+    
+    return PyString_FromFormat("<ubuf len %ld at %p>",
+        u->length, u
+    );
+}
+
+
 /* Begin ubuf add-on methods */
-
-
 
 static PyObject *
 ubuf_append(PyObject *selfo, PyObject *args)
@@ -722,7 +734,7 @@ PyTypeObject ubuf_type = {
     0,                          /*tp_getattr*/
     0,                          /*tp_setattr*/
     0,                          /*tp_compare*/
-    0,                          /*tp_repr*/
+    ubuf_repr,                  /*tp_repr*/
     0,                          /*tp_as_number*/
     0,                          /*tp_as_sequence*/
     &ubuf_as_mapping,           /*tp_as_mapping*/

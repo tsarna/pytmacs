@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.11 2007-08-17 22:54:16 tsarna Exp $ */
+/* $Id: marker.c,v 1.12 2007-08-17 23:46:43 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -45,6 +45,9 @@ static PyObject *marker_nb_long(PyObject *self);
 static PyObject *marker_nb_float(PyObject *self);
 static PyObject *marker_nb_inplace_add(PyObject *self, PyObject *other);
 static PyObject *marker_nb_inplace_subtract(PyObject *self, PyObject *other);
+/* basic methods */
+static PyObject *marker_repr(PyObject *self);
+static PyObject *marker_richcompare(PyObject *v, PyObject *w, int op);
 
 /* Begin marker create/delete methods */
 
@@ -556,7 +559,39 @@ marker_nb_inplace_subtract(PyObject *self, PyObject *other)
 }
 
 
+
 /* Begin marker basic methods */
+
+static PyObject *
+marker_repr(PyObject *self)
+{
+    marker *m = (marker *)self;
+    PyObject *r, *br = NULL;
+    char *bufrep = NULL;
+    
+    if (m->buffer) {
+        br = PyObject_Repr((PyObject *)(m->buffer));
+        if (!br) {
+            return NULL;
+        }
+        
+        bufrep = PyString_AsString(br);
+    } else {
+        bufrep = "(no buffer)";
+    }
+    
+    r = PyString_FromFormat("<%schanged marker %ld..%ld %s%s at %p>",
+        MARKER_IS_CHANGED(m) ? "" : "un",     
+        (long)(m->start), (long)(m->end),
+        br ? "of " : "", bufrep, self
+    );
+    
+    Py_XDECREF(br);
+    
+    return r; 
+}
+
+
 
 static PyObject *
 marker_richcompare(PyObject *v, PyObject *w, int op)
@@ -741,7 +776,7 @@ static PyTypeObject marker_type = {
      * to be portable to Windows without using C++. */
     PyObject_HEAD_INIT(NULL)
     0,                          /*ob_size*/
-    "marker",                   /*tp_name*/
+    "tmacs.edit.ubuf.marker",   /*tp_name*/
     sizeof(marker),             /*tp_basicsize*/
     0,                          /*tp_itemsize*/
     /* methods */
@@ -750,7 +785,7 @@ static PyTypeObject marker_type = {
     0,                          /*tp_getattr*/
     0,                          /*tp_setattr*/
     0,                          /*tp_compare*/
-    0,                          /*tp_repr*/
+    marker_repr,                /*tp_repr*/
     &marker_as_number,          /*tp_as_number*/
     &marker_as_sequence,        /*tp_as_sequence*/
     0,                          /*tp_as_mapping*/

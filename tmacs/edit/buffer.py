@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.3 2007-08-17 14:30:33 tsarna Exp $
+# $Id: buffer.py,v 1.4 2007-08-17 23:46:43 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -78,6 +78,9 @@ class Buffer(ubuf):
         newname = names[(names.index(self.name) + 1) % len(names)]
         return __tmacs__.buffers[newname]
 
+    def __repr__(self):
+        return "<Buffer '%s'>" % self.name
+        
     ### Marker
     
     def marker(self, *args):

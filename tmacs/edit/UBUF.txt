@@ -18,6 +18,8 @@ They can be initialized empty, or with a provided unistring, and len()
 works as expected::
 
     >>> u = ubuf()
+    >>> u
+    <ubuf len 0 at ...>
     >>> len(u)
     0
     >>> del u

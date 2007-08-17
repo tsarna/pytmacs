@@ -1,4 +1,4 @@
-$Id: TODO,v 1.12 2007-08-17 22:54:13 tsarna Exp $
+$Id: TODO,v 1.13 2007-08-17 23:46:41 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
@@ -13,8 +13,6 @@ marker:
 	print?
 	call?
 	iter/iternext
-    sequence:
-	in
     file:
 	...
     auto-adjust on edits

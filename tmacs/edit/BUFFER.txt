@@ -3,7 +3,7 @@ Editor Buffers
 ==============
 
 :Author: Ty Sarna
-:Version: $Id: BUFFER.txt,v 1.2 2007-08-17 14:30:33 tsarna Exp $
+:Version: $Id: BUFFER.txt,v 1.3 2007-08-17 23:46:43 tsarna Exp $
 
 .. contents ::
 
@@ -37,6 +37,8 @@ be encoded as written, here the opposite is true, and it specified how
 strings written will be decoded into unicode before appending::
 
     >>> b = Buffer('test-file-like')
+    >>> b
+    <Buffer 'test-file-like'>
     >>> b.write("Hello")
     >>> b.encoding = 'utf16'
     >>> b.write('\xff\xfe \x00W\x00o\x00r\x00l\x00d\x00')
