@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.9 2007-08-17 15:47:31 tsarna Exp $ */
+/* $Id: marker.c,v 1.10 2007-08-17 16:44:09 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -530,14 +530,28 @@ marker_richcompare(PyObject *v, PyObject *w, int op)
 {
     Py_ssize_t vs, ws;
     int cmp;
-    
-    if (!marker_check(v) || !marker_check(w)) {
-        Py_INCREF(Py_NotImplemented);
-        return Py_NotImplemented;
+
+    if (marker_check(v)) {
+        vs = ((marker *)v)->start;
+    } else {
+        vs = PyNumber_AsSsize_t(v, PyExc_TypeError);
+        if (vs == -1 && PyErr_Occurred()) {
+            PyErr_Clear();
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
+        }
     }
-    
-    vs = ((marker *)v)->start;
-    ws = ((marker *)w)->start;
+
+    if (marker_check(w)) {
+        ws = ((marker *)w)->start;
+    } else {
+        ws = PyNumber_AsSsize_t(w, PyExc_TypeError);
+        if (ws == -1 && PyErr_Occurred()) {
+            PyErr_Clear();
+            Py_INCREF(Py_NotImplemented);
+            return Py_NotImplemented;
+        }
+    }
     
     switch (op) {
         case Py_LT: cmp = vs <  ws; break;

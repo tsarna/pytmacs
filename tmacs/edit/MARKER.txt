@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.8 2007-08-17 15:47:31 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.9 2007-08-17 16:44:09 tsarna Exp $
 
 .. contents ::
 
@@ -211,8 +211,12 @@ Comparisons
 
 Markers support comparison, based on the "start" value. Or to put it
 another way, comparisons between markers are equivalent to comparison
-between the int()-converted values of the markers.
+between the int()-converted values of the markers::
 
+    >>> m.start
+    5
+    >>> m2.start
+    7
     >>> m2 > m
     True
     >>> m2 >= m
@@ -226,6 +230,8 @@ between the int()-converted values of the markers.
     >>> m >= m2
     False
     >>> m2.start = m
+    >>> m2.start
+    5
     >>> m > m2
     False
     >>> m >= m2
@@ -235,3 +241,30 @@ between the int()-converted values of the markers.
     >>> m <= m2
     True
     
+It is also possible to compare markers with ints or longs::
+
+    >>> 7 > m
+    True
+    >>> 7L >= m
+    True
+    >>> 7 == m
+    False
+    >>> 7 != m
+    True
+    >>> m > 7L
+    False
+    >>> m >= 7
+    False
+    >>> m > 5
+    False
+    >>> m >= 5
+    True
+    >>> m < 5
+    False
+    >>> m <= 5
+    True
+    >>> m == 5L
+    True
+    >>> m != 5L
+    False
+
