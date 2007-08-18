@@ -1,20 +1,32 @@
-$Id: TODO,v 1.13 2007-08-17 23:46:41 tsarna Exp $
+$Id: TODO,v 1.14 2007-08-18 14:59:17 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
-    .borrow()	with args
+    .borrow()		with args
     dealloc		point uobj to full memory
     efficient grow
 
 marker:
-    basic:
-	repr
-	str
-	print?
-	call?
-	iter/iternext
+    iteration
+    copy()
     file:
-	...
+		flush()
+	read()
+	readline()
+	readlines()
+	seek()
+	tell()
+	truncate()
+	write()
+	writelines()
+	softspace
+	encoding?
+	name?
+	
+    movement:
+    searching:
+    editing:
+	        
     auto-adjust on edits
     changed flag
     nonzero -- returns changed flag?

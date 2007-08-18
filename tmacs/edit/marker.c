@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.12 2007-08-17 23:46:43 tsarna Exp $ */
+/* $Id: marker.c,v 1.13 2007-08-18 14:59:18 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -48,6 +48,11 @@ static PyObject *marker_nb_inplace_subtract(PyObject *self, PyObject *other);
 /* basic methods */
 static PyObject *marker_repr(PyObject *self);
 static PyObject *marker_richcompare(PyObject *v, PyObject *w, int op);
+/* file-like methods */
+static PyObject *marker_flush(marker *self, PyObject *args);
+static PyObject *marker_seek(marker *self, PyObject *args);
+static PyObject *marker_tell(marker *self, PyObject *args);
+
 
 /* Begin marker create/delete methods */
 
@@ -640,50 +645,72 @@ marker_richcompare(PyObject *v, PyObject *w, int op)
 
 
 
-    
-/* Begin marker add-on methods */
+/* Begin marker file-like methods */
 
-
-
-#if 0
 static PyObject *
-marker_append(PyObject *selfo, PyObject *args)
+marker_flush(marker *self, PyObject *args)
 {
-    marker *self = (marker *)selfo;
-    Py_UNICODE *u1, *u2;
-    PyObject *v, *tobefreed;
-    Py_ssize_t l1, l2;
-        
-    if (!PyArg_ParseTuple(args, "O", &v)) {
-        return 0;
-    }
-
-    if (!marker_makewriteable(self)) {
-        return 0;
-    }
-
-    if (!marker_parse_textarg(self, v, &tobefreed, &u1, &l1, &u2, &l2)) {
-        return 0;
-    }
-
-    if (!marker_assign_slice(self, self->length, self->length, u1, l1, u2, l2)) {
-        Py_XDECREF(tobefreed);
-        return 0;
-    }
-
-    Py_XDECREF(tobefreed);
-
-    MARKER_SET_CHANGED(self);
-    
     Py_RETURN_NONE;
 }
-#endif
 
+
+
+static PyObject *
+marker_seek(marker *self, PyObject *args)
+{
+    marker *m = (marker *)self;
+    Py_ssize_t off;
+    int r, whence = 0;
+    
+    if (!PyArg_ParseTuple(args, "n|i:seek", &off, &whence)) {
+        return 0; 
+    }
+                    
+    if ((whence < 0) || (whence > 2)) {
+        PyErr_SetString(PyExc_IOError, "invalid whence argument value");
+        return 0;
+    }
+    
+    switch (whence) {
+    case 0:
+        r = marker_to(m, off);
+        break;
+    case 1:
+        r = marker_to(m, m->start + off);
+        break;
+    case 2:
+        if (m->buffer == NULL) {
+            PyErr_SetString(PyExc_TypeError, "Cannot modify when not linked to a buffer");
+            r = 0;
+        } else {
+            r = marker_to(m, m->buffer->length + off);
+        }
+        break;
+    }
+    
+    if (r) {
+        Py_RETURN_NONE;
+    } else {
+        return 0;
+    }
+}
+
+
+
+static PyObject *
+marker_tell(marker *self, PyObject *args)
+{
+    return PyInt_FromSsize_t(((marker *)self)->start);
+}
+
+
+
+/* begin type structures */
 
 static PyMethodDef marker_methods[] = {
-#if 0
-    {"append",      (PyCFunction)marker_append,           METH_VARARGS},
-#endif
+    {"flush",      (PyCFunction)marker_flush,           METH_NOARGS},
+    {"seek",       (PyCFunction)marker_seek,            METH_VARARGS},
+    {"tell",       (PyCFunction)marker_tell,            METH_NOARGS},
 
     {NULL,          NULL}
 };

@@ -1,0 +1,53 @@
+==============================
+File-like interface to Markers
+==============================
+
+:Author: Ty Sarna
+:Version: $Id: MARKFILE.txt,v 1.1 2007-08-18 14:59:18 tsarna Exp $
+
+.. contents ::
+
+Basics
+------
+
+The flush method of a marker does nothing as a buffer is already buffered::
+
+    >>> from tmacs.edit.ubuf import marker, ubuf
+    >>> u = ubuf("Hello World!\nHow are you?\n")
+    >>> m = marker(u)
+    >>> m.flush()
+
+
+Positioning
+-----------
+
+The tell() method returns the current position within the buffer (the
+same as `.start` or `len()`::
+
+    >>> m.tell()
+    0
+    >>> m.start = 5
+    >>> m.tell()
+    5
+    
+The seek takes the same arguments with the same semantics as they do on
+a file::
+
+    >>> m.seek(3)
+    >>> m.tell()
+    3
+    >>> m.seek(2, 1)
+    >>> m.tell()
+    5
+    >>> m.seek(-3, 1)
+    >>> m.tell()
+    2
+    >>> m.seek(0, 2)
+    >>> m.tell()
+    26
+    >>> m.seek(-4, 2)
+    >>> m.tell()
+    22
+
+Note that seek offsets are in terms of unicode characters, they aren't
+guaranteed to be the same as when reading a real file.

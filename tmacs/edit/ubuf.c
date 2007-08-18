@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.5 2007-08-17 23:46:43 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.6 2007-08-18 14:59:18 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -17,6 +17,7 @@ static int ubuf_set_encoding(ubuf *self, PyObject *value, void *closure);
 static void ubuf_dealloc(ubuf *self);
 static PyObject *ubuf_new(PyTypeObject *type, PyObject *args, PyObject *kdws);
 static int ubuf_init(ubuf *self, PyObject *args, PyObject *kwds);
+/* get/set methods */
 static int ubuf_set_err_notallowed(ubuf *self, PyObject *value, void *closure);
 static PyObject *ubuf_get_changed(ubuf *self, void *closure);
 static int ubuf_set_changed(ubuf *self, PyObject *value, void *closure);
@@ -27,10 +28,13 @@ static PyObject *ubuf_get_gapstart(ubuf *self, void *closure);
 static PyObject *ubuf_get_loaned(ubuf *self, void *closure);
 static PyObject *ubuf_get_read_only(ubuf *self, void *closure);
 static int ubuf_set_read_only(ubuf *self, PyObject *value, void *closure);
+/* mapping methods */
 static Py_ssize_t ubuf_mp_length(PyObject *self);
 static PyObject *ubuf_mp_subscript(PyObject *selfo, PyObject *o);
 static int ubuf_mp_ass_subscript(PyObject *selfo, PyObject *k, PyObject *v);
+/* basic methods */
 static PyObject *ubuf_repr(PyObject *self);
+/* add-on methods */
 static PyObject *ubuf_append(PyObject *selfo, PyObject *args);
 static PyObject *ubuf_borrow(ubuf *self, PyObject *args);
 
@@ -725,7 +729,7 @@ PyTypeObject ubuf_type = {
      * to be portable to Windows without using C++. */
     PyObject_HEAD_INIT(NULL)
     0,                          /*ob_size*/
-    "ubuf",                     /*tp_name*/
+    "tmacs.edit.ubuf.ubuf",     /*tp_name*/
     sizeof(ubuf),               /*tp_basicsize*/
     0,                          /*tp_itemsize*/
     /* methods */
