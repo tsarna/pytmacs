@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.15 2007-08-18 18:11:00 tsarna Exp $ */
+/* $Id: marker.c,v 1.16 2007-08-18 19:05:44 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -58,6 +58,7 @@ static PyObject *marker_richcompare(PyObject *v, PyObject *w, int op);
 static PyObject *marker_seek(marker *self, PyObject *args);
 static PyObject *marker_tell(marker *self, PyObject *args);
 static PyObject *marker_write(marker *self, PyObject *args);
+static PyObject *marker_writelines(marker *self, PyObject *args);
 
 
 /* Begin marker create/delete methods */
@@ -757,6 +758,70 @@ marker_write(marker *self, PyObject *args)
 
 
 
+static PyObject *
+marker_writelines(marker *self, PyObject *args)
+{
+    Py_UNICODE *u1, *u2;
+    PyObject *v, *line = NULL, *tobefreed = NULL, *it = NULL;
+    Py_ssize_t l1, l2, np;
+    ubuf *u;
+    
+    if (!PyArg_ParseTuple(args, "O", &v)) {
+        goto error;
+    }
+
+    it = PyObject_GetIter(v);
+    if (!it) {
+        PyErr_SetString(PyExc_TypeError, "writelines() requires an iterable argument");
+        goto error;
+    }
+
+    if (!(u = marker_makewriteable(self))) {
+        goto error;
+    }
+
+    while (1) {
+        line = PyIter_Next(it);
+        if (!line) {
+            if (PyErr_Occurred()) {
+                goto error;
+            } else {
+                break;
+            }
+        }
+
+        if (!ubuf_parse_textarg(u, line, &tobefreed, &u1, &l1, &u2, &l2)) {
+            goto error;
+        }
+
+        np = self->start + l1 + l2;
+
+        if (!ubuf_assign_slice(u, self->start, min(np, u->length), u1, l1, u2, l2)) {
+            goto error;
+        }
+
+        Py_XDECREF(tobefreed);
+        tobefreed = NULL;
+        Py_DECREF(line);
+        line = NULL;
+
+        marker_to(self, np);
+    }
+    
+    Py_XDECREF(it);
+    
+    Py_RETURN_NONE;
+
+error:
+    Py_XDECREF(line);
+    Py_XDECREF(tobefreed);
+    Py_XDECREF(it);
+
+    return 0;    
+}
+
+
+
 /* begin type structures */
 
 static PyMethodDef marker_methods[] = {
@@ -767,6 +832,7 @@ static PyMethodDef marker_methods[] = {
     {"seek",       (PyCFunction)marker_seek,            METH_VARARGS},
     {"tell",       (PyCFunction)marker_tell,            METH_NOARGS},
     {"write",      (PyCFunction)marker_write,           METH_VARARGS},
+    {"writelines", (PyCFunction)marker_writelines,      METH_VARARGS},
 
     {NULL,          NULL}
 };

@@ -3,7 +3,7 @@ File-like interface to Markers
 ==============================
 
 :Author: Ty Sarna
-:Version: $Id: MARKFILE.txt,v 1.2 2007-08-18 18:11:00 tsarna Exp $
+:Version: $Id: MARKFILE.txt,v 1.3 2007-08-18 19:05:44 tsarna Exp $
 
 .. contents ::
 
@@ -77,6 +77,15 @@ file, and appends otherwise::
     >>> u[:]
     u'Hello World!\nHow are you?\nAre you ok?\nSure?\n'
 
+The ``writelines`` method is also supported::
+
+    >>> p = m.tell()
+    >>> m.writelines([u'foo', u'bar', u'baz'])
+    >>> m.tell() == len(u)
+    True
+    >>> u[:]
+    u'Hello World!\nHow are you?\nAre you ok?\nSure?\nfoobarbaz'
+
 
 Printing
 --------
@@ -88,8 +97,8 @@ The softspace member is supported::
     
 Which means that the print statement may be used with a marker::
 
-    >>> print >>m, u"Glad to hear it!\n"
-    >>> m.tell()
-    62
-    >>> u[:]
-    u'Hello World!\nHow are you?\nAre you ok?\nSure?\nGlad to hear it!\n\n'
+#    >>> print >>m, u"Glad to hear it!\n"
+#    >>> m.tell()
+#    62
+#    >>> u[:]
+#    u'Hello World!\nHow are you?\nAre you ok?\nSure?\nGlad to hear it!\n\n'
