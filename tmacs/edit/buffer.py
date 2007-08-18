@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.4 2007-08-17 23:46:43 tsarna Exp $
+# $Id: buffer.py,v 1.5 2007-08-18 15:04:19 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -46,14 +46,6 @@ class Buffer(ubuf):
 
     ### File-like interface
     
-    def flush(self):
-        """A no-op, part of the file-like interface)"""
-        pass
-    
-    def write(self, text):
-        """Alias for append(), part of the file-like interface"""
-        return self.append(text)
-        
     def writelines(self, aniter):
         """Write each item in iter in turn (file-like interface)"""
         for x in aniter:

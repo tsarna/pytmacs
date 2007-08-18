@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.6 2007-08-18 14:59:18 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.7 2007-08-18 15:04:19 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -34,6 +34,7 @@ static PyObject *ubuf_mp_subscript(PyObject *selfo, PyObject *o);
 static int ubuf_mp_ass_subscript(PyObject *selfo, PyObject *k, PyObject *v);
 /* basic methods */
 static PyObject *ubuf_repr(PyObject *self);
+/* file-like methods */
 /* add-on methods */
 static PyObject *ubuf_append(PyObject *selfo, PyObject *args);
 static PyObject *ubuf_borrow(ubuf *self, PyObject *args);
@@ -620,6 +621,16 @@ ubuf_repr(PyObject *self)
 }
 
 
+/* Begin ubuf file-like methods */
+
+PyObject *
+ubuf_flush(ubuf *self, PyObject *args)
+{
+    Py_RETURN_NONE;
+}
+    
+    
+        
 /* Begin ubuf add-on methods */
 
 static PyObject *
@@ -669,6 +680,11 @@ ubuf_borrow(ubuf *self, PyObject *args)
 
 
 static PyMethodDef ubuf_methods[] = {
+    /* file-like methods */
+    {"flush",       (PyCFunction)ubuf_flush,            METH_NOARGS},
+    {"write",       (PyCFunction)ubuf_append,           METH_VARARGS},
+    
+    /* add-on methods */
     {"append",      (PyCFunction)ubuf_append,           METH_VARARGS},
     {"borrow",      (PyCFunction)ubuf_borrow,           METH_NOARGS},
 

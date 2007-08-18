@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.13 2007-08-18 14:59:18 tsarna Exp $ */
+/* $Id: marker.c,v 1.14 2007-08-18 15:04:19 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -49,7 +49,6 @@ static PyObject *marker_nb_inplace_subtract(PyObject *self, PyObject *other);
 static PyObject *marker_repr(PyObject *self);
 static PyObject *marker_richcompare(PyObject *v, PyObject *w, int op);
 /* file-like methods */
-static PyObject *marker_flush(marker *self, PyObject *args);
 static PyObject *marker_seek(marker *self, PyObject *args);
 static PyObject *marker_tell(marker *self, PyObject *args);
 
@@ -648,14 +647,6 @@ marker_richcompare(PyObject *v, PyObject *w, int op)
 /* Begin marker file-like methods */
 
 static PyObject *
-marker_flush(marker *self, PyObject *args)
-{
-    Py_RETURN_NONE;
-}
-
-
-
-static PyObject *
 marker_seek(marker *self, PyObject *args)
 {
     marker *m = (marker *)self;
@@ -708,7 +699,10 @@ marker_tell(marker *self, PyObject *args)
 /* begin type structures */
 
 static PyMethodDef marker_methods[] = {
-    {"flush",      (PyCFunction)marker_flush,           METH_NOARGS},
+    /* file-like methods */
+                    /* flush is a no-op so we can share it */
+    {"flush",      (PyCFunction)ubuf_flush,             METH_NOARGS},
+
     {"seek",       (PyCFunction)marker_seek,            METH_VARARGS},
     {"tell",       (PyCFunction)marker_tell,            METH_NOARGS},
 
