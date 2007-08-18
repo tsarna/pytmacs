@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.9 2007-08-18 19:09:37 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.10 2007-08-18 21:38:10 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -8,6 +8,8 @@
 #include "ubuf.h"
 
 PyObject *ReadOnlyBufferError = NULL;
+extern PyTypeObject marker_type;
+
 
 #if 0
 #define D(x) x
@@ -38,6 +40,7 @@ static PyObject *ubuf_mp_subscript(PyObject *selfo, PyObject *o);
 static int ubuf_mp_ass_subscript(PyObject *selfo, PyObject *k, PyObject *v);
 /* basic methods */
 static PyObject *ubuf_repr(PyObject *self);
+static PyObject *ubuf_iter(PyObject *self);
 /* file-like methods */
 /* add-on methods */
 static PyObject *ubuf_append(PyObject *selfo, PyObject *args);
@@ -625,6 +628,15 @@ ubuf_repr(PyObject *self)
 }
 
 
+
+static PyObject *
+ubuf_iter(PyObject *self)
+{
+    return PyEval_CallFunction((PyObject *)(&marker_type), "(O)", self);
+}
+
+
+
 /* Begin ubuf file-like methods */
 
 PyObject *
@@ -685,7 +697,8 @@ static PyMethodDef ubuf_methods[] = {
     /* file-like methods */
     {"flush",       (PyCFunction)ubuf_flush,            METH_NOARGS},
     {"write",       (PyCFunction)ubuf_append,           METH_VARARGS},
-    
+    {"xreadlines",  (PyCFunction)ubuf_iter,             METH_NOARGS},
+        
     /* add-on methods */
     {"append",      (PyCFunction)ubuf_append,           METH_VARARGS},
     {"borrow",      (PyCFunction)ubuf_borrow,           METH_NOARGS},
@@ -779,7 +792,7 @@ PyTypeObject ubuf_type = {
     0,                          /*tp_clear*/   
     0,                          /*tp_richcompare*/
     0,                          /*tp_weaklistoffset*/
-    0,                          /*tp_iter*/ 
+    ubuf_iter,                  /*tp_iter*/ 
     0,                          /*tp_iternext*/
     ubuf_methods,               /*tp_methods*/
     ubuf_members,               /*tp_members*/

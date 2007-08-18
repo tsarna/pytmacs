@@ -1,11 +1,10 @@
-$Id: TODO,v 1.16 2007-08-18 19:09:35 tsarna Exp $
+$Id: TODO,v 1.17 2007-08-18 21:38:08 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
     .borrow()		with args
     dealloc		point uobj to full memory
     efficient grow
-    iter -> marker 
     writelines
     file-like tests from Buffer
 

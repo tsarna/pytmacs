@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.17 2007-08-18 19:09:37 tsarna Exp $ */
+/* $Id: marker.c,v 1.18 2007-08-18 21:38:10 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -12,7 +12,7 @@
 
 extern PyObject *ReadOnlyBufferError;
 extern PyTypeObject ubuf_type;
-static PyTypeObject marker_type;
+PyTypeObject marker_type;
 
 #define D(x) /*x*/
 
@@ -54,6 +54,8 @@ static PyObject *marker_nb_inplace_subtract(PyObject *self, PyObject *other);
 /* basic methods */
 static PyObject *marker_repr(PyObject *self);
 static PyObject *marker_richcompare(PyObject *v, PyObject *w, int op);
+static PyObject *marker_self(PyObject *self);
+static PyObject *marker_iternext(PyObject *self);
 /* file-like methods */
 static PyObject *marker_seek(marker *self, PyObject *args);
 static PyObject *marker_tell(marker *self, PyObject *args);
@@ -671,6 +673,29 @@ marker_richcompare(PyObject *v, PyObject *w, int op)
 
 
 
+static PyObject *
+marker_self(PyObject *self)
+{
+    if (((marker *)self)->buffer == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Not linked to a buffer");
+        return 0;
+    }
+    
+    Py_INCREF(self);
+    
+    return self;
+}
+
+
+
+static PyObject *
+marker_iternext(PyObject *self)
+{
+    return NULL; /* XXX iteration */
+}
+
+
+
 /* Begin marker file-like methods */
 
 static PyObject *
@@ -827,12 +852,13 @@ error:
 static PyMethodDef marker_methods[] = {
     /* file-like methods */
                     /* flush is a no-op so we can share it */
-    {"flush",      (PyCFunction)ubuf_flush,             METH_NOARGS},
+    {"flush",       (PyCFunction)ubuf_flush,            METH_NOARGS},
 
-    {"seek",       (PyCFunction)marker_seek,            METH_VARARGS},
-    {"tell",       (PyCFunction)marker_tell,            METH_NOARGS},
-    {"write",      (PyCFunction)marker_write,           METH_VARARGS},
-    {"writelines", (PyCFunction)marker_writelines,      METH_VARARGS},
+    {"seek",        (PyCFunction)marker_seek,           METH_VARARGS},
+    {"tell",        (PyCFunction)marker_tell,           METH_NOARGS},
+    {"write",       (PyCFunction)marker_write,          METH_VARARGS},
+    {"writelines",  (PyCFunction)marker_writelines,     METH_VARARGS},
+    {"xreadlines",  (PyCFunction)marker_self,           METH_NOARGS},
 
     {NULL,          NULL}
 };
@@ -929,7 +955,7 @@ static PyNumberMethods marker_as_number = {
 };
 
 
-static PyTypeObject marker_type = {
+PyTypeObject marker_type = {
     /* The ob_type field must be initialized in the module init function
      * to be portable to Windows without using C++. */
     PyObject_HEAD_INIT(NULL)
@@ -959,8 +985,8 @@ static PyTypeObject marker_type = {
     0,                          /*tp_clear*/   
     marker_richcompare,         /*tp_richcompare*/
     0,                          /*tp_weaklistoffset*/
-    0,                          /*tp_iter*/ 
-    0,                          /*tp_iternext*/
+    marker_self,                /*tp_iter*/ 
+    marker_iternext,            /*tp_iternext*/
     marker_methods,             /*tp_methods*/
     marker_members,             /*tp_members*/
     marker_getset,              /*tp_getset*/
