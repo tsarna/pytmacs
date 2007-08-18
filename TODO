@@ -1,28 +1,25 @@
-$Id: TODO,v 1.14 2007-08-18 14:59:17 tsarna Exp $
+$Id: TODO,v 1.15 2007-08-18 18:10:57 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
     .borrow()		with args
     dealloc		point uobj to full memory
     efficient grow
+    iter -> marker 
+    softspace
+    writelines
+    file-like tests from Buffer
 
 marker:
     iteration
     copy()
     file:
-		flush()
 	read()
 	readline()
 	readlines()
-	seek()
-	tell()
 	truncate()
-	write()
 	writelines()
-	softspace
 	encoding?
-	name?
-	
     movement:
     searching:
     editing:

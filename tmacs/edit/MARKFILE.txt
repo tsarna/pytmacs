@@ -3,7 +3,7 @@ File-like interface to Markers
 ==============================
 
 :Author: Ty Sarna
-:Version: $Id: MARKFILE.txt,v 1.1 2007-08-18 14:59:18 tsarna Exp $
+:Version: $Id: MARKFILE.txt,v 1.2 2007-08-18 18:11:00 tsarna Exp $
 
 .. contents ::
 
@@ -51,3 +51,45 @@ a file::
 
 Note that seek offsets are in terms of unicode characters, they aren't
 guaranteed to be the same as when reading a real file.
+
+
+Writing
+-------
+
+Writing is supported. Writing overwrites data if not at the end of the
+file, and appends otherwise::
+
+    >>> m.seek(0, 2)
+    >>> m.write(u"Are you well?\n")
+    >>> m.tell()
+    40
+    >>> u[:]
+    u'Hello World!\nHow are you?\nAre you well?\n'
+    >>> m.seek(-6, 1)
+    >>> m.write("ok?\n")
+    >>> m.tell()
+    38
+    >>> u[:]
+    u'Hello World!\nHow are you?\nAre you ok?\n?\n'
+    >>> m.write(u'Sure?\n')
+    >>> m.tell()
+    44
+    >>> u[:]
+    u'Hello World!\nHow are you?\nAre you ok?\nSure?\n'
+
+
+Printing
+--------
+
+The softspace member is supported::
+
+    >>> m.softspace
+    0
+    
+Which means that the print statement may be used with a marker::
+
+    >>> print >>m, u"Glad to hear it!\n"
+    >>> m.tell()
+    62
+    >>> u[:]
+    u'Hello World!\nHow are you?\nAre you ok?\nSure?\nGlad to hear it!\n\n'

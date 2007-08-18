@@ -1,9 +1,14 @@
-/* $Id: marker.c,v 1.14 2007-08-18 15:04:19 tsarna Exp $ */
+/* $Id: marker.c,v 1.15 2007-08-18 18:11:00 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
 
 #include "ubuf.h"
+
+#ifndef max
+#define max(x,y) ((x) > (y) ? (x) : (y))
+#define min(x,y) ((x) < (y) ? (x) : (y))
+#endif
 
 extern PyObject *ReadOnlyBufferError;
 extern PyTypeObject ubuf_type;
@@ -23,6 +28,7 @@ static void marker_unlink_buffer(marker *self);
 static int marker_to(marker *self, Py_ssize_t v);
 static int marker_start(marker *self, Py_ssize_t v);
 static int marker_end(marker *self, Py_ssize_t v);
+static ubuf *marker_makewriteable(marker *self);
 /* get/set */
 static PyObject *marker_get_buffer(marker *self, void *closure);
 static int marker_set_buffer(marker *self, PyObject *value, void *closure);
@@ -51,6 +57,7 @@ static PyObject *marker_richcompare(PyObject *v, PyObject *w, int op);
 /* file-like methods */
 static PyObject *marker_seek(marker *self, PyObject *args);
 static PyObject *marker_tell(marker *self, PyObject *args);
+static PyObject *marker_write(marker *self, PyObject *args);
 
 
 /* Begin marker create/delete methods */
@@ -263,6 +270,25 @@ marker_end(marker *self, Py_ssize_t v)
     self->end = v;
                 
     return 1;
+}
+
+
+
+static ubuf *
+marker_makewriteable(marker *self)
+{
+    ubuf *u = self->buffer;
+    
+    if (!u) {
+        PyErr_SetString(PyExc_TypeError, "Cannot modify when not linked to a buffer");
+        return 0;
+    }
+    
+    if (!ubuf_makewriteable(self->buffer)) {
+        return 0;
+    }
+    
+    return u;
 }
 
 
@@ -696,6 +722,41 @@ marker_tell(marker *self, PyObject *args)
 
 
 
+static PyObject *
+marker_write(marker *self, PyObject *args)
+{
+    Py_UNICODE *u1, *u2;
+    PyObject *v, *tobefreed;
+    Py_ssize_t l1, l2, np;
+    ubuf *u;
+    
+    if (!PyArg_ParseTuple(args, "O", &v)) {
+        return 0;
+    }
+
+    if (!(u = marker_makewriteable(self))) {
+        return 0;
+    }
+
+    if (!ubuf_parse_textarg(u, v, &tobefreed, &u1, &l1, &u2, &l2)) {
+        return 0;
+    }
+
+    np = self->start + l1 + l2;
+    if (!ubuf_assign_slice(u, self->start, min(np, u->length), u1, l1, u2, l2)) {
+        Py_XDECREF(tobefreed);
+        return 0;
+    }
+                                
+    Py_XDECREF(tobefreed);
+
+    marker_to(self, np);
+        
+    Py_RETURN_NONE;
+}
+
+
+
 /* begin type structures */
 
 static PyMethodDef marker_methods[] = {
@@ -705,6 +766,7 @@ static PyMethodDef marker_methods[] = {
 
     {"seek",       (PyCFunction)marker_seek,            METH_VARARGS},
     {"tell",       (PyCFunction)marker_tell,            METH_NOARGS},
+    {"write",      (PyCFunction)marker_write,           METH_VARARGS},
 
     {NULL,          NULL}
 };
@@ -722,6 +784,16 @@ static PySequenceMethods marker_as_sequence = {
     0,                      /* sq_inplace_concat */
     0,                      /* sq_inplace_repeat */
 };
+
+
+
+static PyMemberDef marker_members[] = {
+    {"softspace",  T_INT, offsetof(marker, softspace), 0, NULL},
+    
+    
+    {NULL}
+};
+
 
 
 static PyGetSetDef marker_getset[] = {
@@ -825,7 +897,7 @@ static PyTypeObject marker_type = {
     0,                          /*tp_iter*/ 
     0,                          /*tp_iternext*/
     marker_methods,             /*tp_methods*/
-    0,                          /*tp_members*/
+    marker_members,             /*tp_members*/
     marker_getset,              /*tp_getset*/
     0,                          /*tp_base*/
     0,                          /*tp_dict*/

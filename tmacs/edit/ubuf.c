@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.7 2007-08-18 15:04:19 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.8 2007-08-18 18:11:00 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -9,7 +9,11 @@
 
 PyObject *ReadOnlyBufferError = NULL;
 
+#if 0
+#define D(x) x
+#else
 #define D(x) /*x*/
+#endif
 
 /* prototypes for static functions */
 
@@ -524,7 +528,9 @@ D(fprintf(stderr, "deleted %d replen %d growth %d gapsize %d@%d\n", deleted, rep
         memcpy(&(self->str[self->gapstart]), u2, l2 * sizeof(Py_UNICODE));
         self->gapstart += l2;
     }
-        
+
+    UBUF_SET_CHANGED(self);
+    
     return 1;
 }
 
@@ -601,8 +607,6 @@ D(fprintf(stderr, "\nLENS %d %d\n", l1, l2);)
 
     Py_XDECREF(tobefreed);
     
-    UBUF_SET_CHANGED(self);
-    
     return 0;
 }
 
@@ -660,8 +664,6 @@ ubuf_append(PyObject *selfo, PyObject *args)
 
     Py_XDECREF(tobefreed);
 
-    UBUF_SET_CHANGED(self);
-    
     Py_RETURN_NONE;
 }
 
