@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.16 2007-08-18 19:05:44 tsarna Exp $ */
+/* $Id: marker.c,v 1.17 2007-08-18 19:09:37 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -855,7 +855,6 @@ static PySequenceMethods marker_as_sequence = {
 
 static PyMemberDef marker_members[] = {
     {"softspace",  T_INT, offsetof(marker, softspace), 0, NULL},
-    
     
     {NULL}
 };

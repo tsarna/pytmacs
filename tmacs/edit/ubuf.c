@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.8 2007-08-18 18:11:00 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.9 2007-08-18 19:09:37 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -699,6 +699,13 @@ static PyMethodDef ubuf_module_methods[] = {
 };
 
 
+static PyMemberDef ubuf_members[] = {
+    {"softspace",  T_INT, offsetof(ubuf, softspace), 0, NULL},
+
+    {NULL}
+};
+        
+
 
 static PyGetSetDef ubuf_getset[] = {
     {"changed",     (getter)ubuf_get_changed,
@@ -775,7 +782,7 @@ PyTypeObject ubuf_type = {
     0,                          /*tp_iter*/ 
     0,                          /*tp_iternext*/
     ubuf_methods,               /*tp_methods*/
-    0,                          /*tp_members*/
+    ubuf_members,               /*tp_members*/
     ubuf_getset,                /*tp_getset*/
     0,                          /*tp_base*/
     0,                          /*tp_dict*/

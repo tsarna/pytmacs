@@ -1,4 +1,4 @@
-/* $Id: ubuf.h,v 1.4 2007-08-18 18:11:00 tsarna Exp $ */
+/* $Id: ubuf.h,v 1.5 2007-08-18 19:09:37 tsarna Exp $ */
 
 typedef struct marker marker;
 
@@ -19,6 +19,7 @@ typedef struct {
 #define UBUF_F_CHANGED      0x01
 #define UBUF_F_LOANED       0x02
 #define UBUF_F_READONLY     0x04
+    int                 softspace;
 } ubuf;
 
 #define UBUF_ENCODING(u)     PyString_AsString((u)->encoding)

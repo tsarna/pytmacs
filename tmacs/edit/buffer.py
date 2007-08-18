@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.5 2007-08-18 15:04:19 tsarna Exp $
+# $Id: buffer.py,v 1.6 2007-08-18 19:09:37 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -12,7 +12,6 @@ class Buffer(ubuf):
     # settings defaults
     fill_column = 78
     tab_stop = 8
-    softspace = 0       # used by python "print" statement
     # start_line = 0    # line for editing to start on set
                         # by +nn args on command line
     

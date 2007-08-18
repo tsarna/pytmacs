@@ -1,4 +1,4 @@
-$Id: TODO,v 1.15 2007-08-18 18:10:57 tsarna Exp $
+$Id: TODO,v 1.16 2007-08-18 19:09:35 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
@@ -6,7 +6,6 @@ ubuf:
     dealloc		point uobj to full memory
     efficient grow
     iter -> marker 
-    softspace
     writelines
     file-like tests from Buffer
 
@@ -18,7 +17,6 @@ marker:
 	readline()
 	readlines()
 	truncate()
-	writelines()
 	encoding?
     movement:
     searching:
