@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.18 2007-08-18 21:38:10 tsarna Exp $ */
+/* $Id: marker.c,v 1.19 2007-08-19 16:53:14 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -59,8 +59,8 @@ static PyObject *marker_iternext(PyObject *self);
 /* file-like methods */
 static PyObject *marker_seek(marker *self, PyObject *args);
 static PyObject *marker_tell(marker *self, PyObject *args);
-static PyObject *marker_write(marker *self, PyObject *args);
-static PyObject *marker_writelines(marker *self, PyObject *args);
+static PyObject *marker_write(marker *self, PyObject *arg);
+static PyObject *marker_writelines(marker *self, PyObject *arg);
 
 
 /* Begin marker create/delete methods */
@@ -749,17 +749,13 @@ marker_tell(marker *self, PyObject *args)
 
 
 static PyObject *
-marker_write(marker *self, PyObject *args)
+marker_write(marker *self, PyObject *v)
 {
     Py_UNICODE *u1, *u2;
-    PyObject *v, *tobefreed;
+    PyObject *tobefreed;
     Py_ssize_t l1, l2, np;
     ubuf *u;
     
-    if (!PyArg_ParseTuple(args, "O", &v)) {
-        return 0;
-    }
-
     if (!(u = marker_makewriteable(self))) {
         return 0;
     }
@@ -784,17 +780,13 @@ marker_write(marker *self, PyObject *args)
 
 
 static PyObject *
-marker_writelines(marker *self, PyObject *args)
+marker_writelines(marker *self, PyObject *v)
 {
     Py_UNICODE *u1, *u2;
-    PyObject *v, *line = NULL, *tobefreed = NULL, *it = NULL;
+    PyObject *line = NULL, *tobefreed = NULL, *it = NULL;
     Py_ssize_t l1, l2, np;
     ubuf *u;
     
-    if (!PyArg_ParseTuple(args, "O", &v)) {
-        goto error;
-    }
-
     it = PyObject_GetIter(v);
     if (!it) {
         PyErr_SetString(PyExc_TypeError, "writelines() requires an iterable argument");
@@ -856,8 +848,8 @@ static PyMethodDef marker_methods[] = {
 
     {"seek",        (PyCFunction)marker_seek,           METH_VARARGS},
     {"tell",        (PyCFunction)marker_tell,           METH_NOARGS},
-    {"write",       (PyCFunction)marker_write,          METH_VARARGS},
-    {"writelines",  (PyCFunction)marker_writelines,     METH_VARARGS},
+    {"write",       (PyCFunction)marker_write,          METH_O},
+    {"writelines",  (PyCFunction)marker_writelines,     METH_O},
     {"xreadlines",  (PyCFunction)marker_self,           METH_NOARGS},
 
     {NULL,          NULL}

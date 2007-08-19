@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.10 2007-08-18 21:38:10 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.11 2007-08-19 16:53:14 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -43,7 +43,7 @@ static PyObject *ubuf_repr(PyObject *self);
 static PyObject *ubuf_iter(PyObject *self);
 /* file-like methods */
 /* add-on methods */
-static PyObject *ubuf_append(PyObject *selfo, PyObject *args);
+static PyObject *ubuf_append(PyObject *selfo, PyObject *arg);
 static PyObject *ubuf_borrow(ubuf *self, PyObject *args);
 
 /* Begin ubuf create/delete methods */
@@ -650,17 +650,13 @@ ubuf_flush(ubuf *self, PyObject *args)
 /* Begin ubuf add-on methods */
 
 static PyObject *
-ubuf_append(PyObject *selfo, PyObject *args)
+ubuf_append(PyObject *selfo, PyObject *v)
 {
     ubuf *self = (ubuf *)selfo;
     Py_UNICODE *u1, *u2;
-    PyObject *v, *tobefreed;
+    PyObject *tobefreed;
     Py_ssize_t l1, l2;
         
-    if (!PyArg_ParseTuple(args, "O", &v)) {
-        return 0;
-    }
-
     if (!ubuf_makewriteable(self)) {
         return 0;
     }
@@ -696,11 +692,11 @@ ubuf_borrow(ubuf *self, PyObject *args)
 static PyMethodDef ubuf_methods[] = {
     /* file-like methods */
     {"flush",       (PyCFunction)ubuf_flush,            METH_NOARGS},
-    {"write",       (PyCFunction)ubuf_append,           METH_VARARGS},
+    {"write",       (PyCFunction)ubuf_append,           METH_O},
     {"xreadlines",  (PyCFunction)ubuf_iter,             METH_NOARGS},
         
     /* add-on methods */
-    {"append",      (PyCFunction)ubuf_append,           METH_VARARGS},
+    {"append",      (PyCFunction)ubuf_append,           METH_O},
     {"borrow",      (PyCFunction)ubuf_borrow,           METH_NOARGS},
 
     {NULL,          NULL}
