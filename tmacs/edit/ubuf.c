@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.11 2007-08-19 16:53:14 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.12 2007-08-20 03:45:52 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -465,6 +465,30 @@ ubuf_parse_textarg(
     }
 
     return 1;
+}
+
+
+
+int
+ubuf_do_truncate(ubuf *self, Py_ssize_t sz)
+{
+    if (!ubuf_makewriteable(self)) {
+        return 0;
+    }
+
+    if (sz < 0) {
+        PyErr_SetString(PyExc_IndexError, "can't truncate to negative size");
+            
+        return 0;
+    } else if (sz > self->length) {
+        PyErr_SetString(PyExc_IndexError, "can't extend buffer by truncation");
+            
+        return 0;
+    } else if (sz < self->length) {
+        return ubuf_assign_slice(self, sz, self->length, NULL, 0, NULL, 0);
+    }
+
+    return 1; /* no change */
 }
 
 
