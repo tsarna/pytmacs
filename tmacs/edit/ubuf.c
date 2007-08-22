@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.12 2007-08-20 03:45:52 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.13 2007-08-22 23:03:03 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -469,6 +469,31 @@ ubuf_parse_textarg(
 
 
 
+PyObject *
+ubuf_get_range(ubuf *self, Py_ssize_t s, Py_ssize_t e)
+{
+    if ((s >= self->gapstart) && (e > self->gapstart)) {
+        s += self->gapsize;
+        e += self->gapsize;
+    } else if (e > self->gapstart) {
+        /* straddling the gap */
+D(fprintf(stderr, "\nstraddling %d\n", e);)
+        if (UBUF_IS_LOANED(self)) {
+            PyErr_SetString(PyExc_AssertionError, "gap should not be in middle while loaned");
+
+            return 0;
+        }
+        
+        if (!ubuf_gap_to(self, e)) {
+            return 0;
+        }
+    }
+
+    return PyUnicode_FromUnicode(&(self->str[s]), e - s);
+}
+
+
+
 int
 ubuf_do_truncate(ubuf *self, Py_ssize_t sz)
 {
@@ -583,24 +608,7 @@ ubuf_mp_subscript(PyObject *selfo, PyObject *o)
         return 0;
     }
 
-    if ((s >= self->gapstart) && (e > self->gapstart)) {
-        s += self->gapsize;
-        e += self->gapsize;
-    } else if (e > self->gapstart) {
-        /* straddling the gap */
-D(fprintf(stderr, "\nstraddling %d\n", e);)
-        if (UBUF_IS_LOANED(self)) {
-            PyErr_SetString(PyExc_AssertionError, "gap should not be in middle while loaned");
-
-            return 0;
-        }
-        
-        if (!ubuf_gap_to(self, e)) {
-            return 0;
-        }
-    }
-
-    return PyUnicode_FromUnicode(&(self->str[s]), e - s);
+    return ubuf_get_range(self, s, e);
 }
 
 

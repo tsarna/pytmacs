@@ -1,4 +1,4 @@
-/* $Id: ubuf.h,v 1.6 2007-08-20 03:45:52 tsarna Exp $ */
+/* $Id: ubuf.h,v 1.7 2007-08-22 23:03:03 tsarna Exp $ */
 
 typedef struct marker marker;
 
@@ -67,6 +67,7 @@ int ubuf_parse_textarg(ubuf *self, PyObject *v, PyObject **tobefreed, Py_UNICODE
 int ubuf_assign_slice(ubuf *self, Py_ssize_t s, Py_ssize_t e, Py_UNICODE *u1, Py_ssize_t l1, Py_UNICODE *u2, Py_ssize_t l2);
 int ubuf_do_truncate(ubuf *self, Py_ssize_t sz);
 int ubuf_do_cut(ubuf *self, Py_ssize_t s, Py_ssize_t e, PyObject **cut);
+PyObject *ubuf_get_range(ubuf *self, Py_ssize_t s, Py_ssize_t e);
 /* shared methods */
 PyObject *ubuf_flush(ubuf *self, PyObject *args);
 

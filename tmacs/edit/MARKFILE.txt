@@ -3,7 +3,7 @@ File-like interface to Markers
 ==============================
 
 :Author: Ty Sarna
-:Version: $Id: MARKFILE.txt,v 1.4 2007-08-20 03:45:52 tsarna Exp $
+:Version: $Id: MARKFILE.txt,v 1.5 2007-08-22 23:03:03 tsarna Exp $
 
 .. contents ::
 
@@ -130,8 +130,46 @@ The softspace member is supported::
     
 Which means that the print statement may be used with a marker::
 
-#    >>> print >>m, u"Glad to hear it!\n"
-#    >>> m.tell()
-#    62
-#    >>> u[:]
-#    u'Hello World!\nHow are you?\nAre you ok?\nSure?\nGlad to hear it!\n\n'
+    >>> print >>m, u"Glad to hear it!\n"
+    >>> m.tell()
+    62
+    >>> u[:]
+    u'Hello World!\nHow are you?\nAre you ok?\nSure?\nGlad to hear it!\n\n'
+
+
+Reading
+-------
+
+The `read()` method starts at the current location, reading the
+specified number of characters and advancing the marker past them::
+
+    >>> m.seek(2)
+    >>> m.read(6)
+    u'llo Wo'
+    >>> m.read(4)
+    u'rld!'
+
+If there is not enough left in the buffer, less than the specificied
+number of characters may be read::
+
+    >>> m.read(1000)
+    u'\nHow are you?\nAre you ok?\nSure?\nGlad to hear it!\n\n'
+    
+When the marker is at the end of the buffer, an empty string is read, as
+is conventional for signaling EOF::
+
+    >>> m.read(1)
+    u''
+    >>> m.read(10)
+    u''
+    >>> m.read()
+    u''
+        
+In the last case, the size was omitted. This is equivalent to "read
+until EOF", as we can see here:
+
+    >>> m.seek(-5, 1)
+    >>> m.read()
+    u'it!\n\n'
+    >>> m.read()
+    u''
