@@ -3,7 +3,7 @@ File-like interface to Markers
 ==============================
 
 :Author: Ty Sarna
-:Version: $Id: MARKFILE.txt,v 1.5 2007-08-22 23:03:03 tsarna Exp $
+:Version: $Id: MARKFILE.txt,v 1.6 2007-08-24 04:33:39 tsarna Exp $
 
 .. contents ::
 
@@ -166,10 +166,50 @@ is conventional for signaling EOF::
     u''
         
 In the last case, the size was omitted. This is equivalent to "read
-until EOF", as we can see here:
+until EOF", as we can see here::
 
     >>> m.seek(-5, 1)
     >>> m.read()
     u'it!\n\n'
     >>> m.read()
+    u''
+
+Reading may also be done by line::
+
+    >>> m.seek(6)
+    >>> m.readline()
+    u'World!\n'
+
+A maximum size may be specified, but if a size larger that the next
+liune is specified, the line will still include only the line::
+
+    >>> m.readline(4)
+    u'How '
+    >>> m.readline(1000)
+    u'are you?\n'
+    >>> m.readline(11)
+    u'Are you ok?'
+    >>> m.readline()
+    u'\n'
+
+We'll force the gap to be in the middle of the next read to demostrate
+that doesn't cause a problem::
+
+    >>> m.tell()
+    38
+    >>> u[40:41] = u[40]
+    >>> u.gapstart
+    41
+    >>> m.readline(10)
+    u'Sure?\n'
+    
+At the end of the file, empty strings are returned, indicating EOF::
+
+    >>> m.readline()
+    u'Glad to hear it!\n'
+    >>> m.readline()
+    u'\n'
+    >>> m.readline()
+    u''
+    >>> m.readline()
     u''

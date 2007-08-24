@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.21 2007-08-22 23:03:03 tsarna Exp $ */
+/* $Id: marker.c,v 1.22 2007-08-24 04:33:39 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -61,6 +61,7 @@ static PyObject *marker_seek(marker *self, PyObject *args);
 static PyObject *marker_tell(marker *self, PyObject *args);
 static PyObject *marker_truncate(marker *self, PyObject *args);
 static PyObject *marker_read(marker *self, PyObject *args);
+static PyObject *marker_readline(marker *self, PyObject *args);
 static PyObject *marker_write(marker *self, PyObject *arg);
 static PyObject *marker_writelines(marker *self, PyObject *arg);
 
@@ -807,6 +808,29 @@ marker_read(marker *self, PyObject *args)
 
 
 static PyObject *
+marker_readline(marker *self, PyObject *args)
+{
+    Py_ssize_t sz;
+    
+    if (self->buffer) {
+        sz = self->buffer->length;
+    }
+
+    if (!PyArg_ParseTuple(args, "|n:readline", &sz)) {
+        return 0; 
+    }
+
+    if (self->buffer == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot read w/o a buffer");
+        return 0;
+    }
+
+    return ubuf_get_line(self->buffer, &(self->start), sz);
+}
+
+
+
+static PyObject *
 marker_write(marker *self, PyObject *v)
 {
     Py_UNICODE *u1, *u2;
@@ -908,6 +932,7 @@ static PyMethodDef marker_methods[] = {
     {"tell",        (PyCFunction)marker_tell,           METH_NOARGS},
     {"truncate",    (PyCFunction)marker_truncate,       METH_VARARGS},
     {"read",        (PyCFunction)marker_read,           METH_VARARGS},
+    {"readline",    (PyCFunction)marker_readline,       METH_VARARGS},
     {"write",       (PyCFunction)marker_write,          METH_O},
     {"writelines",  (PyCFunction)marker_writelines,     METH_O},
     {"xreadlines",  (PyCFunction)marker_self,           METH_NOARGS},

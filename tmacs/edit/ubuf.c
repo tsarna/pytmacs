@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.13 2007-08-22 23:03:03 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.14 2007-08-24 04:33:39 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -490,6 +490,34 @@ D(fprintf(stderr, "\nstraddling %d\n", e);)
     }
 
     return PyUnicode_FromUnicode(&(self->str[s]), e - s);
+}
+
+
+
+PyObject *
+ubuf_get_line(ubuf *self, Py_ssize_t *start, Py_ssize_t sz)
+{
+    Py_ssize_t s = *start;
+
+    while ((*start < self->gapstart)
+        && (*start < self->length)
+        && ((*start - s) < sz)
+    ) {
+        if (Py_UNICODE_ISLINEBREAK(self->str[(*start)++])) {
+            goto done;
+        }
+    }
+
+    while ((*start < self->length)
+        && ((*start - s) < sz)
+    ) {
+        if (Py_UNICODE_ISLINEBREAK(self->str[(*start)++ + self->gapsize])) {
+            break;
+        }
+    }
+
+done:
+    return ubuf_get_range(self, s, *start);
 }
 
 

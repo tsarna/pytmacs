@@ -1,4 +1,4 @@
-$Id: TODO,v 1.19 2007-08-22 23:03:01 tsarna Exp $
+$Id: TODO,v 1.20 2007-08-24 04:33:36 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
@@ -12,7 +12,6 @@ marker:
     iteration
     copy()
     file:
-	readline()
 	readlines()
 	encoding?
     movement:
