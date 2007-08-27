@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.23 2007-08-27 15:04:16 tsarna Exp $ */
+/* $Id: marker.c,v 1.24 2007-08-27 22:41:54 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -64,6 +64,8 @@ static PyObject *marker_read(marker *self, PyObject *args);
 static PyObject *marker_readline(marker *self, PyObject *args);
 static PyObject *marker_write(marker *self, PyObject *arg);
 static PyObject *marker_writelines(marker *self, PyObject *arg);
+/* misc methods/
+static PyObject *marker_copy(marker *self, PyObject *args);
 
 
 /* Begin marker create/delete methods */
@@ -938,9 +940,34 @@ error:
 
 
 
+/* begin misc methods */
+
+static PyObject *
+marker_copy(marker *self, PyObject *v)
+{
+    marker *c;
+    
+    c = (marker *)PyEval_CallFunction((PyObject *)(&marker_type), "()");
+    if (c) {
+        if (self->buffer) {
+            marker_link_buffer(c, self->buffer);
+        }
+        c->start = self->start;
+        c->end = self->end;
+        c->flags = self->flags;
+    }
+    
+    return (PyObject *)c;
+}
+
+
+
 /* begin type structures */
 
 static PyMethodDef marker_methods[] = {
+    /* basic methods */
+    {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},
+    
     /* file-like methods */
                     /* flush is a no-op so we can share it */
     {"flush",       (PyCFunction)ubuf_flush,            METH_NOARGS},

@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.11 2007-08-17 23:46:43 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.12 2007-08-27 22:41:54 tsarna Exp $
 
 .. contents ::
 
@@ -309,3 +309,31 @@ It is also possible to compare markers with ints or longs::
     >>> m != 5L
     False
 
+
+Copies
+------
+
+The `copy()` method of a marker returns a new marker that has all the
+same settings and values as the original::
+
+    >>> o = marker(b)
+    >>> o.start = 3; o.end = 5
+    >>> o.changed = True
+    >>> c = o.copy()
+    >>> c is o
+    False
+    >>> c == o
+    True
+    >>> c.buffer is o.buffer
+    True
+    >>> c.start == o.start
+    True
+    >>> c.end == o.end
+    True
+    >>> c.changed == o.changed
+    True
+    >>> o += 1
+    >>> c == o
+    False
+    
+XXX encoding

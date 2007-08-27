@@ -1,4 +1,4 @@
-$Id: TODO,v 1.21 2007-08-27 15:04:15 tsarna Exp $
+$Id: TODO,v 1.22 2007-08-27 22:41:52 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
@@ -9,7 +9,6 @@ ubuf:
     file-like tests from Buffer
 
 marker:
-    copy()
     file:
 	readlines()
 	encoding?
