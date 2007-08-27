@@ -3,7 +3,7 @@ File-like interface to Markers
 ==============================
 
 :Author: Ty Sarna
-:Version: $Id: MARKFILE.txt,v 1.6 2007-08-24 04:33:39 tsarna Exp $
+:Version: $Id: MARKFILE.txt,v 1.7 2007-08-27 15:04:16 tsarna Exp $
 
 .. contents ::
 
@@ -213,3 +213,48 @@ At the end of the file, empty strings are returned, indicating EOF::
     u''
     >>> m.readline()
     u''
+
+
+Iteration
+---------
+
+A marker may be used as an iterator over lines of a buffer, just as an
+open file can be used as an iterator over the lines of a file::
+
+    >>> u[:]
+    u'Hello World!\nHow are you?\nAre you ok?\nSure?\nGlad to hear it!\n\n'
+    >>> m.start = 0
+    >>> for l in m:
+    ...     print `l`
+    ... 
+    u'Hello World!\n'
+    u'How are you?\n'
+    u'Are you ok?\n'
+    u'Sure?\n'
+    u'Glad to hear it!\n'
+    u'\n'
+    >>> m.start = -2
+    >>> m.start
+    60
+    >>> m.next()
+    u'\n'
+    >>> m.next()
+    u'\n'
+    >>> m.next()
+    Traceback (most recent call last):
+       ...
+    StopIteration
+
+`iter()` of a marker returns itself, allowing a marker to be used in a
+for loop::
+
+    >>> iter(m) is m
+    True
+
+Iter of a ubuf returns a new marker at the start of the buffer::
+
+    >>> m2 = iter(u)
+    >>> m2 is m
+    False
+    >>> m2.start
+    0

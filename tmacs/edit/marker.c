@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.22 2007-08-24 04:33:39 tsarna Exp $ */
+/* $Id: marker.c,v 1.23 2007-08-27 15:04:16 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -692,9 +692,26 @@ marker_self(PyObject *self)
 
 
 static PyObject *
-marker_iternext(PyObject *self)
+marker_iternext(PyObject *selfo)
 {
-    return NULL; /* XXX iteration */
+    marker *self = (marker *)selfo;
+    PyObject *l;
+    Py_ssize_t sz;
+    
+    if (self->buffer == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot read w/o a buffer");
+        return 0;
+    }
+
+    sz = self->buffer->length;
+    l = ubuf_get_line(self->buffer, &(self->start), sz);
+
+    if (l == NULL || PyString_GET_SIZE(l) == 0) {
+        Py_XDECREF(l);
+        return NULL;
+    }
+
+    return l;
 }
 
 
