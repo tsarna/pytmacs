@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.25 2007-08-28 00:09:53 tsarna Exp $ */
+/* $Id: marker.c,v 1.26 2007-08-28 03:17:02 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -67,6 +67,8 @@ static PyObject *marker_writelines(marker *self, PyObject *arg);
 /* movement methods/
 static PyObject *marker_tobufstart(marker *self, PyObject *args);
 static PyObject *marker_tobufend(marker *self, PyObject *args);
+static PyObject *marker_tolinestart(marker *self, PyObject *args);
+static PyObject *marker_tolineend(marker *self, PyObject *args);
 /* misc methods/
 static PyObject *marker_copy(marker *self, PyObject *args);
 
@@ -974,6 +976,48 @@ marker_tobufend(marker *self, PyObject *args)
 
 
 
+static PyObject *
+marker_tolinestart(marker *self, PyObject *args)
+{
+    Py_ssize_t e;
+    
+    if (self->buffer == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot modify when not linked to a buffer");
+        return 0;
+    }
+    
+    e = ubuf_get_line_start(self->buffer, self->start);
+    
+    if (marker_to(self, e)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
+static PyObject *
+marker_tolineend(marker *self, PyObject *args)
+{
+    Py_ssize_t e;
+    
+    if (self->buffer == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot modify when not linked to a buffer");
+        return 0;
+    }
+    
+    e = ubuf_get_line_end(self->buffer, self->start);
+    
+    if (marker_to(self, e)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
 /* Begin misc methods */
 
 static PyObject *
@@ -1015,6 +1059,8 @@ static PyMethodDef marker_methods[] = {
     /* movement methods */
     {"tobufstart",  (PyCFunction)marker_tobufstart,     METH_NOARGS},
     {"tobufend",    (PyCFunction)marker_tobufend,       METH_NOARGS},
+    {"tolinestart", (PyCFunction)marker_tolinestart,    METH_NOARGS},
+    {"tolineend",   (PyCFunction)marker_tolineend,      METH_NOARGS},
     
     /* misc methods */
     {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},

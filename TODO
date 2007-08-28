@@ -1,4 +1,4 @@
-$Id: TODO,v 1.23 2007-08-28 00:09:52 tsarna Exp $
+$Id: TODO,v 1.24 2007-08-28 03:17:01 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
@@ -13,9 +13,11 @@ marker:
 	readlines()
 	encoding?
     movement:
-	tolinestart
-	tolineend
 	toline
+	nextword
+	prevword
+	nextline
+	prevline
     searching:
     editing:
 	        

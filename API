@@ -1,4 +1,4 @@
-$Id: API,v 1.2 2007-08-28 00:09:52 tsarna Exp $
+$Id: API,v 1.3 2007-08-28 03:17:01 tsarna Exp $
 
 Buffer				API
 
@@ -21,14 +21,14 @@ backward-character       ^B	-=
 forward-character        ^F	+=
 beginning-of-file        M-<	marker.tobufstart()
 end-of-file              M->	marker.tobufend()
-beginning-of-line        ^A			marker.tolinestart()
-end-of-line              ^E			marker.tolineend()
+beginning-of-line        ^A	marker.tolinestart()
+end-of-line              ^E	marker.tolineend()
 goto-line                M-G			marker.toline()
-next-word                M-F
-previous-word            M-B
+next-word                M-F			marker.nextword()
+previous-word            M-B			marker.prevword()
 goto-matching-fence      M-^F
-next-line                ^N
-previous-line            ^P
+next-line                ^N			nextline()
+previous-line            ^P			prevline()
 next-paragraph           M-N
 previous-paragraph       M-P
 

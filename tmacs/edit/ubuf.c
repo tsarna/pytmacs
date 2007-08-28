@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.14 2007-08-24 04:33:39 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.15 2007-08-28 03:17:02 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -518,6 +518,44 @@ ubuf_get_line(ubuf *self, Py_ssize_t *start, Py_ssize_t sz)
 
 done:
     return ubuf_get_range(self, s, *start);
+}
+
+
+
+Py_ssize_t
+ubuf_get_line_start(ubuf *self, Py_ssize_t s)
+{
+    while ((s > 0) && (s >= self->gapstart)
+    && !(Py_UNICODE_ISLINEBREAK(self->str[(s-1) + self->gapsize]))) {
+        s--;
+    }
+
+    while ((s > 0) && (s < self->gapstart)
+    && !(Py_UNICODE_ISLINEBREAK(self->str[s-1]))) {
+        s--;
+    }
+
+done:
+    return s;
+}
+
+
+
+Py_ssize_t
+ubuf_get_line_end(ubuf *self, Py_ssize_t s)
+{
+    while ((s < self->gapstart) && (s < self->length)
+    && !(Py_UNICODE_ISLINEBREAK(self->str[s]))) {
+        s++;
+    }
+
+    while ((s >= self->gapstart) && (s < self->length)
+    && !(Py_UNICODE_ISLINEBREAK(self->str[(s) + self->gapsize]))) {
+        s++;
+    }
+
+done:
+    return s;
 }
 
 
