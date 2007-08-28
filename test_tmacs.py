@@ -1,4 +1,4 @@
-# $Id: test_tmacs.py,v 1.3 2007-08-18 14:59:17 tsarna Exp $
+# $Id: test_tmacs.py,v 1.4 2007-08-28 00:09:52 tsarna Exp $
 
 def additional_tests():
     import doctest
@@ -9,6 +9,7 @@ def additional_tests():
        'tmacs/edit/EDITMISC.txt',
        'tmacs/edit/MARKER.txt',
        'tmacs/edit/MARKFILE.txt',
+       'tmacs/edit/MARKMOVE.txt',
        'tmacs/edit/BUFFER.txt',
 #       'tmacs/ui/INPUT.txt',
 #       'tmacs/termioscap/README.txt',

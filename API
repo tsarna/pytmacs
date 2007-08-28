@@ -1,3 +1,5 @@
+$Id: API,v 1.2 2007-08-28 00:09:52 tsarna Exp $
+
 Buffer				API
 
 change-file-name         ^XN	Buffer.filename=
@@ -15,13 +17,13 @@ next-buffer              ^XX	Buffer.next_buffer()
 
 CURSOR MOVEMENT
 
-backward-character       ^B
-forward-character        ^F
-beginning-of-file        M-<
-end-of-file              M->
-beginning-of-line        ^A
-end-of-line              ^E
-goto-line                M-G
+backward-character       ^B	-=
+forward-character        ^F	+=
+beginning-of-file        M-<	marker.tobufstart()
+end-of-file              M->	marker.tobufend()
+beginning-of-line        ^A			marker.tolinestart()
+end-of-line              ^E			marker.tolineend()
+goto-line                M-G			marker.toline()
 next-word                M-F
 previous-word            M-B
 goto-matching-fence      M-^F

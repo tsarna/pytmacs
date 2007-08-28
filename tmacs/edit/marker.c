@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.24 2007-08-27 22:41:54 tsarna Exp $ */
+/* $Id: marker.c,v 1.25 2007-08-28 00:09:53 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -64,6 +64,9 @@ static PyObject *marker_read(marker *self, PyObject *args);
 static PyObject *marker_readline(marker *self, PyObject *args);
 static PyObject *marker_write(marker *self, PyObject *arg);
 static PyObject *marker_writelines(marker *self, PyObject *arg);
+/* movement methods/
+static PyObject *marker_tobufstart(marker *self, PyObject *args);
+static PyObject *marker_tobufend(marker *self, PyObject *args);
 /* misc methods/
 static PyObject *marker_copy(marker *self, PyObject *args);
 
@@ -939,8 +942,39 @@ error:
 }
 
 
+/* Begin movement methods */
 
-/* begin misc methods */
+static PyObject *
+marker_tobufstart(marker *self, PyObject *args)
+{
+    if (marker_to(self, 0)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
+static PyObject *
+marker_tobufend(marker *self, PyObject *args)
+{
+    Py_ssize_t e = 0;
+    
+    if (self->buffer) {
+        e = self->buffer->length;
+    }
+    
+    if (marker_to(self, e)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
+/* Begin misc methods */
 
 static PyObject *
 marker_copy(marker *self, PyObject *v)
@@ -965,9 +999,6 @@ marker_copy(marker *self, PyObject *v)
 /* begin type structures */
 
 static PyMethodDef marker_methods[] = {
-    /* basic methods */
-    {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},
-    
     /* file-like methods */
                     /* flush is a no-op so we can share it */
     {"flush",       (PyCFunction)ubuf_flush,            METH_NOARGS},
@@ -981,6 +1012,13 @@ static PyMethodDef marker_methods[] = {
     {"writelines",  (PyCFunction)marker_writelines,     METH_O},
     {"xreadlines",  (PyCFunction)marker_self,           METH_NOARGS},
 
+    /* movement methods */
+    {"tobufstart",  (PyCFunction)marker_tobufstart,     METH_NOARGS},
+    {"tobufend",    (PyCFunction)marker_tobufend,       METH_NOARGS},
+    
+    /* misc methods */
+    {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},
+  
     {NULL,          NULL}
 };
 
