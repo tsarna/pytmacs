@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.26 2007-08-28 03:17:02 tsarna Exp $ */
+/* $Id: marker.c,v 1.27 2007-08-29 13:58:26 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -69,6 +69,8 @@ static PyObject *marker_tobufstart(marker *self, PyObject *args);
 static PyObject *marker_tobufend(marker *self, PyObject *args);
 static PyObject *marker_tolinestart(marker *self, PyObject *args);
 static PyObject *marker_tolineend(marker *self, PyObject *args);
+static PyObject *marker_prevword(marker *self, PyObject *args);
+static PyObject *marker_nextword(marker *self, PyObject *args);
 /* misc methods/
 static PyObject *marker_copy(marker *self, PyObject *args);
 
@@ -1018,6 +1020,56 @@ marker_tolineend(marker *self, PyObject *args)
 
 
 
+static PyObject *
+marker_prevword(marker *self, PyObject *args)
+{
+    Py_ssize_t d, n = 1;
+    
+    if (!PyArg_ParseTuple(args, "|n:prevword", &n)) {
+        return 0; 
+    }
+
+    if (self->buffer == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot modify when not linked to a buffer");
+        return 0;
+    }
+    
+    d = ubuf_get_next_words(self->buffer, self->start, -n);
+    
+    if (marker_to(self, d)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
+static PyObject *
+marker_nextword(marker *self, PyObject *args)
+{
+    Py_ssize_t d, n = 1;
+    
+    if (!PyArg_ParseTuple(args, "|n:nextword", &n)) {
+        return 0; 
+    }
+
+    if (self->buffer == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot modify when not linked to a buffer");
+        return 0;
+    }
+    
+    d = ubuf_get_next_words(self->buffer, self->start, n);
+    
+    if (marker_to(self, d)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
 /* Begin misc methods */
 
 static PyObject *
@@ -1061,6 +1113,8 @@ static PyMethodDef marker_methods[] = {
     {"tobufend",    (PyCFunction)marker_tobufend,       METH_NOARGS},
     {"tolinestart", (PyCFunction)marker_tolinestart,    METH_NOARGS},
     {"tolineend",   (PyCFunction)marker_tolineend,      METH_NOARGS},
+    {"prevword",    (PyCFunction)marker_prevword,       METH_VARARGS},
+    {"nextword",    (PyCFunction)marker_nextword,       METH_VARARGS},
     
     /* misc methods */
     {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},

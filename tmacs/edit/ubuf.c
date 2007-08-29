@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.15 2007-08-28 03:17:02 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.16 2007-08-29 13:58:26 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -555,6 +555,36 @@ ubuf_get_line_end(ubuf *self, Py_ssize_t s)
     }
 
 done:
+    return s;
+}
+
+
+
+#define INWORD(u, i) (Py_UNICODE_ISALNUM(UBUF_CHARAT((u), (i))))
+
+Py_ssize_t
+ubuf_get_next_words(ubuf *self, Py_ssize_t s, Py_ssize_t n)
+{
+    if (n > 0) {
+        while (n--) {
+            while ((s < self->length) && INWORD(self, s)) {
+                s++;
+            }
+            while ((s < self->length) && !INWORD(self, s)) {
+                s++;
+            }
+        }
+    } else {
+        while (n++ < 0) {
+            while ((s > 0) && !INWORD(self, s-1)) {
+                s--;
+            }
+            while ((s > 0) && INWORD(self, s-1)) {
+                s--;
+            }
+        }
+    }
+
     return s;
 }
 
