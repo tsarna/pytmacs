@@ -1,0 +1,138 @@
+=============================
+Marker movement and Searching
+=============================
+
+:Author: Ty Sarna
+:Version: $Id: MARKMOVE.txt,v 1.1 2007-09-01 15:03:20 tsarna Exp $
+
+.. contents ::
+
+Basics
+------
+
+The first two movement methods are the most trivial: movement to the
+beginning and end of the buffer::
+
+    >>> from tmacs.edit.ubuf import *
+    >>> b = ubuf(u'This is Line 1\n\t\nThis is Line 3\nLine 4')
+    >>> m = marker(b)
+    >>> m.start = 5
+    >>> m.start = 0
+    >>> m.start
+    0
+    >>> len(b)
+    38
+    >>> m.tobufend()
+    >>> m.start
+    38
+
+
+Lines
+-----
+
+The marker may be moved to the end of the current line::
+
+    >>> m.start = 5
+    >>> m.tolineend()
+    >>> m.start
+    14
+
+Calling `tolineend()` while already at the end of line doesn't advance
+to the next line::
+
+    >>> m.tolineend()
+    >>> m.start
+    14
+
+It will also stop at the end of the buffer, even if it doesn't end with
+a newline::
+
+    >>> m.start = -3
+    >>> m.start
+    35
+    >>> m.tolineend()
+    >>> m.start
+    38
+    >>> m.tolineend()
+    >>> m.start
+    38
+    
+Going to the start of a line works similarly::
+
+    >>> m.tolinestart()
+    >>> m.start
+    32
+    >>> m.tolinestart()
+    >>> m.start
+    32
+    >>> m.start = 3
+    >>> m.tolinestart()
+    >>> m.start
+    0
+    >>> m.tolinestart()
+    >>> m.start
+    0
+    
+
+Words
+-----
+
+It is also possible to move forward by words::
+
+    >>> b[:]
+    u'This is Line 1\n\t\nThis is Line 3\nLine 4'
+    >>> m.start = 0
+    >>> m.nextword(); m.start
+    5
+    >>> m.nextword(0); m.start
+    5
+    >>> m.nextword(1); m.start
+    8
+    >>> m.nextword(2); m.start
+    17
+    >>> m.nextword(100); m.start
+    38
+
+We can also move backwards by words::
+
+    >>> m.prevword(); m.start
+    37
+    >>> m.prevword(0); m.start
+    37
+    >>> m.prevword(1); m.start
+    32
+    >>> m.prevword(2); m.start
+    25
+    >>> m.prevword(4); m.start
+    8
+    >>> m.prevword(42); m.start
+    0
+
+`prevword` and `nextword` can be given negative arguments, in which case
+they each act like their counterpart. We can repeat the same sequence of
+movements resulting in the same positions, but this time moving
+backwards by negative words and then forwards by negative words::
+
+    >>> m.prevword(-1); m.start
+    5
+    >>> m.prevword(0); m.start
+    5
+    >>> m.prevword(-1); m.start
+    8
+    >>> m.prevword(-2); m.start
+    17
+    >>> m.prevword(-100); m.start
+    38
+    >>> m.nextword(-1); m.start
+    37
+    >>> m.nextword(0); m.start
+    37
+    >>> m.nextword(-1); m.start
+    32
+    >>> m.nextword(-2); m.start
+    25
+    >>> m.nextword(-4); m.start
+    8
+    >>> m.nextword(-42); m.start
+    0
+
