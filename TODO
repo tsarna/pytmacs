@@ -1,4 +1,4 @@
-$Id: TODO,v 1.26 2007-09-05 17:21:50 tsarna Exp $
+$Id: TODO,v 1.27 2007-09-05 18:07:57 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
@@ -14,10 +14,12 @@ marker:
 	readlines()
 	encoding?
     movement:
-	toline
+	para, fence
     searching:
     editing:
-	        
+	delnext	delprev
+	delnextword delprevword
+	insert
     auto-adjust on edits
     changed flag
     nonzero -- returns changed flag?

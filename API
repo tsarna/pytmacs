@@ -1,4 +1,4 @@
-$Id: API,v 1.5 2007-09-05 17:21:50 tsarna Exp $
+$Id: API,v 1.6 2007-09-05 18:07:57 tsarna Exp $
 
 Buffer				API
 
@@ -23,7 +23,7 @@ beginning-of-file        M-<	marker.tobufstart()
 end-of-file              M->	marker.tobufend()
 beginning-of-line        ^A	marker.tolinestart()
 end-of-line              ^E	marker.tolineend()
-goto-line                M-G			marker.toline()
+goto-line                M-G	marker.toline()
 next-word                M-F	marker.nextword()
 previous-word            M-B	marker.prevword()
 goto-matching-fence      M-^F
@@ -37,17 +37,17 @@ CURSOR METHODS
 case-word-capitalize     M-C			wordtitle
 case-word-lower          M-L			wordlower
 case-word-upper          M-U			wordupper
-delete-next-character    ^D			delnext
-delete-next-word         M-D			delnextword
-delete-previous-character^H			delprev
-delete-previous-word     M-^H			delprevword
+delete-previous-character^H			marker.delprev()
+delete-next-character    ^D			marker.delnext()
+delete-previous-word     M-^H			marker.delprevword()
+delete-next-word         M-D			marker.delnextword()
 trim-line                ^X^T			
 detab-line               ^X^D
 entab-line
 fill-paragraph           M-Q
 insert-file              ^X^I
 insert-space             ^C
-insert-string					insert
+insert-string					marker.insert()
 newline                  ^M
 newline-and-indent       ^J
 open-line                ^O			

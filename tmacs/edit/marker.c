@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.28 2007-09-05 17:21:54 tsarna Exp $ */
+/* $Id: marker.c,v 1.29 2007-09-05 18:07:59 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -29,7 +29,7 @@ static int marker_to(marker *self, Py_ssize_t v);
 static int marker_start(marker *self, Py_ssize_t v);
 static int marker_end(marker *self, Py_ssize_t v);
 static ubuf *marker_makewriteable(marker *self);
-static int marker_move_lines(marker *self, Py_ssize_t l);
+static int marker_move_lines(marker *self, Py_ssize_t l, int toline);
 /* get/set */
 static PyObject *marker_get_buffer(marker *self, void *closure);
 static int marker_set_buffer(marker *self, PyObject *value, void *closure);
@@ -74,6 +74,7 @@ static PyObject *marker_prevword(marker *self, PyObject *args);
 static PyObject *marker_nextword(marker *self, PyObject *args);
 static PyObject *marker_prevline(marker *self, PyObject *args);
 static PyObject *marker_nextline(marker *self, PyObject *args);
+static PyObject *marker_toline(marker *self, PyObject *args);
 /* misc methods/
 static PyObject *marker_copy(marker *self, PyObject *args);
 
@@ -319,7 +320,7 @@ marker_makewriteable(marker *self)
 
 
 static int
-marker_move_lines(marker *self, Py_ssize_t l)
+marker_move_lines(marker *self, Py_ssize_t l, int toline)
 {
     Py_ssize_t s = self->start;
     ubuf *u = self->buffer;
@@ -334,6 +335,15 @@ marker_move_lines(marker *self, Py_ssize_t l)
         self->colseek = ubuf_get_display_col(u, s);
     }
 
+    if (toline) {
+        /* move relative to top or bottom instead of current */
+        if (l > 0) {
+            s = 0; l--;
+        } else if (l < 0) {
+            s = u->length; l++;
+        }
+    }
+    
     while ((l > 0) && (s < u->length)) {
         c = UBUF_CHARAT(u, s);
         if (Py_UNICODE_ISLINEBREAK(c)) {
@@ -1133,7 +1143,7 @@ marker_prevline(marker *self, PyObject *args)
         return 0; 
     }
 
-    if (marker_move_lines(self, -n)) {
+    if (marker_move_lines(self, -n, 0)) {
         Py_RETURN_NONE;
     } else { 
         return 0;
@@ -1151,7 +1161,25 @@ marker_nextline(marker *self, PyObject *args)
         return 0; 
     }
 
-    if (marker_move_lines(self, n)) {
+    if (marker_move_lines(self, n, 0)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
+static PyObject *
+marker_toline(marker *self, PyObject *args)
+{
+    Py_ssize_t d, n = 1;
+    
+    if (!PyArg_ParseTuple(args, "|n:toline", &n)) {
+        return 0; 
+    }
+
+    if (marker_move_lines(self, n, 1)) {
         Py_RETURN_NONE;
     } else { 
         return 0;
@@ -1207,6 +1235,7 @@ static PyMethodDef marker_methods[] = {
     {"nextword",    (PyCFunction)marker_nextword,       METH_VARARGS},
     {"prevline",    (PyCFunction)marker_prevline,       METH_VARARGS},
     {"nextline",    (PyCFunction)marker_nextline,       METH_VARARGS},
+    {"toline",      (PyCFunction)marker_toline,         METH_VARARGS},
     
     /* misc methods */
     {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},
