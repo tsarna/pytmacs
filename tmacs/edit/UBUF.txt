@@ -310,3 +310,17 @@ flag be reset. The loaned flag may not be changed manually:
     AttributeError: attribute is not writeable
 
 
+
+Misc Attributes
+---------------
+
+The tabdispwidth attribute specifies the display width of a tab.
+Normally this is 8::
+
+    >>> u.tabdispwidth
+    8
+
+This value is used in computations such as of how many display columns
+from the start of a line the cursor is. Changing this value is not
+recommended as it leads to files that show differently in the editor
+than in other people's editors than with `cat`, `more`, etc.

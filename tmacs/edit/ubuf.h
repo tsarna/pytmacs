@@ -1,4 +1,4 @@
-/* $Id: ubuf.h,v 1.10 2007-08-29 13:58:26 tsarna Exp $ */
+/* $Id: ubuf.h,v 1.11 2007-09-05 01:18:18 tsarna Exp $ */
 
 typedef struct marker marker;
 
@@ -20,6 +20,7 @@ typedef struct {
 #define UBUF_F_LOANED       0x02
 #define UBUF_F_READONLY     0x04
     int                 softspace;
+    unsigned char       tabdispwidth;
 } ubuf;
 
 #define UBUF_ENCODING(u)     PyString_AsString((u)->encoding)
@@ -74,6 +75,7 @@ PyObject *ubuf_get_line(ubuf *self, Py_ssize_t *start, Py_ssize_t sz);
 Py_ssize_t ubuf_get_line_start(ubuf *self, Py_ssize_t s);
 Py_ssize_t ubuf_get_line_end(ubuf *self, Py_ssize_t s);
 Py_ssize_t ubuf_get_next_words(ubuf *self, Py_ssize_t s, Py_ssize_t n);
+Py_ssize_t ubuf_char_display_width(ubuf *u, Py_UNICODE c);
 
 /* shared methods */
 PyObject *ubuf_flush(ubuf *self, PyObject *args);

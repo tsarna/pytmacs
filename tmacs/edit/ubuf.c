@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.16 2007-08-29 13:58:26 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.17 2007-09-05 01:18:18 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -34,6 +34,8 @@ static PyObject *ubuf_get_gapstart(ubuf *self, void *closure);
 static PyObject *ubuf_get_loaned(ubuf *self, void *closure);
 static PyObject *ubuf_get_read_only(ubuf *self, void *closure);
 static int ubuf_set_read_only(ubuf *self, PyObject *value, void *closure);
+static PyObject *ubuf_get_tabdispwidth(ubuf *self, void *closure);
+static int ubuf_set_tabdispwidth(ubuf *self, PyObject *value, void *closure);
 /* mapping methods */
 static Py_ssize_t ubuf_mp_length(PyObject *self);
 static PyObject *ubuf_mp_subscript(PyObject *selfo, PyObject *o);
@@ -84,6 +86,7 @@ ubuf_new(PyTypeObject *type, PyObject *args, PyObject *kdws)
         self->markers = NULL;
         self->flags = 0;
         self->length = self->gapstart = self->gapsize = 0;
+        self->tabdispwidth = 8;
     }
     
     return (PyObject *)self;
@@ -137,6 +140,8 @@ ubuf_init(ubuf *self, PyObject *args, PyObject *kwds)
     }
     
     Py_XDECREF(tobefreed);
+
+    self->tabdispwidth = 8;
 
     return 0;
 
@@ -276,6 +281,41 @@ ubuf_set_read_only(ubuf *self, PyObject *value, void *closure)
     } else {
         UBUF_CLEAR_READONLY(self);
     }
+
+    return 0;
+}
+
+
+
+static PyObject *
+ubuf_get_tabdispwidth(ubuf *self, void *closure)
+{
+    return PyInt_FromLong(self->tabdispwidth);
+}
+
+
+
+static int
+ubuf_set_tabdispwidth(ubuf *self, PyObject *value, void *closure)
+{
+    long v;
+    
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete the tabdispwidth attribute");
+            return -1;
+    }
+
+    v = PyInt_AsLong(value);
+    if (v == -1 && PyErr_Occurred()) {
+        return -1;
+    }
+
+    if ((v <= 0) || (v > UCHAR_MAX)) {
+        PyErr_SetString(PyExc_TypeError, "tabdispwidth must be in range 1-255");
+        return -1;
+    }
+    
+    self->tabdispwidth = v;
 
     return 0;
 }
@@ -684,6 +724,16 @@ D(fprintf(stderr, "deleted %d replen %d growth %d gapsize %d@%d\n", deleted, rep
 
 
 
+Py_ssize_t
+ubuf_char_display_width(ubuf *u, Py_UNICODE c)
+{
+    /* XXX */
+    
+    return 1;
+}
+
+
+
 /* Begin ubuf mapping protocol methods */
 
 static Py_ssize_t
@@ -841,39 +891,44 @@ static PyMemberDef ubuf_members[] = {
 
     {NULL}
 };
-        
+
 
 
 static PyGetSetDef ubuf_getset[] = {
-    {"changed",     (getter)ubuf_get_changed,
-                    (setter)ubuf_set_changed,
-                    "has the buffer been modified?",
-                    NULL},
+    {"changed",         (getter)ubuf_get_changed,
+                        (setter)ubuf_set_changed,
+                        "has the buffer been modified?",
+                        NULL},
 
-    {"encoding",    (getter)ubuf_get_encoding,
-                    (setter)ubuf_set_encoding,
-                    "encoding to use for this buffer",
-                    NULL},
+    {"encoding",        (getter)ubuf_get_encoding,
+                        (setter)ubuf_set_encoding,
+                        "encoding to use for this buffer",
+                        NULL},
 
-    {"gapsize",     (getter)ubuf_get_gapsize,
-                    (setter)ubuf_set_err_notallowed,
-                    "size of the gap in the buffer",
-                    NULL},
+    {"gapsize",         (getter)ubuf_get_gapsize,
+                        (setter)ubuf_set_err_notallowed,
+                        "size of the gap in the buffer",
+                        NULL},
 
-    {"gapstart",    (getter)ubuf_get_gapstart,
-                    (setter)ubuf_set_err_notallowed,
-                    "location of the start of the gap in the buffer",
-                    NULL},
+    {"gapstart",        (getter)ubuf_get_gapstart,
+                        (setter)ubuf_set_err_notallowed,
+                        "location of the start of the gap in the buffer",
+                        NULL},
 
-    {"loaned",      (getter)ubuf_get_loaned,
-                    (setter)ubuf_set_err_notallowed,
-                    "is the buffer loaned out?",
-                    NULL},
+    {"loaned",          (getter)ubuf_get_loaned,
+                        (setter)ubuf_set_err_notallowed,
+                        "is the buffer loaned out?",
+                        NULL},
 
-    {"read_only",   (getter)ubuf_get_read_only,
-                    (setter)ubuf_set_read_only,
-                    "is the buffer marked read-only?",
-                    NULL},
+    {"read_only",       (getter)ubuf_get_read_only,
+                        (setter)ubuf_set_read_only,
+                        "is the buffer marked read-only?",
+                        NULL},
+
+    {"tabdispwidth",    (getter)ubuf_get_tabdispwidth,
+                        (setter)ubuf_set_tabdispwidth,
+                        "is the buffer marked read-only?",
+                        NULL},
 
     {NULL}
 };
