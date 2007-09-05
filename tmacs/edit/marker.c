@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.29 2007-09-05 18:07:59 tsarna Exp $ */
+/* $Id: marker.c,v 1.30 2007-09-05 19:45:13 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -75,6 +75,8 @@ static PyObject *marker_nextword(marker *self, PyObject *args);
 static PyObject *marker_prevline(marker *self, PyObject *args);
 static PyObject *marker_nextline(marker *self, PyObject *args);
 static PyObject *marker_toline(marker *self, PyObject *args);
+/* editing methods */
+static PyObject *marker_insert(marker *self, PyObject *args);
 /* misc methods/
 static PyObject *marker_copy(marker *self, PyObject *args);
 
@@ -1188,6 +1190,42 @@ marker_toline(marker *self, PyObject *args)
 
 
 
+/* Begin editing methods */
+
+
+
+static PyObject *
+marker_insert(marker *self, PyObject *v)
+{
+    Py_UNICODE *u1, *u2;
+    PyObject *tobefreed;
+    Py_ssize_t l1, l2, np;
+    ubuf *u;
+    
+    if (!(u = marker_makewriteable(self))) {
+        return 0;
+    }
+
+    if (!ubuf_parse_textarg(u, v, &tobefreed, &u1, &l1, &u2, &l2)) {
+        return 0;
+    }
+
+    np = self->start + l1 + l2;
+
+    if (!ubuf_assign_slice(u, self->start, self->start, u1, l1, u2, l2)) {
+        Py_XDECREF(tobefreed);
+        return 0;
+    }
+                                
+    Py_XDECREF(tobefreed);
+
+    marker_to(self, np); /*XXX*/
+        
+    Py_RETURN_NONE;
+}
+
+
+
 /* Begin misc methods */
 
 static PyObject *
@@ -1237,6 +1275,9 @@ static PyMethodDef marker_methods[] = {
     {"nextline",    (PyCFunction)marker_nextline,       METH_VARARGS},
     {"toline",      (PyCFunction)marker_toline,         METH_VARARGS},
     
+    /* editing methods */
+    {"insert",      (PyCFunction)marker_insert,         METH_O},
+
     /* misc methods */
     {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},
   
