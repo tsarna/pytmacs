@@ -1,4 +1,4 @@
-$Id: API,v 1.6 2007-09-05 18:07:57 tsarna Exp $
+$Id: API,v 1.7 2007-09-05 23:51:37 tsarna Exp $
 
 Buffer				API
 
@@ -32,7 +32,7 @@ previous-line            ^P	marker.prevline()
 next-paragraph           M-N			marker.nextpara()
 previous-paragraph       M-P			marker.prevpara()
 
-CURSOR METHODS
+CURSOR EDITING METHODS
 
 case-word-capitalize     M-C			wordtitle
 case-word-lower          M-L			wordlower
@@ -44,13 +44,11 @@ delete-next-word         M-D			marker.delnextword()
 trim-line                ^X^T			
 detab-line               ^X^D
 entab-line
-fill-paragraph           M-Q
-insert-file              ^X^I
-insert-space             ^C
-insert-string					marker.insert()
-newline                  ^M
+insert-space             ^C	marker.insertnext(u' ')
+insert-string			marker.insert()
+newline                  ^M	marker.insert(u'\n')
 newline-and-indent       ^J
-open-line                ^O			
+open-line                ^O	marker.insertnext(u'\n')
 handle-tab               ^I			tab
 transpose-characters     ^T			twiddle
 
@@ -78,6 +76,8 @@ VIEW
 exchange-point-and-mark  ^X^X
 set-mark                 M- 
 buffer-position          M-^[
+insert-file              ^X^I
+fill-paragraph           M-Q
 
 UI
 

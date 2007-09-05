@@ -1,4 +1,4 @@
-$Id: TODO,v 1.27 2007-09-05 18:07:57 tsarna Exp $
+$Id: TODO,v 1.28 2007-09-05 23:51:37 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
@@ -19,7 +19,6 @@ marker:
     editing:
 	delnext	delprev
 	delnextword delprevword
-	insert
     auto-adjust on edits
     changed flag
     nonzero -- returns changed flag?
