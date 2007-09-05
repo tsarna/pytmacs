@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.27 2007-08-29 13:58:26 tsarna Exp $ */
+/* $Id: marker.c,v 1.28 2007-09-05 17:21:54 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -29,6 +29,7 @@ static int marker_to(marker *self, Py_ssize_t v);
 static int marker_start(marker *self, Py_ssize_t v);
 static int marker_end(marker *self, Py_ssize_t v);
 static ubuf *marker_makewriteable(marker *self);
+static int marker_move_lines(marker *self, Py_ssize_t l);
 /* get/set */
 static PyObject *marker_get_buffer(marker *self, void *closure);
 static int marker_set_buffer(marker *self, PyObject *value, void *closure);
@@ -71,6 +72,8 @@ static PyObject *marker_tolinestart(marker *self, PyObject *args);
 static PyObject *marker_tolineend(marker *self, PyObject *args);
 static PyObject *marker_prevword(marker *self, PyObject *args);
 static PyObject *marker_nextword(marker *self, PyObject *args);
+static PyObject *marker_prevline(marker *self, PyObject *args);
+static PyObject *marker_nextline(marker *self, PyObject *args);
 /* misc methods/
 static PyObject *marker_copy(marker *self, PyObject *args);
 
@@ -154,6 +157,8 @@ marker_init(marker *self, PyObject *args, PyObject *kwds)
         self->end = e;
     }
 
+    self->colseek = -1;
+    
     return 0;
 
 fail_new:
@@ -227,6 +232,7 @@ marker_to(marker *self, Py_ssize_t v)
     }            
 
     self->start = self->end = v;
+    self->colseek = -1;
     
     return 1;
 }
@@ -255,6 +261,7 @@ marker_start(marker *self, Py_ssize_t v)
     }
     
     self->start = v;
+    self->colseek = -1;
                 
     return 1;
 }
@@ -283,6 +290,7 @@ marker_end(marker *self, Py_ssize_t v)
     }
 
     self->end = v;
+    self->colseek = -1;
                 
     return 1;
 }
@@ -302,9 +310,55 @@ marker_makewriteable(marker *self)
     if (!ubuf_makewriteable(self->buffer)) {
         return 0;
     }
+
+    self->colseek = -1;
     
     return u;
 }
+
+
+
+static int
+marker_move_lines(marker *self, Py_ssize_t l)
+{
+    Py_ssize_t s = self->start;
+    ubuf *u = self->buffer;
+    Py_UNICODE c;
+    
+    if (u == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot modify when not linked to a buffer");
+        return 0;
+    }
+
+    if (self->colseek < 0) {
+        self->colseek = ubuf_get_display_col(u, s);
+    }
+
+    while ((l > 0) && (s < u->length)) {
+        c = UBUF_CHARAT(u, s);
+        if (Py_UNICODE_ISLINEBREAK(c)) {
+            l--;
+        }
+        s++;
+    }
+
+    if (l < 0) {
+        while ((l < 0) && (s > 0)) {
+            c = UBUF_CHARAT(u, s - 1);
+            if (Py_UNICODE_ISLINEBREAK(c)) {
+                l++;
+            }
+            s--;
+        }
+
+        s = ubuf_get_line_start(u, s);
+    }
+
+    self->start = self->end = ubuf_to_display_col(u, s, self->colseek);
+
+    return 1;
+}
+
 
 
 
@@ -1070,6 +1124,42 @@ marker_nextword(marker *self, PyObject *args)
 
 
 
+static PyObject *
+marker_prevline(marker *self, PyObject *args)
+{
+    Py_ssize_t d, n = 1;
+    
+    if (!PyArg_ParseTuple(args, "|n:prevline", &n)) {
+        return 0; 
+    }
+
+    if (marker_move_lines(self, -n)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
+static PyObject *
+marker_nextline(marker *self, PyObject *args)
+{
+    Py_ssize_t d, n = 1;
+    
+    if (!PyArg_ParseTuple(args, "|n:nextline", &n)) {
+        return 0; 
+    }
+
+    if (marker_move_lines(self, n)) {
+        Py_RETURN_NONE;
+    } else { 
+        return 0;
+    }
+}
+
+
+
 /* Begin misc methods */
 
 static PyObject *
@@ -1115,6 +1205,8 @@ static PyMethodDef marker_methods[] = {
     {"tolineend",   (PyCFunction)marker_tolineend,      METH_NOARGS},
     {"prevword",    (PyCFunction)marker_prevword,       METH_VARARGS},
     {"nextword",    (PyCFunction)marker_nextword,       METH_VARARGS},
+    {"prevline",    (PyCFunction)marker_prevline,       METH_VARARGS},
+    {"nextline",    (PyCFunction)marker_nextline,       METH_VARARGS},
     
     /* misc methods */
     {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},

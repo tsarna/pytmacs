@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.17 2007-09-05 01:18:18 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.18 2007-09-05 17:21:54 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -575,7 +575,6 @@ ubuf_get_line_start(ubuf *self, Py_ssize_t s)
         s--;
     }
 
-done:
     return s;
 }
 
@@ -594,7 +593,6 @@ ubuf_get_line_end(ubuf *self, Py_ssize_t s)
         s++;
     }
 
-done:
     return s;
 }
 
@@ -730,6 +728,62 @@ ubuf_char_display_width(ubuf *u, Py_UNICODE c)
     /* XXX */
     
     return 1;
+}
+
+
+
+Py_ssize_t
+ubuf_get_display_col(ubuf *self, Py_ssize_t p)
+{
+    Py_ssize_t s, col = 0;
+    Py_UNICODE c;
+    
+    s = ubuf_get_line_start(self, p);
+    
+    while (s < p) {
+        c = UBUF_CHARAT(self, s);
+
+        if (c == (Py_UNICODE)'\t') {
+            col = ((col / self->tabdispwidth) + 1) * self->tabdispwidth;
+        } else if (Py_UNICODE_ISLINEBREAK(c)) {
+            break;
+        } else {
+            col += ubuf_char_display_width(self, c);
+        }
+        
+        s++;
+    }
+    
+    return col;
+}
+
+
+
+Py_ssize_t
+ubuf_to_display_col(ubuf *self, Py_ssize_t s, Py_ssize_t tocol)
+{
+    Py_ssize_t i, col = 0;
+    Py_UNICODE c;
+    
+    while (s < self->length) {
+        c = UBUF_CHARAT(self, s);
+
+        if (c == (Py_UNICODE)'\t') {
+            col = ((col / self->tabdispwidth) + 1) * self->tabdispwidth;
+        } else if (Py_UNICODE_ISLINEBREAK(c)) {
+            break;
+        } else {
+            col += ubuf_char_display_width(self, c);
+        }
+        
+        if (col <= tocol) {
+            s++;
+        } else {
+            break;
+        }
+    }
+    
+    return s;
 }
 
 

@@ -3,7 +3,7 @@ Marker movement and Searching
 =============================
 
 :Author: Ty Sarna
-:Version: $Id: MARKMOVE.txt,v 1.1 2007-09-01 15:03:20 tsarna Exp $
+:Version: $Id: MARKMOVE.txt,v 1.2 2007-09-05 17:21:54 tsarna Exp $
 
 .. contents ::
 
@@ -72,8 +72,103 @@ Going to the start of a line works similarly::
     >>> m.tolinestart()
     >>> m.start
     0
-    
 
+It is also of course possible to move up and down by lines::
+
+    >>> m.nextline()
+    >>> m.start
+    15
+    >>> b[m]
+    u'\t'
+    >>> m.nextline(2)
+    >>> m.start
+    32
+    >>> b[m]
+    u'L'
+    >>> m.nextline(10)
+    >>> m.start
+    38
+    >>> m.prevline()
+    >>> m.start
+    17
+    >>> m.prevline(2)
+    >>> m.start
+    0
+    >>> m.prevline(10)
+    >>> m.start
+    0
+
+Negative arguments are accepted and cause nextline to move upwards and
+prevline to move downwards::
+    
+    >>> m.prevline(-1)
+    >>> m.start
+    15
+    >>> m.prevline(-2)
+    >>> m.start
+    32
+    >>> m.prevline(-10)
+    >>> m.start
+    38
+    >>> m.nextline(-1)
+    >>> m.start
+    17
+    >>> m.nextline(-2)
+    >>> m.start
+    0
+    >>> m.nextline(-10)
+    >>> m.start
+    0
+
+
+Movement by lines tries to keep the cursor at the same display column,
+as long as there is no intervening non-line-oriented cursor movement or
+editing::
+
+    >>> m.start = 10
+    >>> b[m]
+    u'n'
+    >>> m.nextline()
+    >>> m.start # even though we're in column 8 now, if we move down again...
+    16
+    >>> m.nextline()
+    >>> m.start
+    27
+    >>> b[m] # we're back at the n in colun 10 of line 3
+    u'n'
+    >>> m.prevline(2)
+    >>> m.start
+    10
+    >>> b[m] # back at the n in column 10 of line 1
+    u'n'
+
+However if tehre had been intervening cursor motion on line 2, the "seek
+column" would have been reset. Note that even though line two contains
+only a single character, it's a tab so the end of that line is
+calculated as column 8::
+
+    >>> m.start = 10
+    >>> m.nextline()
+    >>> m.start # we're in column 8 now
+    16
+    >>> m -= 1
+    >>> m += 1
+    >>> m.start # still in column 8 now, but motion reset the seek col to 8
+    16
+    >>> m.nextline()
+    >>> m.start
+    25
+    >>> b[m] # so now we ended up in colun 8 of line 3
+    u'L'
+    >>> m.prevline(2)
+    >>> m.start
+    8
+    >>> b[m] # back at the L in column 8 of line 1
+    u'L'
+
+
+    
+    
 Words
 -----
 

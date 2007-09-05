@@ -1,4 +1,4 @@
-$Id: API,v 1.4 2007-08-29 13:58:24 tsarna Exp $
+$Id: API,v 1.5 2007-09-05 17:21:50 tsarna Exp $
 
 Buffer				API
 
@@ -27,32 +27,32 @@ goto-line                M-G			marker.toline()
 next-word                M-F	marker.nextword()
 previous-word            M-B	marker.prevword()
 goto-matching-fence      M-^F
-next-line                ^N			nextline()
-previous-line            ^P			prevline()
-next-paragraph           M-N			nextpara()
-previous-paragraph       M-P			prevpara()
+next-line                ^N	marker.nextline()
+previous-line            ^P	marker.prevline()
+next-paragraph           M-N			marker.nextpara()
+previous-paragraph       M-P			marker.prevpara()
 
 CURSOR METHODS
 
-case-word-capitalize     M-C
-case-word-lower          M-L
-case-word-upper          M-U
-delete-next-character    ^D
-delete-next-word         M-D
-delete-previous-character^H
-delete-previous-word     M-^H
-trim-line                ^X^T
+case-word-capitalize     M-C			wordtitle
+case-word-lower          M-L			wordlower
+case-word-upper          M-U			wordupper
+delete-next-character    ^D			delnext
+delete-next-word         M-D			delnextword
+delete-previous-character^H			delprev
+delete-previous-word     M-^H			delprevword
+trim-line                ^X^T			
 detab-line               ^X^D
 entab-line
 fill-paragraph           M-Q
 insert-file              ^X^I
 insert-space             ^C
-insert-string
+insert-string					insert
 newline                  ^M
 newline-and-indent       ^J
-open-line                ^O
-handle-tab               ^I
-transpose-characters     ^T
+open-line                ^O			
+handle-tab               ^I			tab
+transpose-characters     ^T			twiddle
 
 SEARCHING
 
