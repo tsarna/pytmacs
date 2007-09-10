@@ -3,6 +3,7 @@ TMACS Input System
 ==================
 
 :Author: Ty Sarna
+:Version: $Id: INPUT.txt,v 1.2 2007-09-10 01:35:18 tsarna Exp $
 
 .. contents ::
 
@@ -41,7 +42,7 @@ module::
 
 ``ParseKeySym`` converts the friendly "keysym" form to a regular unicode
 string, and ``ReprKeySym`` converts back to the friendly form.
-For uninteresting string, the results are uninteresting::
+For an uninteresting string, the results are uninteresting::
 
     >>> ParseKeySym(u'hello!')
     u'hello!'
