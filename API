@@ -1,14 +1,14 @@
-$Id: API,v 1.7 2007-09-05 23:51:37 tsarna Exp $
+$Id: API,v 1.8 2007-09-17 20:41:18 tsarna Exp $
 
 Buffer				API
 
-change-file-name         ^XN	Buffer.filename=
+change-file-name         ^XN	Buffer.filename=			C
 write-file               ^X^W			.save(xxx)
-unmark-buffer            M-~	Buffer.changed=
+unmark-buffer            M-~	Buffer.changed=				C
 filter-buffer            ^X#			.filter()
-name-buffer              M-^N	Buffer.name=
+name-buffer              M-^N	Buffer.name=				C
 read-file                ^X^R			.load()
-set-fill-column          ^XF	Buffer.fill_column=
+set-fill-column          ^XF	Buffer.fillcolumn=			C
 save-file                ^X^S			.save()
 delete-buffer            ^XK			del_buffer()
 list-buffers             ^X^B	tmacs.edit.buffer.make_buffer_list()
@@ -17,18 +17,18 @@ next-buffer              ^XX	Buffer.next_buffer()
 
 CURSOR MOVEMENT
 
-backward-character       ^B	-=
-forward-character        ^F	+=
-beginning-of-file        M-<	marker.tobufstart()
-end-of-file              M->	marker.tobufend()
-beginning-of-line        ^A	marker.tolinestart()
-end-of-line              ^E	marker.tolineend()
+backward-character       ^B	-=					C
+forward-character        ^F	+=					C
+beginning-of-file        M-<	marker.tobufstart()			C
+end-of-file              M->	marker.tobufend()			C
+beginning-of-line        ^A	marker.tolinestart()			C
+end-of-line              ^E	marker.tolineend()			C
 goto-line                M-G	marker.toline()
-next-word                M-F	marker.nextword()
-previous-word            M-B	marker.prevword()
+previous-word            M-B	marker.prevword()			C
+next-word                M-F	marker.nextword()			C
 goto-matching-fence      M-^F
-next-line                ^N	marker.nextline()
-previous-line            ^P	marker.prevline()
+next-line                ^N	marker.nextline()			C
+previous-line            ^P	marker.prevline()			C
 next-paragraph           M-N			marker.nextpara()
 previous-paragraph       M-P			marker.prevpara()
 
@@ -44,13 +44,14 @@ delete-next-word         M-D			marker.delnextword()
 trim-line                ^X^T			
 detab-line               ^X^D
 entab-line
-insert-space             ^C	marker.insertnext(u' ')
+insert-space             ^C	marker.insertnext(u' ')			C
 insert-string			marker.insert()
-newline                  ^M	marker.insert(u'\n')
+newline                  ^M	marker.insert(u'\n')			C
 newline-and-indent       ^J
-open-line                ^O	marker.insertnext(u'\n')
+open-line                ^O	marker.insertnext(u'\n')		C
 handle-tab               ^I			tab
 transpose-characters     ^T			twiddle
+delete-blank-lines       ^X^O
 
 SEARCHING
 
@@ -65,16 +66,15 @@ replace-string           M-R
 
 REGION
 
-case-region-lower        ^X^L
-case-region-upper        ^X^U
+case-region-lower        ^X^L		View.regionlower()		C
+case-region-upper        ^X^U		View.regionupper()		C
 copy-region              M-W
 count-words              M-^C
-delete-blank-lines       ^X^O
 
 VIEW
 
-exchange-point-and-mark  ^X^X
-set-mark                 M- 
+exchange-point-and-mark  ^X^X		View.swapdotandmark()		C
+set-mark                 M- 		view.setmark()			C
 buffer-position          M-^[
 insert-file              ^X^I
 fill-paragraph           M-Q
