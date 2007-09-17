@@ -3,7 +3,7 @@ Buffer-Gap Markers
 ==================
 
 :Author: Ty Sarna
-:Version: $Id: MARKER.txt,v 1.12 2007-08-27 22:41:54 tsarna Exp $
+:Version: $Id: MARKER.txt,v 1.13 2007-09-17 23:19:29 tsarna Exp $
 
 .. contents ::
 
@@ -337,3 +337,64 @@ same settings and values as the original::
     False
     
 XXX encoding
+
+
+Auto-Adjustment
+---------------
+
+One of the useful properties of markers is that they are automatically
+updated by the buffer as editing is performed::
+
+    >>> b[:] = u'AAAAABBBBBCCCCC'
+    >>> m.start, m.end, m.changed = 5, 10, False
+
+insertion after a marker doesn't affect it, as one might expect::
+
+    >>> b[12:13] = u'DD'
+    >>> b[:]
+    u'AAAAABBBBBCCDDCC'
+    >>> m.start, m.end, m.changed
+    (5, 10, False)
+
+Nor does deletion::
+
+    >>> del b[11:15]
+    >>> b[:]
+    u'AAAAABBBBBCC'
+    >>> m.start, m.end, m.changed
+    (5, 10, False)
+
+Nor replacements::
+
+    >>> b[10] = u'D'
+    >>> b[:]
+    u'AAAAABBBBBDC'
+    >>> m.start, m.end, m.changed
+    (5, 10, False)
+    
+Insertion before a marker shifs the marker so that it still refers to
+the same characters::
+
+    >>> b[1:1] = u'E'
+    >>> b[:]
+    u'AEAAAABBBBBDC'
+    >>> m.start, m.end, m.changed
+    (6, 11, False)
+    
+As does deletion::
+
+    >>> del b[:2]
+    >>> b[:]
+    u'AAAABBBBBDC'
+    >>> m.start, m.end, m.changed
+    (4, 9, False)
+    
+And replacement::
+
+    >>> b[0] = u'EE'
+    >>> b[:]
+    u'EEAAABBBBBDC'
+    >>> m.start, m.end, m.changed
+    (5, 10, False)
+    
+

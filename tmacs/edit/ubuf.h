@@ -1,4 +1,4 @@
-/* $Id: ubuf.h,v 1.12 2007-09-05 17:21:54 tsarna Exp $ */
+/* $Id: ubuf.h,v 1.13 2007-09-17 23:19:29 tsarna Exp $ */
 
 typedef struct marker marker;
 
@@ -89,3 +89,4 @@ PyObject *ubuf_flush(ubuf *self, PyObject *args);
 /* marker methods */
 
 void add_marker_type(PyObject *module);
+void marker_adjust(marker *self, Py_ssize_t s, Py_ssize_t e, Py_ssize_t l);

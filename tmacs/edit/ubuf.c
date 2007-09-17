@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.18 2007-09-05 17:21:54 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.19 2007-09-17 23:19:29 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -687,6 +687,7 @@ ubuf_assign_slice(
     Py_ssize_t deleted = e - s;
     Py_ssize_t replen = l1 + l2;
     Py_ssize_t growth = replen - deleted;
+    marker *m;
 
 D(fprintf(stderr, "\nreplace %d:%d with %d + %d\n", s, e, l1, l2);)
 D(fprintf(stderr, "deleted %d replen %d growth %d gapsize %d@%d\n", deleted, replen, growth, self->gapsize, self->gapstart);)
@@ -715,6 +716,12 @@ D(fprintf(stderr, "deleted %d replen %d growth %d gapsize %d@%d\n", deleted, rep
         self->gapstart += l2;
     }
 
+    m = self->markers;
+    while (m) {
+        marker_adjust(m, s, e, l1+l2);
+        m = m->next;
+    }
+    
     UBUF_SET_CHANGED(self);
     
     return 1;

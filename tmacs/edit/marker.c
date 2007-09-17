@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.31 2007-09-05 23:51:41 tsarna Exp $ */
+/* $Id: marker.c,v 1.32 2007-09-17 23:19:29 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -220,6 +220,43 @@ marker_unlink_buffer(marker *self)
 
 
 /* Begin marker internal methods */
+
+void
+marker_adjust(marker *self, Py_ssize_t s, Py_ssize_t e, Py_ssize_t l)
+{
+/********************
+
+cases:
+               . . . . X X X X X . . . . .  
+                        A         B
+  before                . . . .                 e <= A                  X
+* Aspan             . . X X                     s <= A, A < e < B
+* inside                  X X X                 s >= A, e < B  
+* Bspan                       X X . .           A <= S < B, e >= B 
+  after                           . . . .       s >= B                  X
+* span              . . X X X X X . .           s < A, e >= B 
+                                           
+********************/
+
+    Py_ssize_t b = e - s, d = l - b;
+
+    if (e <= self->start) {
+        /* shift by amount inserted/deleted */
+
+        self->start += d;
+        self->end += d;
+    } else if (s >= self->end) {
+        /* after... nothing to change */
+    } else {
+        /* intersects this marker somehow */
+
+        MARKER_SET_CHANGED(self);
+
+        
+    }
+}
+
+
 
 static int
 marker_to(marker *self, Py_ssize_t v)
@@ -861,7 +898,9 @@ marker_truncate(marker *self, PyObject *args)
     if (!ubuf_do_truncate(self->buffer, sz)) {
         return 0;
     } else {
+#ifdef XYZ
         marker_to(self, sz); /*XXX*/
+#endif
     }        
     
     Py_RETURN_NONE;
@@ -947,7 +986,7 @@ marker_write(marker *self, PyObject *v)
                                 
     Py_XDECREF(tobefreed);
 
-    marker_to(self, np); /*XXX*/
+    marker_to(self, np); /*XYZ*/
         
     Py_RETURN_NONE;
 }
@@ -997,7 +1036,9 @@ marker_writelines(marker *self, PyObject *v)
         Py_DECREF(line);
         line = NULL;
 
+#ifdef XYZ
         marker_to(self, np); /*XXX*/
+#endif
     }
     
     Py_XDECREF(it);
@@ -1220,7 +1261,9 @@ marker_insert(marker *self, PyObject *v)
                                 
     Py_XDECREF(tobefreed);
 
+#ifdef XYZ
     marker_to(self, np); /*XXX*/
+#endif
         
     Py_RETURN_NONE;
 }
