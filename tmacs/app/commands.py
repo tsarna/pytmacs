@@ -95,6 +95,10 @@ class PrompFileName(object):
         self.prompt = prompt
 
 
+class UniArgOrInt(object):
+    def __init__(self, prompt):
+        self.prompt = prompt
+
 class MessageToShow(object):
     pass
 

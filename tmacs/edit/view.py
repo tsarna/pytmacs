@@ -58,8 +58,11 @@ class View(object):
     def tolineend(self):
         self.dot.tolineend()
         
-    #XXX toline
-            
+    @command
+    @annotate(UniArgOrInt("Line to GOTO: "))
+    def toline(self, n):
+        self.dot.toline(n)
+        
     @command
     @annotate(UniArg)
     def prevword(self, n=True):
