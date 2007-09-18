@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.6 2007-08-18 19:09:37 tsarna Exp $
+# $Id: buffer.py,v 1.7 2007-09-18 23:15:31 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -10,7 +10,7 @@ if not hasattr(__tmacs__, "buffers"):
 
 class Buffer(ubuf):
     # settings defaults
-    fill_column = 78
+    fillcolumn = 78
     tab_stop = 8
     # start_line = 0    # line for editing to start on set
                         # by +nn args on command line
