@@ -1,4 +1,4 @@
-$Id: API,v 1.9 2007-09-17 20:45:41 tsarna Exp $
+$Id: API,v 1.10 2007-09-18 23:06:35 tsarna Exp $
 
 Buffer				API
 
@@ -37,8 +37,8 @@ CURSOR EDITING METHODS
 case-word-capitalize     M-C			wordtitle
 case-word-lower          M-L			wordlower
 case-word-upper          M-U			wordupper
-delete-previous-character^H			marker.delprev()
-delete-next-character    ^D			marker.delnext()
+delete-previous-character^H	marker.delprev()			C
+delete-next-character    ^D	marker.delnext()			C
 delete-previous-word     M-^H			marker.delprevword()
 delete-next-word         M-D			marker.delnextword()
 trim-line                ^X^T			

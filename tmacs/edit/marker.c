@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.32 2007-09-17 23:19:29 tsarna Exp $ */
+/* $Id: marker.c,v 1.33 2007-09-18 23:06:37 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -76,6 +76,10 @@ static PyObject *marker_prevline(marker *self, PyObject *args);
 static PyObject *marker_nextline(marker *self, PyObject *args);
 static PyObject *marker_toline(marker *self, PyObject *args);
 /* editing methods */
+static PyObject *marker_do_delprevnext(marker *self, PyObject *args, int prev);
+static PyObject *marker_delprev(marker *self, PyObject *args);
+static PyObject *marker_delnext(marker *self, PyObject *args);
+static PyObject *marker_do_insert(marker *self, PyObject *v, int next);
 static PyObject *marker_insert(marker *self, PyObject *args);
 static PyObject *marker_insertnext(marker *self, PyObject *args);
 /* misc methods/
@@ -986,7 +990,7 @@ marker_write(marker *self, PyObject *v)
                                 
     Py_XDECREF(tobefreed);
 
-    marker_to(self, np); /*XYZ*/
+    marker_to(self, np);
         
     Py_RETURN_NONE;
 }
@@ -1237,41 +1241,61 @@ marker_toline(marker *self, PyObject *args)
 
 
 static PyObject *
-marker_insert(marker *self, PyObject *v)
+marker_do_delprevnext(marker *self, PyObject *args, int prev)
 {
-    Py_UNICODE *u1, *u2;
-    PyObject *tobefreed;
-    Py_ssize_t l1, l2, np;
+    Py_ssize_t n = 1, s, e;
     ubuf *u;
+    
+    if (!PyArg_ParseTuple(args, "|n", &n)) {
+        return 0; 
+    }
     
     if (!(u = marker_makewriteable(self))) {
         return 0;
     }
 
-    if (!ubuf_parse_textarg(u, v, &tobefreed, &u1, &l1, &u2, &l2)) {
+    if (prev) {
+        n = -n;
+    }
+    
+    if (n < 0) {
+        s = self->start + n;
+        e = self->start;
+    } else {
+        s = self->start;
+        e = self->start + n;
+    }
+
+    s = max(s, 0);
+    e = min(e, u->length);
+    
+    if (!ubuf_assign_slice(u, s, e, NULL, 0, NULL, 0)) {
         return 0;
     }
 
-    np = self->start + l1 + l2;
-
-    if (!ubuf_assign_slice(u, self->start, self->start, u1, l1, u2, l2)) {
-        Py_XDECREF(tobefreed);
-        return 0;
-    }
-                                
-    Py_XDECREF(tobefreed);
-
-#ifdef XYZ
-    marker_to(self, np); /*XXX*/
-#endif
-        
     Py_RETURN_NONE;
 }
 
 
 
 static PyObject *
-marker_insertnext(marker *self, PyObject *v)
+marker_delprev(marker *self, PyObject *args)
+{
+    return marker_do_delprevnext(self, args, 1);
+}
+
+
+
+static PyObject *
+marker_delnext(marker *self, PyObject *args)
+{
+    return marker_do_delprevnext(self, args, 0);
+}
+
+
+
+static PyObject *
+marker_do_insert(marker *self, PyObject *v, int next)
 {
     Py_UNICODE *u1, *u2;
     PyObject *tobefreed;
@@ -1295,9 +1319,27 @@ marker_insertnext(marker *self, PyObject *v)
                                 
     Py_XDECREF(tobefreed);
 
-    marker_to(self, np);
+    if (next) {
+        marker_to(self, np);
+    }
         
     Py_RETURN_NONE;
+}
+
+
+
+static PyObject *
+marker_insert(marker *self, PyObject *v)
+{
+    return marker_do_insert(self, v, 0);
+}
+
+
+
+static PyObject *
+marker_insertnext(marker *self, PyObject *v)
+{
+    return marker_do_insert(self, v, 1);
 }
 
 
@@ -1352,6 +1394,8 @@ static PyMethodDef marker_methods[] = {
     {"toline",      (PyCFunction)marker_toline,         METH_VARARGS},
     
     /* editing methods */
+    {"delprev",     (PyCFunction)marker_delprev,        METH_VARARGS},
+    {"delnext",     (PyCFunction)marker_delnext,        METH_VARARGS},
     {"insert",      (PyCFunction)marker_insert,         METH_O},
     {"insertnext",  (PyCFunction)marker_insertnext,     METH_O},
 

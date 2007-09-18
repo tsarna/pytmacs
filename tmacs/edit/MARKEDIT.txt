@@ -3,7 +3,7 @@ Marker Editing Methods
 ======================
 
 :Author: Ty Sarna
-:Version: $Id: MARKEDIT.txt,v 1.3 2007-09-17 23:19:29 tsarna Exp $
+:Version: $Id: MARKEDIT.txt,v 1.4 2007-09-18 23:06:37 tsarna Exp $
 
 .. contents ::
 
@@ -46,13 +46,61 @@ useful for implementing several emacs commands like ^O (open line)::
 Deleting
 --------
 
-Text may be deleted leftwards, a'la the backspace key:
+Text may be deleted leftwards, a'la the backspace key::
 
-#    >>> b[:]
-#    u'Hi Hello There\n World\n'
-#    >>> m.start
-#    14
-#    >>> m.delprev()
-#    >>> b[:]
-#    >>> m.start
-#    13
+    >>> b[:]
+    u'Hi Hello There\n World\n'
+    >>> m.start
+    14
+    >>> m.delprev()
+    >>> b[:]
+    u'Hi Hello Ther\n World\n'
+    >>> m.start
+    13
+    >>> m.delprev(2)
+    >>> b[:]
+    u'Hi Hello Th\n World\n'
+    >>> m.start
+    11
+
+Or may be deleted forwards, a'la the delete key::
+
+    >>> m.delnext()
+    >>> b[:]
+    u'Hi Hello Th World\n'
+    >>> m.start
+    11
+    >>> m.delnext(2)
+    >>> b[:]
+    u'Hi Hello Thorld\n'
+    >>> m.start
+    11
+
+With negative arguments, each method acts like its counterpart, deleting
+in the other direction::
+
+    >>> m.delnext(-2)
+    >>> b[:]
+    u'Hi Hello orld\n'
+    >>> m.start
+    9
+    >>> m.delprev(-2)
+    >>> b[:]
+    u'Hi Hello ld\n'
+    >>> m.start
+    9
+
+Too-large arguments are trimmed to the beginning or end of the buffer::
+
+    >>> m.delprev(42)
+    >>> b[:]
+    u'ld\n'
+    >>> m.start
+    0
+    >>> m.delnext(42)
+    >>> b[:]
+    u''
+    >>> m.start
+    0
+
+    

@@ -92,6 +92,21 @@ class View(object):
 
     @command
     @annotate(UniArg)
+    def delprev(self, n=True):
+        self.dot.delprev(n)
+
+    @command
+    @annotate(UniArg)
+    def delnext(self, n=True):
+        self.dot.delnext(n)
+
+    @command
+    @annotate(UniArg)
+    def insertspace(self, n=True):
+        self.dot.insertnext(u' ' * n)
+
+    @command
+    @annotate(UniArg)
     def newline(self, n=True):
         self.dot.insert(u'\n' * n)
         
