@@ -3,7 +3,7 @@ Marker Editing Methods
 ======================
 
 :Author: Ty Sarna
-:Version: $Id: MARKEDIT.txt,v 1.4 2007-09-18 23:06:37 tsarna Exp $
+:Version: $Id: MARKEDIT.txt,v 1.5 2007-09-19 01:19:51 tsarna Exp $
 
 .. contents ::
 
@@ -102,5 +102,69 @@ Too-large arguments are trimmed to the beginning or end of the buffer::
     u''
     >>> m.start
     0
+
+
+Word Case Changes
+-----------------
+
+The `wordupper()`, `wordlower()`, and `wordtitle()` methods convert
+following words to upper, lower, or title (initial cap) case
+respectively, advancing the mark to the following word::
+
+    >>> b[:] = u'OLD MACDONALD HAD A FARM, eieio'
+    >>> m.start = 0
+    >>> m.wordtitle()
+    >>> b[:]
+    u'Old MACDONALD HAD A FARM, eieio'
+    >>> m.start
+    4
+
+It's possible to advance by (and change case of) more than one word at a time::
+
+    >>> m.wordtitle(2)
+    >>> b[:]
+    u'Old Macdonald Had A FARM, eieio'
+    >>> m.start
+    18
+
+When advancing forwards, the current position is assumed to be the start of
+the word, which may be useful for words containing internal caps::
+
+    >>> m.start = 7
+    >>> m.wordtitle()
+    >>> b[:]
+    u'Old MacDonald Had A FARM, eieio'
+    >>> m.start
+    14
+
+Let's use the other methods on the rest of the sentence::
+
+    >>> m.wordlower(3)
+    >>> b[:]
+    u'Old MacDonald had a farm, eieio'
+    >>> m.start
+    26
+    >>> m.wordupper()
+    >>> b[:]
+    u'Old MacDonald had a farm, EIEIO'
+    >>> m.start
+    31
+
+Negative offsets are supported::    
+
+    >>> m.wordlower(-1)
+    >>> b[:]
+    u'Old MacDonald had a farm, eieio'
+    >>> m.start
+    26
+
+If in the middle of a word, the current position is assumed to be the end::
+
+    >>> m.start = 22
+    >>> m.wordupper(-3)
+    >>> b[:]
+    u'Old MacDonald HAD A FArm, eieio'
+    >>> m.start
+    14
 
     

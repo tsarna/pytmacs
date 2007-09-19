@@ -87,6 +87,21 @@ class View(object):
     
     @command
     @annotate(UniArg)
+    def wordtitle(self, n=True):
+        self.dot.wordtitle(n)
+
+    @command
+    @annotate(UniArg)
+    def wordlower(self, n=True):
+        self.dot.wordlower(n)
+
+    @command
+    @annotate(UniArg)
+    def wordupper(self, n=True):
+        self.dot.wordupper(n)
+
+    @command
+    @annotate(UniArg)
     def insertspace(self, n=True):
         self.dot.insertnext(u' ' * n)
 

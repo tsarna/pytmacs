@@ -1,4 +1,4 @@
-$Id: API,v 1.11 2007-09-18 23:15:21 tsarna Exp $
+$Id: API,v 1.12 2007-09-19 01:19:49 tsarna Exp $
 
 Buffer				API
 
@@ -34,9 +34,9 @@ previous-paragraph       M-P			marker.prevpara()
 
 CURSOR EDITING METHODS
 
-case-word-capitalize     M-C			marker.wordtitle()
-case-word-lower          M-L			marker.wordlower()
-case-word-upper          M-U			marker.wordupper()
+case-word-capitalize     M-C	marker.wordtitle()			C
+case-word-lower          M-L	marker.wordlower()			C
+case-word-upper          M-U	marker.wordupper()			C
 delete-previous-character^H	marker.delprev()			C
 delete-next-character    ^D	marker.delnext()			C
 delete-previous-word     M-^H			marker.delprevword()
@@ -50,7 +50,7 @@ newline                  ^M	marker.insert(u'\n')			C
 newline-and-indent       ^J
 open-line                ^O	marker.insertnext(u'\n')		C
 handle-tab               ^I			tab
-transpose-characters     ^T			twiddle
+transpose-characters     ^T			marker.twiddle()
 delete-blank-lines       ^X^O
 
 SEARCHING

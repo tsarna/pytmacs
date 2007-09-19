@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.33 2007-09-18 23:06:37 tsarna Exp $ */
+/* $Id: marker.c,v 1.34 2007-09-19 01:19:51 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -76,6 +76,10 @@ static PyObject *marker_prevline(marker *self, PyObject *args);
 static PyObject *marker_nextline(marker *self, PyObject *args);
 static PyObject *marker_toline(marker *self, PyObject *args);
 /* editing methods */
+static PyObject *marker_do_wordcase(marker *self, PyObject *args, char *meth);
+static PyObject *marker_wordtitle(marker *self, PyObject *args);
+static PyObject *marker_wordlower(marker *self, PyObject *args);
+static PyObject *marker_wordupper(marker *self, PyObject *args);
 static PyObject *marker_do_delprevnext(marker *self, PyObject *args, int prev);
 static PyObject *marker_delprev(marker *self, PyObject *args);
 static PyObject *marker_delnext(marker *self, PyObject *args);
@@ -1241,6 +1245,78 @@ marker_toline(marker *self, PyObject *args)
 
 
 static PyObject *
+marker_do_wordcase(marker *self, PyObject *args, char *meth)
+{
+    Py_ssize_t s, e, d, n = 1;
+    PyObject *o = NULL, *r = NULL;
+    ubuf *u;
+    
+    if (!PyArg_ParseTuple(args, "|n", &n)) {
+        return 0; 
+    }
+
+    if (!(u = marker_makewriteable(self))) {
+        return 0;
+    }
+    
+    s = self->start;
+    e = d = ubuf_get_next_words(u, s, n);
+    
+    if (s > d) {
+        e = s;
+        s = d;
+    }
+        
+    o = ubuf_get_range(u, s, e);
+    if (o) {
+        r = PyObject_CallMethod(o, meth, "()");
+    }
+    
+    if (r) {
+        if (ubuf_assign_slice(u, s, e,
+          PyUnicode_AS_UNICODE(r), PyUnicode_GET_SIZE(r), NULL, 0)) {
+            marker_to(self, d);
+            
+            Py_DECREF(o);
+            Py_DECREF(r);
+
+            Py_RETURN_NONE;
+        }
+    }
+    
+    Py_XDECREF(o);
+    Py_XDECREF(r);
+
+    return 0;
+}
+
+
+
+static PyObject *
+marker_wordtitle(marker *self, PyObject *args)
+{
+    return marker_do_wordcase(self, args, "title");
+}
+
+
+
+static PyObject *
+marker_wordlower(marker *self, PyObject *args)
+{
+    return marker_do_wordcase(self, args, "lower");
+}
+
+
+
+static PyObject *
+marker_wordupper(marker *self, PyObject *args)
+{
+    return marker_do_wordcase(self, args, "upper");
+}
+
+
+
+static PyObject *
 marker_do_delprevnext(marker *self, PyObject *args, int prev)
 {
     Py_ssize_t n = 1, s, e;
@@ -1394,6 +1470,9 @@ static PyMethodDef marker_methods[] = {
     {"toline",      (PyCFunction)marker_toline,         METH_VARARGS},
     
     /* editing methods */
+    {"wordtitle",   (PyCFunction)marker_wordtitle,      METH_VARARGS},
+    {"wordlower",   (PyCFunction)marker_wordlower,      METH_VARARGS},
+    {"wordupper",   (PyCFunction)marker_wordupper,      METH_VARARGS},
     {"delprev",     (PyCFunction)marker_delprev,        METH_VARARGS},
     {"delnext",     (PyCFunction)marker_delnext,        METH_VARARGS},
     {"insert",      (PyCFunction)marker_insert,         METH_O},
@@ -1557,3 +1636,4 @@ add_marker_type(PyObject *module)
     Py_INCREF(&marker_type);
     PyModule_AddObject(module, "marker", (PyObject *)&marker_type);
 }
+
