@@ -3,7 +3,7 @@ Marker Editing Methods
 ======================
 
 :Author: Ty Sarna
-:Version: $Id: MARKEDIT.txt,v 1.5 2007-09-19 01:19:51 tsarna Exp $
+:Version: $Id: MARKEDIT.txt,v 1.6 2007-09-20 01:00:51 tsarna Exp $
 
 .. contents ::
 
@@ -104,6 +104,27 @@ Too-large arguments are trimmed to the beginning or end of the buffer::
     0
 
 
+Deleting by Words
+-----------------
+
+It's also possible to delete by words. A negative argument deletes in
+the opposite direction. When deleting prev (next) the end (start) is
+assumed to be the current cursor position, even if in the middle of a word::
+
+    >>> b[:] = u'One two three four five'
+    >>> m.start = 10
+    >>> m.delnextword()
+    >>> b[:]
+    u'One two thfour five'
+    >>> m.prevword()
+    >>> m.delprevword()
+    >>> b[:]
+    u'One thfour five'
+    >>> m.delprevword(-2)
+    >>> b[:]
+    u'One '
+    
+    
 Word Case Changes
 -----------------
 

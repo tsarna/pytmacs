@@ -1,4 +1,4 @@
-$Id: TODO,v 1.30 2007-09-19 01:19:49 tsarna Exp $
+$Id: TODO,v 1.31 2007-09-20 01:00:48 tsarna Exp $
 
 ubuf:
     textarg		from ubuf
@@ -17,9 +17,9 @@ marker:
 	para, fence
     searching:
     editing:
-	delnextword delprevword
+	trimline
 	twiddle
-    auto-adjust on edits
+    auto-adjust on edits (colseek!)
     changed flag
     nonzero -- returns changed flag?
 	

@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.34 2007-09-19 01:19:51 tsarna Exp $ */
+/* $Id: marker.c,v 1.35 2007-09-20 01:00:51 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -83,6 +83,9 @@ static PyObject *marker_wordupper(marker *self, PyObject *args);
 static PyObject *marker_do_delprevnext(marker *self, PyObject *args, int prev);
 static PyObject *marker_delprev(marker *self, PyObject *args);
 static PyObject *marker_delnext(marker *self, PyObject *args);
+static PyObject *marker_do_delword(marker *self, PyObject *args, int prev);
+static PyObject *marker_delprevword(marker *self, PyObject *args);
+static PyObject *marker_delnextword(marker *self, PyObject *args);
 static PyObject *marker_do_insert(marker *self, PyObject *v, int next);
 static PyObject *marker_insert(marker *self, PyObject *args);
 static PyObject *marker_insertnext(marker *self, PyObject *args);
@@ -1371,6 +1374,57 @@ marker_delnext(marker *self, PyObject *args)
 
 
 static PyObject *
+marker_do_delword(marker *self, PyObject *args, int prev)
+{
+    Py_ssize_t n = 1, s, e;
+    ubuf *u;
+    
+    if (!PyArg_ParseTuple(args, "|n", &n)) {
+        return 0; 
+    }
+    
+    if (!(u = marker_makewriteable(self))) {
+        return 0;
+    }
+
+    if (prev) {
+        n = -n;
+    }
+
+    s = self->start;
+    e = ubuf_get_next_words(u, s, n);
+
+    if (e < s) {
+        s = e;
+        e = self->start;
+    }
+
+    if (!ubuf_assign_slice(u, s, e, NULL, 0, NULL, 0)) {
+        return 0;
+    }
+
+    Py_RETURN_NONE;
+}
+
+
+
+static PyObject *
+marker_delprevword(marker *self, PyObject *args)
+{
+    return marker_do_delword(self, args, 1);
+}
+
+
+
+static PyObject *
+marker_delnextword(marker *self, PyObject *args)
+{
+    return marker_do_delword(self, args, 0);
+}
+
+
+
+static PyObject *
 marker_do_insert(marker *self, PyObject *v, int next)
 {
     Py_UNICODE *u1, *u2;
@@ -1475,6 +1529,8 @@ static PyMethodDef marker_methods[] = {
     {"wordupper",   (PyCFunction)marker_wordupper,      METH_VARARGS},
     {"delprev",     (PyCFunction)marker_delprev,        METH_VARARGS},
     {"delnext",     (PyCFunction)marker_delnext,        METH_VARARGS},
+    {"delprevword", (PyCFunction)marker_delprevword,    METH_VARARGS},
+    {"delnextword", (PyCFunction)marker_delnextword,    METH_VARARGS},
     {"insert",      (PyCFunction)marker_insert,         METH_O},
     {"insertnext",  (PyCFunction)marker_insertnext,     METH_O},
 

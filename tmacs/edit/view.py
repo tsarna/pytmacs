@@ -1,4 +1,4 @@
-from tmacs.app.commands import *
+[Afrom tmacs.app.commands import *
 
 class View(object):
     mark = None
@@ -114,6 +114,16 @@ class View(object):
     @annotate(UniArg)
     def delnext(self, n=True):
         self.dot.delnext(n)
+
+    @command
+    @annotate(UniArg)
+    def delprevword(self, n=True):
+        self.dot.delprevword(n)
+
+    @command
+    @annotate(UniArg)
+    def delnextword(self, n=True):
+        self.dot.delnextword(n)
 
     @command
     @annotate(UniArg)

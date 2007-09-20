@@ -1,4 +1,4 @@
-$Id: API,v 1.12 2007-09-19 01:19:49 tsarna Exp $
+$Id: API,v 1.13 2007-09-20 01:00:48 tsarna Exp $
 
 Buffer				API
 
@@ -39,9 +39,9 @@ case-word-lower          M-L	marker.wordlower()			C
 case-word-upper          M-U	marker.wordupper()			C
 delete-previous-character^H	marker.delprev()			C
 delete-next-character    ^D	marker.delnext()			C
-delete-previous-word     M-^H			marker.delprevword()
-delete-next-word         M-D			marker.delnextword()
-trim-line                ^X^T			
+delete-previous-word     M-^H	marker.delprevword()			C
+delete-next-word         M-D	marker.delnextword()			C
+trim-line                ^X^T			marker.trimline()
 detab-line               ^X^D
 entab-line
 insert-space             ^C	marker.insertnext(u' ')			C
