@@ -1,0 +1,5 @@
+.cvsignore
+*.pyc
+TMACS.egg-info
+build
+dist
