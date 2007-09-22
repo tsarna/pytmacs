@@ -1,6 +1,118 @@
-[Afrom tmacs.app.commands import *
+from tmacs.app.commands import *
 
-class View(object):
+class MiniView(object):
+    ### Cursor Movement
+    
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def prev(self, n=True):
+        self.dot -= n
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def next(self, n=True):
+        self.dot += n
+
+    @command
+    @annotate(None)
+    def tobufstart(self):
+        self.dot.tobufstart()
+
+    @command
+    @annotate(None)
+    def tobufend(self):
+        self.dot.tobufend()
+
+    @command
+    @annotate(None)
+    def tolinestart(self):
+        self.dot.tolinestart()
+        
+    @command
+    @annotate(None)
+    def tolineend(self):
+        self.dot.tolineend()
+        
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def prevword(self, n=True):
+        self.dot.prevword(n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def nextword(self, n=True):
+        self.dot.nextword(n)
+
+    ### Editing
+    
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def wordtitle(self, n=True):
+        self.dot.wordtitle(n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def wordlower(self, n=True):
+        self.dot.wordlower(n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def wordupper(self, n=True):
+        self.dot.wordupper(n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def insertspace(self, n=True):
+        self.dot.insertnext(u' ' * n)
+
+    @command
+    @annotate(None)
+    @annotate(KeySeq)
+    @annotate(UniArg)
+    def insertspace(self, text, n=True):
+        self.dot.insertnext(u' ' * n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def delprev(self, n=True):
+        self.dot.delprev(n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def delnext(self, n=True):
+        self.dot.delnext(n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def delprevword(self, n=True):
+        self.dot.delprevword(n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def delnextword(self, n=True):
+        self.dot.delnextword(n)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def insertspace(self, n=True):
+        self.dot.insertnext(u' ' * n)
+
+
+    
+class View(BasicView):
     mark = None
     
     def __init__(self, buffer):
@@ -31,48 +143,12 @@ class View(object):
         return "[Fill column is %d]" % n
         
     ### Cursor Movement
-    
-    @command
-    @annotate(UniArg)
-    def prev(self, n=True):
-        self.dot -= n
 
-    @command
-    @annotate(UniArg)
-    def next(self, n=True):
-        self.dot += n
-
-    @command
-    def tobufstart(self):
-        self.dot.tobufstart()
-
-    @command
-    def tobufend(self):
-        self.dot.tobufend()
-
-    @command
-    def tolinestart(self):
-        self.dot.tolinestart()
-        
-    @command
-    def tolineend(self):
-        self.dot.tolineend()
-        
     @command
     @annotate(UniArgOrInt("Line to GOTO: "))
     def toline(self, n):
         self.dot.toline(n)
         
-    @command
-    @annotate(UniArg)
-    def prevword(self, n=True):
-        self.dot.prevword(n)
-
-    @command
-    @annotate(UniArg)
-    def nextword(self, n=True):
-        self.dot.nextword(n)
-
     @command
     @annotate(UniArg)
     def prevline(self, n=True):
@@ -84,51 +160,6 @@ class View(object):
         self.dot.nextline(n)
 
     ### Editing
-    
-    @command
-    @annotate(UniArg)
-    def wordtitle(self, n=True):
-        self.dot.wordtitle(n)
-
-    @command
-    @annotate(UniArg)
-    def wordlower(self, n=True):
-        self.dot.wordlower(n)
-
-    @command
-    @annotate(UniArg)
-    def wordupper(self, n=True):
-        self.dot.wordupper(n)
-
-    @command
-    @annotate(UniArg)
-    def insertspace(self, n=True):
-        self.dot.insertnext(u' ' * n)
-
-    @command
-    @annotate(UniArg)
-    def delprev(self, n=True):
-        self.dot.delprev(n)
-
-    @command
-    @annotate(UniArg)
-    def delnext(self, n=True):
-        self.dot.delnext(n)
-
-    @command
-    @annotate(UniArg)
-    def delprevword(self, n=True):
-        self.dot.delprevword(n)
-
-    @command
-    @annotate(UniArg)
-    def delnextword(self, n=True):
-        self.dot.delnextword(n)
-
-    @command
-    @annotate(UniArg)
-    def insertspace(self, n=True):
-        self.dot.insertnext(u' ' * n)
 
     @command
     @annotate(UniArg)
@@ -166,7 +197,6 @@ class View(object):
             start, end = end, start
 
         return start, end
-
         
     @command
     @returns(MessageToDisplay)
