@@ -96,6 +96,26 @@ CmdLoopState = CmdLoopState()
 
 
 
+### UI-using interactive annotations
+
+class MessageToShow(object):   
+    def gen_code(self, arg, indents):
+        return "%sui.message_write(%s)" % (indents, arg)
+                
+                    
+MessageToShow = MessageToShow()
+                    
+
+
+class ErrorToShow(object):   
+    def gen_code(self, arg, indents):
+        return "%sui.beep()\n%sui.message_write(%s)" % (indents, indents, arg)
+                
+                    
+ErrorToShow = ErrorToShow()
+                    
+
+
 ### Support functions    
 
 def getargnames(func):
