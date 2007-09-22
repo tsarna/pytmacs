@@ -1,7 +1,6 @@
 from tmacs.app.main import set_exception
 from tmacs.app.commands import *
-from tmacs.ui.keysym import ParseKeySym, ReprKeySym
-from tmacs.ui.keymap import keymap
+from tmacs.ui.keys import keysym, repr_keysym, keymap
 import __tmacs__
 
 
@@ -22,14 +21,6 @@ class UniArgOrInt(object):
         self.prompt = prompt
 
 
-class MessageToShow(object):
-    def gen_code(self, arg, indents):
-        return "%sui.message_write(%s)" % (indents, arg)
-
-
-MessageToShow = MessageToShow()
-
-
 # UI Base Class
 
 class UIBase(object):
@@ -42,7 +33,7 @@ class UIBase(object):
         state.nextuniarg = True
     
         while not state.quit:
-            state.keyseq, state.cmdname = self.readkeyseq()
+            state.keyseq, state.cmdname, state.evtval = self.readkeyseq()
             if state.cmdname is None:
                 state.cmdname = "notbound"
             state.thiscmd = self.lookup_cmd(state.cmdname)
@@ -54,16 +45,16 @@ class UIBase(object):
             # XXX redraw if no input pending
         
     def readkeyseq(self):
-        seq = self.getevent()
+        seq, evtval = self.getevent()
         cmdname = self.lookup_keyseq(seq)
 
         while type(cmdname) is keymap:
-            self.message_write(ReprKeySym(seq))
+            self.message_write(repr_keysym(seq))
             ev = self.getevent()
             seq += ev
             cmdname = self.lookup_keyseq(seq)
     
-        return seq, cmdname
+        return seq, cmdname, evtval
 
     def lookup_keyseq(self, seq):
         return __tmacs__.globalmap.get(seq)
@@ -87,20 +78,46 @@ class UIBase(object):
         
         return "Arg: %d" % state.nextuniarg
 
+    @command
+    @annotate(None)
+    @annotate(CmdLoopState)
+    @returns(ErrorToShow)
+    def unknowncommand(self, state):
+        return "[Unknown command %s]" % state.cmdname
         
+    @command
+    @annotate(None)
+    @annotate(CmdLoopState)
+    @returns(ErrorToShow)
+    def illegalsequence(self, state):
+        return "[Illegal input sequence '%s']" % repr_keysym(state.evtval)
+        
+    @command
+    @annotate(None)
+    @annotate(CmdLoopState)
+    @returns(ErrorToShow)
+    def notbound(self, state):
+        return "[Key %s not bound]" % repr_keysym(state.keyseq)
+        
+
 
 class TestUI(UIBase):
     def getevent(self):
-        ev = raw_input('KeySym: ')
-        ev = ParseKeySym(ev)
+        ri = raw_input('KeySym: ')
+        ev = keysym(ri)
         if len(ev) != 1:
-            ev = ParseKeySym("<IllegalSequence>")
-        return ev
+            return keysym("<IllegalSequence>"), ri
+        return ev, None
 
     def message_write(self, msg):
         print msg
 
+    def beep(self):
+        sys.stderr.write('\a')
         
+
+import sys
+
 def test():
     import tmacs.ui.defmaps
     
