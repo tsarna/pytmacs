@@ -38,7 +38,7 @@ class UIBase(object):
                 state.thiscmd = self.lookup_cmd("unknowncommand")
             state.prevuniarg, state.uniarg, state.nextuniarg = \
                 state.uniarg, state.nextuniarg, True
-            self.exec_cmd(state.thiscmd, state)
+            self.executecmd(state.thiscmd, state)
             # XXX redraw if no input pending
         
     def readkeyseq(self):
@@ -68,7 +68,13 @@ class UIBase(object):
 
         return c
 
-    def exec_cmd(self, cmd, state):
+    ### Commands
+    
+    @command
+    @annotate(None)
+    @annotate(ReadCmd(': '))
+    @annotate(CmdLoopState)
+    def executecmd(self, cmd, state=__tmacs__):
         try:
             cmd.__tmacs_cmd__(cmd, state)
         except BaseException, ex:
@@ -79,8 +85,7 @@ class UIBase(object):
             self.write_message('[%s]' % msg)
             set_exception(sys.exc_info())
 
-    ### Commands
-    
+
     @command
     @annotate(None)
     @annotate(CmdLoopState)
@@ -89,12 +94,14 @@ class UIBase(object):
         state.nextuniarg = state.uniarg * 4
         return "Arg: %d" % state.nextuniarg
 
+
     @command
     @annotate(None)
     @annotate(CmdLoopState)
     @returns(ErrorToShow)
     def unknowncommand(self, state=__tmacs__):
         return "[Unknown command %s]" % state.cmdname
+
         
     @command
     @annotate(None)
@@ -102,6 +109,7 @@ class UIBase(object):
     @returns(ErrorToShow)
     def illegalsequence(self, state=__tmacs__):
         return "[Illegal input sequence '%s']" % repr_keysym(state.evtval)
+
         
     @command
     @annotate(None)
@@ -190,6 +198,10 @@ class TestUI(UIBase):
                 return True
             elif x in 'nN':
                 return False
+
+
+    def askstring(self, prompt):
+        return raw_input(prompt)
         
 
 def test():

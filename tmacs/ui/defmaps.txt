@@ -39,3 +39,5 @@
 <^X><^X>		swapdotandmark
 <^X><^L>		regionlower
 <^X><^U>		regionupper
+<Esc>x			executecmd
+<^X>f			setfillcolumn

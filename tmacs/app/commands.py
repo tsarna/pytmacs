@@ -113,7 +113,9 @@ class WithPrompt(object):
 
 class PromptText(WithPrompt):
     def gen_code(self, arg, indents):
-        return ([], "'XXX'")
+        return ([
+            "%s%s = ui.askstring(%s)" % (indents, arg, repr(self.prompt))
+        ], arg)
     
 
 class ReadKeySeq(WithPrompt):
@@ -152,10 +154,21 @@ class UniArgOrInt(WithPrompt):
         return ([
             "%s%s = _state.uniarg" % (indents, arg),
             "%sif %s is True:" % (indents, arg), 
-            "%s  %s = ui.ask_int(%s)" % (indents, arg, repr(self.prompt)), 
+            "%s %s = ui.askint(%s)" % (indents, arg, repr(self.prompt)), 
         ], arg)
 
 
+class ReadCmd(WithPrompt):
+    def gen_code(self, arg, indents):
+        return ([
+            "%s%s = ui.askstring(%s)" % (indents, arg, repr(self.prompt)),
+            "%s%s = ui.lookup_cmd(%s)" % (indents, arg, arg),
+            "%sif %s is None:" % (indents, arg), 
+            "%s return" % indents,
+        ], arg)
+        
+        
+        
 ### UI-using interactive annotations for returns
 
 class MessageToShow(object):   

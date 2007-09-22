@@ -1,4 +1,4 @@
-$Id: API,v 1.15 2007-09-22 20:11:54 tsarna Exp $
+$Id: API,v 1.16 2007-09-22 22:28:55 tsarna Exp $
 
 Buffer				API
 
@@ -8,7 +8,7 @@ unmark-buffer            M-~	view.markunchanged			K
 filter-buffer            ^X#			.filter()
 name-buffer              M-^N	Buffer.name=				C
 read-file                ^X^R			.load()
-set-fill-column          ^XF	Buffer.fillcolumn=			C
+set-fill-column          ^XF	view.setfillcolumn			K
 save-file                ^X^S			.save()
 delete-buffer            ^XK			del_buffer()
 list-buffers             ^X^B	tmacs.edit.buffer.make_buffer_list()
@@ -84,12 +84,13 @@ UI
 abort-command            ^G		ui.abort()			K
 change-screen-size
 change-screen-width
-clear-and-redraw         ^L						K
+clear-and-redraw         ^L		ui.forceredraw()		K
 clear-message-line
 delete-other-windows     ^X1
 delete-window            ^X0
 universal-argument       ^U		ui.uniarg()			K
 exit-emacs               ^X^C		ui.quit()			K
+execute-named-command    M-X		ui.executecmd			K
 grow-window              ^X^
 move-window-down         ^X^N
 move-window-up           ^X^P
@@ -103,8 +104,9 @@ shrink-window            ^X^Z
 save-window
 update-screen
 next-page                ^V
-previous-page            M-V
 nop                      M-FNC						C
+previous-page            M-V
+write-message				ui.write_message		C
 
 MODES
 
@@ -142,7 +144,6 @@ UNSORTED
 
 execute-command-line
 execute-file
-execute-named-command    M-X
 find-file                ^X^F
 help                     M-?
 i-shell
@@ -162,5 +163,4 @@ suspend-emacs            ^XD
 tag-word                 M-T
 view-file                ^X^V
 wrap-word                M-FNW
-write-message				ui.write_message		C
 yank                     ^Y
