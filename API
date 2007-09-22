@@ -1,4 +1,4 @@
-$Id: API,v 1.13 2007-09-20 01:00:48 tsarna Exp $
+$Id: API,v 1.14 2007-09-22 16:16:29 tsarna Exp $
 
 Buffer				API
 
@@ -17,38 +17,38 @@ next-buffer              ^XX	Buffer.next_buffer()
 
 CURSOR MOVEMENT
 
-backward-character       ^B	-=					C
-forward-character        ^F	+=					C
-beginning-of-file        M-<	marker.tobufstart()			C
-end-of-file              M->	marker.tobufend()			C
-beginning-of-line        ^A	marker.tolinestart()			C
-end-of-line              ^E	marker.tolineend()			C
-goto-line                M-G	marker.toline()				C
-previous-word            M-B	marker.prevword()			C
-next-word                M-F	marker.nextword()			C
+backward-character       ^B	-=					K
+forward-character        ^F	+=					K
+beginning-of-file        M-<	marker.tobufstart()			K
+end-of-file              M->	marker.tobufend()			K
+beginning-of-line        ^A	marker.tolinestart()			K
+end-of-line              ^E	marker.tolineend()			K
+goto-line                M-G	marker.toline()				K
+previous-word            M-B	marker.prevword()			K
+next-word                M-F	marker.nextword()			K
 goto-matching-fence      M-^F
-next-line                ^N	marker.nextline()			C
-previous-line            ^P	marker.prevline()			C
+next-line                ^N	marker.nextline()			K
+previous-line            ^P	marker.prevline()			K
 next-paragraph           M-N			marker.nextpara()
 previous-paragraph       M-P			marker.prevpara()
 
 CURSOR EDITING METHODS
 
-case-word-capitalize     M-C	marker.wordtitle()			C
-case-word-lower          M-L	marker.wordlower()			C
-case-word-upper          M-U	marker.wordupper()			C
-delete-previous-character^H	marker.delprev()			C
-delete-next-character    ^D	marker.delnext()			C
-delete-previous-word     M-^H	marker.delprevword()			C
-delete-next-word         M-D	marker.delnextword()			C
+case-word-capitalize     M-C	marker.wordtitle()			K
+case-word-lower          M-L	marker.wordlower()			K
+case-word-upper          M-U	marker.wordupper()			K
+delete-previous-character^H	marker.delprev()			K
+delete-next-character    ^D	marker.delnext()			K
+delete-previous-word     M-^H	marker.delprevword()			K
+delete-next-word         M-D	marker.delnextword()			K
 trim-line                ^X^T			marker.trimline()
 detab-line               ^X^D
 entab-line
-insert-space             ^C	marker.insertnext(u' ')			C
-insert-string			marker.insert()
-newline                  ^M	marker.insert(u'\n')			C
+insert-space             ^C	marker.insertnext(u' ')			K
+insert				marker.insert()				K
+newline                  ^M	marker.insert(u'\n')			K
 newline-and-indent       ^J
-open-line                ^O	marker.insertnext(u'\n')		C
+open-line                ^O	marker.insertnext(u'\n')		K
 handle-tab               ^I			tab
 transpose-characters     ^T			marker.twiddle()
 delete-blank-lines       ^X^O
@@ -88,7 +88,7 @@ clear-and-redraw         ^L
 clear-message-line
 delete-other-windows     ^X1
 delete-window            ^X0
-universal-argument       ^U
+universal-argument       ^U		ui.uniarg			K
 exit-emacs               ^X^C
 grow-window              ^X^
 meta-prefix              ^]
