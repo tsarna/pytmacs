@@ -1,8 +1,7 @@
-$Id: TODO,v 1.33 2007-09-22 22:28:55 tsarna Exp $
+$Id: TODO,v 1.34 2007-09-22 22:50:36 tsarna Exp $
 
 ui:
     bindkey unbindkey describe_bindings
-    finish uniarg
     
 ubuf:
     textarg		from ubuf

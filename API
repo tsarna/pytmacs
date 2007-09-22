@@ -1,14 +1,14 @@
-$Id: API,v 1.16 2007-09-22 22:28:55 tsarna Exp $
+$Id: API,v 1.17 2007-09-22 22:50:36 tsarna Exp $
 
 Buffer				API
 
 change-file-name         ^XN	Buffer.filename=			C
 write-file               ^X^W			.save(xxx)
-unmark-buffer            M-~	view.markunchanged			K
+unmark-buffer            M-~	view.markunchanged()			K
 filter-buffer            ^X#			.filter()
 name-buffer              M-^N	Buffer.name=				C
 read-file                ^X^R			.load()
-set-fill-column          ^XF	view.setfillcolumn			K
+set-fill-column          ^XF	view.setfillcolumn()			K
 save-file                ^X^S			.save()
 delete-buffer            ^XK			del_buffer()
 list-buffers             ^X^B	tmacs.edit.buffer.make_buffer_list()

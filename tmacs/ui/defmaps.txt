@@ -41,3 +41,14 @@
 <^X><^U>		regionupper
 <Esc>x			executecmd
 <^X>f			setfillcolumn
+<Esc>0			uniarg
+<Esc>1			uniarg
+<Esc>2			uniarg
+<Esc>3			uniarg
+<Esc>4			uniarg
+<Esc>5			uniarg
+<Esc>6			uniarg
+<Esc>7			uniarg
+<Esc>8			uniarg
+<Esc>9			uniarg
+<Esc>-			uniarg

@@ -89,10 +89,48 @@ class UIBase(object):
     @command
     @annotate(None)
     @annotate(CmdLoopState)
-    @returns(MessageToShow)
     def uniarg(self, state=__tmacs__):
-        state.nextuniarg = state.uniarg * 4
-        return "Arg: %d" % state.nextuniarg
+        k = state.keyseq[-1]
+        first = False
+        if k.isdigit():
+            n = int(k)
+        elif k == '-':
+            n = False
+        else:
+            n = state.uniarg * 4
+            first = True
+        
+        if n is False:
+            self.write_message("Arg: -")
+        else:
+            self.write_message("Arg: %d" % n)
+        ev, arg = self.getevent()
+
+        if first:
+            if ev == '-':
+                self.write_message("Arg: -")
+                n = False
+                ev, arg = self.getevent()
+            elif ev.isdigit():
+                n = int(ev)
+                self.write_message("Arg: %d" % n)
+                ev, arg = self.getevent()
+
+        while ev.isdigit():
+            d = int(ev)
+            if n is False:
+                n = -int(ev)
+            elif n < 0:
+                n = n * 10 - d
+            else:
+                n = n * 10 + d
+            self.write_message("Arg: %d" % n)
+            ev, arg = self.getevent()
+        
+        self.ungetevent((ev, arg))
+
+        state.nextuniarg = n
+
 
 
     @command
@@ -153,6 +191,7 @@ class TestUI(UIBase):
     
     def __init__(self):
         self.windows = []
+        self.ungotten = []
 
 
     def add_window(self, buffer):
@@ -163,6 +202,9 @@ class TestUI(UIBase):
 
             
     def getevent(self):
+        if self.ungotten:
+            return self.ungotten.pop()
+            
         ri = raw_input('KeySym: ')
         ev = keysym(ri)
         if len(ev) != 1:
@@ -170,6 +212,10 @@ class TestUI(UIBase):
         return ev, None
 
 
+    def ungetevent(self, ev):
+        self.ungotten.append(ev)
+
+        
     @command
     @annotate(None)
     @annotate(PromptText("Message:"))
