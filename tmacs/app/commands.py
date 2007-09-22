@@ -1,4 +1,5 @@
 from inspect import getargspec
+import __tmacs__
 
 
 ### The following are for using decorators as function annotations. When
@@ -79,31 +80,21 @@ def func_annotations(func):
 
 ### Annotation types
                 
-class UniArg(object): pass
+class UniArg(object):
+    def gen_code(self, arg, indents):
+        return ([], '_state.uniarg')
 
 UniArg = UniArg()
 
 
 
-class AskYesNo(object):
-    def __init__(self, prompt):
-        self.prompt = prompt
-    
-
-class PrompFileName(object):
-    def __init__(self, prompt):
-        self.prompt = prompt
+class CmdLoopState(object):
+    def gen_code(self, arg, indents):
+        return ([], "_state")
+        
+CmdLoopState = CmdLoopState()
 
 
-class UniArgOrInt(object):
-    def __init__(self, prompt):
-        self.prompt = prompt
-
-class MessageToShow(object):
-    pass
-
-MessageToShow = MessageToShow()
-    
 
 ### Support functions    
 
@@ -128,25 +119,36 @@ def get_annotations(func):
 ### Decorators   
     
 def command(func):
-    annos = get_annotations(func)
-    print annos    
+    annos, retanno = get_annotations(func)
+    name = "__tmacs_cmd_%s__" % func.func_name
+    
+    cl = ["def %s(_func, _state):" % name]
+    al = []
+    
+    for arg, anno in annos:
+        if anno is not None:
+            code, argitem = anno.gen_code(arg, ' ')
+            cl.extend(code)
+            al.append(argitem)
+
+    cl.append('\n _r = _func(' + ', '.join(al) + ')')
+    if retanno is not None:
+        cl.append(retanno.gen_code('_r', ' '))
+
+    cl.append('')
+    cl = '\n'.join(cl)
+
+    exec cl in __tmacs__.__dict__
+    
+    cmdfunc = getattr(__tmacs__, name)
+    delattr(__tmacs__, name)
+
+    func.__tmacs_cmd__ = cmdfunc
+
     return func
-
-
-
-@command
-@annotate(uniarg)
-def printint(num):
-    print num
-
+    
 
 @command
-@annotate(askyesno("Is this true?"))
-@annotate(uniarg)
-@returns(message)
-def booler(b, u):
-    if b:
-        return "Yes"
-    else:
-        return "No"
-
+@annotate(UniArg)
+def printn(n):
+    print n

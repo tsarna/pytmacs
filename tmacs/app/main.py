@@ -1,5 +1,5 @@
 from tmacs.app.rcfile import runRCFile
-from tmacs.edit.buffer import findBuffer, loadFile, Buffer
+from tmacs.edit.buffer import find_buffer, loadFile, Buffer
 import os, traceback, __tmacs__
 
 
@@ -35,7 +35,7 @@ class TestUI(object):
 
 
 
-def setException(exctuple):
+def set_exception(exctuple):
     b = findBuffer('__errors__')
     del b[:]
     b.append(u''.join(traceback.format_exception(*exctuple)))
@@ -55,7 +55,7 @@ def main(argv, environ):
 
     exc = runRCFile(__tmacs__)
     if exc is not None:
-        setException(exc)
+        set_exception(exc)
 
     coding = None
     line = None
