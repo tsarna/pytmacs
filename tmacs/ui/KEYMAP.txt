@@ -1,0 +1,40 @@
+=============
+TMACS Keymaps
+=============
+
+:Author: Ty Sarna
+:Version: $Id: KEYMAP.txt,v 1.1 2007-09-22 16:27:38 tsarna Exp $
+
+.. contents ::
+
+Creating
+--------
+
+    >>> from tmacs.ui.keys import keymap
+    >>> globalmap = keymap(name="globalmap")
+    >>> escmap = keymap(name="escmap")
+
+
+Binding
+-------
+
+The `bind()` method takes a keysym or string of keysyms and binds a
+value to it in a map:
+
+    >>> escmap.bind('.', 'setmark')
+    >>> escmap
+    .   setmark
+    
+A map may be bound to an entry in another map, thereby creating a prefix::
+
+    >>> globalmap.bind('<Esc>', escmap)
+    >>> globalmap
+    <ESC>   (submap 'escmap')
+    <ESC>.  setmark
+
+Once a prefix is defined in a map, bindings can be made through it. For
+example we could bind space in escmap, or we could do::
+
+    >>> globalmap.bind('<Esc><Space>', 'setmark')
+
+        
