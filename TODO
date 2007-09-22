@@ -1,5 +1,10 @@
-$Id: TODO,v 1.31 2007-09-20 01:00:48 tsarna Exp $
+$Id: TODO,v 1.32 2007-09-22 20:11:54 tsarna Exp $
 
+ui:
+    bindkey unbindkey describe_bindings
+    finish uniarg
+    executenamedcmd
+    
 ubuf:
     textarg		from ubuf
     .borrow()		with args

@@ -1,63 +1,24 @@
 from tmacs.app.rcfile import runRCFile
-from tmacs.edit.buffer import find_buffer, loadFile, Buffer
-import os, traceback, __tmacs__
+from tmacs.edit.buffer import find_buffer, load_file, Buffer
+from tmacs.ui.ui import TestUI, set_exception
+import os, __tmacs__
 
 
-class TestUI(object):
-    x = 0
-    y = 0
-    
-    def __init__(self):
-        pass
-
-    def setOutput(self, o):
-        self.output = o
-
-    def illegalSequence(self, s):
-        self.output.beep()
-        self.output.write('illegal: %s' % `s`)
-        self.output.cleanup()
-        
-    def windowSize(self, x, y):
-        self.x, self.y = x, y
-        self.output.beep()
-        self.output.moveto(0, self.y - 1)
-        self.output.write('size: %dx%d' % (x, y))
-        self.output.eeol()
-                
-    def send(self, s):
-        self.output.moveto(0, self.y - 1)
-        self.output.write(`s`)
-        self.output.eeol()
-
-        if 'q' in s:
-            self.output.cleanup()
-
-
-
-def set_exception(exctuple):
-    b = findBuffer('__errors__')
-    del b[:]
-    b.append(u''.join(traceback.format_exception(*exctuple)))
-
-    return b
-    
-       
 
 def main(argv, environ):
-    __tmacs__.ui = t = TestUI()
+    __tmacs__.ui = ui = TestUI()
         
-    from tmacs.termioscap import start
-    __tmacs__.reactor = reactor = start(t)
+    #from tmacs.termioscap import start
+    #__tmacs__.reactor = reactor = start(ui)
 
     c = environ.get('TMACS_FILE_CODING', 'utf8')
-    __tmacs__.default_coding = c
+    __tmacs__.default_encoding = c
 
     exc = runRCFile(__tmacs__)
     if exc is not None:
         set_exception(exc)
 
-    coding = None
+    encoding = None
     line = None
     
     args = argv[1:]
@@ -67,27 +28,33 @@ def main(argv, environ):
 
         if arg == '-e':
             if args:
-                __tmacs__.default_coding = args.pop(0)
+                __tmacs__.default_encoding = args.pop(0)
             else:
                 pass # XXX
         elif arg.startswith('-e'):
-            __tmacs__.default_coding = arg[2:]
+            __tmacs__.default_encoding = arg[2:]
         elif arg == '-E':
             if args:
-                coding = args.pop(0)
+                encoding = args.pop(0)
             else:
                 pass # XXX
         elif arg.startswith('-E'):
-            coding = arg[2:]
+            encoding = arg[2:]
         elif arg.startswith('+'):
             line = int(arg[1:])
         else:
-            b = loadFile(arg, coding=coding)
+            b = load_file(arg, encoding=encoding)
             if line:
                 b.start_line = line
-            line = coding = None
+            line = encoding = None
 
+    # if there are no buffers, create one
     if not __tmacs__.buffers:
         Buffer('__scratch__')
             
-    reactor.run()
+    #reactor.run()
+    
+    for mod in ('tmacs.ui.defmaps', 'tmacs.edit.buffer'):
+        exec "import %s" % mod in __tmacs__.__dict__
+        
+    ui.run()

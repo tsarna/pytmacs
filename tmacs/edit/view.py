@@ -1,6 +1,6 @@
 from tmacs.app.commands import *
 
-class MiniView(object):
+class BasicView(object):
     ### Cursor Movement
     
     @command
@@ -77,8 +77,8 @@ class MiniView(object):
     @annotate(None)
     @annotate(KeySeq)
     @annotate(UniArg)
-    def insertspace(self, text, n=True):
-        self.dot.insertnext(u' ' * n)
+    def insert(self, text, n=True):
+        self.dot.insert(text * n)
 
     @command
     @annotate(None)
@@ -118,10 +118,15 @@ class View(BasicView):
     def __init__(self, buffer):
         self.buf = buffer
         self.dot = buffer.marker()
+        sl = getattr(buffer, 'start_line', None)
+        if sl is not None:
+            self.dot.toline(sl)
+            del buffer.start_line
 
     ### Buffer Commands
 
     @command
+    @annotate(None)
     @annotate(AnyFileName("Name: "))
     def setfilename(self, name):
         self.buf.filename = name
@@ -131,13 +136,15 @@ class View(BasicView):
         self.buf.changed = False
 
     @command
+    @annotate(None)
     @annotate(NewBufferName("Change buffer name to: "))
     def renamebuffer(self, name):
         self.buf.name = name
 
     @command
+    @annotate(None)
     @annotate(UniArg)
-    @returns(MessageToDisplay)
+    @returns(MessageToShow)
     def setfillcolumn(self, n=True):
         self.buf.fillcolumn = n
         return "[Fill column is %d]" % n
@@ -145,16 +152,19 @@ class View(BasicView):
     ### Cursor Movement
 
     @command
+    @annotate(None)
     @annotate(UniArgOrInt("Line to GOTO: "))
     def toline(self, n):
         self.dot.toline(n)
         
     @command
+    @annotate(None)
     @annotate(UniArg)
     def prevline(self, n=True):
         self.dot.prevline(n)
 
     @command
+    @annotate(None)
     @annotate(UniArg)
     def nextline(self, n=True):
         self.dot.nextline(n)
@@ -162,11 +172,13 @@ class View(BasicView):
     ### Editing
 
     @command
+    @annotate(None)
     @annotate(UniArg)
     def newline(self, n=True):
         self.dot.insert(u'\n' * n)
         
     @command
+    @annotate(None)
     @annotate(UniArg)
     def openline(self, n=True):
         self.dot.insertnext(u'\n' * n)
@@ -174,6 +186,7 @@ class View(BasicView):
     ### View
     
     @command
+    @annotate(None)
     @returns(MessageToShow)
     def swapdotandmark(self):
         if self.mark is None:
@@ -181,6 +194,7 @@ class View(BasicView):
         self.dot, self.mark = self.mark, self.dot
 
     @command
+    @annotate(None)
     @returns(MessageToShow)
     def setmark(self):
         self.mark = self.dot.copy()
@@ -199,15 +213,15 @@ class View(BasicView):
         return start, end
         
     @command
-    @returns(MessageToDisplay)
+    @returns(MessageToShow)
     def regionlower(self, start=None, end=None):
         start, end = self.getregion(start, end)
         if start is None:
             return "No mark set in this window"
         self.buf[start:end] = self.buf[start:end].lower()
     
-    @command
-    @returns(MessageToDisplay)
+    @command    
+    @returns(MessageToShow)
     def regionupper(self, start=None, end=None):
         start, end = self.getregion(start, end)
         if self.mark is None:

@@ -1,32 +1,29 @@
-from tmacs.app.main import set_exception
+from tmacs.edit.buffer import find_buffer
 from tmacs.app.commands import *
 from tmacs.ui.keys import keysym, repr_keysym, keymap
-import __tmacs__
+import sys, traceback, __tmacs__
 
 
-### annotations
-
-class AskYesNo(object):
-    def __init__(self, prompt):
-        self.prompt = prompt
+def set_exception(exctuple):
+    b = find_buffer('__errors__')
+    del b[:]
+    b.append(u''.join(traceback.format_exception(*exctuple)))
     
-
-class PrompFileName(object):
-    def __init__(self, prompt):
-        self.prompt = prompt
-
-
-class UniArgOrInt(object):
-    def __init__(self, prompt):
-        self.prompt = prompt
-
+    return b
+    
 
 # UI Base Class
 
 class UIBase(object):
     def __init__(self):
         pass
-
+        
+    def run(self):
+        for b in __tmacs__.buffers.values():
+            self.add_window(b)
+            
+        return self.cmdloop(__tmacs__)
+        
     def cmdloop(self, state):
         state.quit = False
         state.uniarg = None
@@ -49,8 +46,8 @@ class UIBase(object):
         cmdname = self.lookup_keyseq(seq)
 
         while type(cmdname) is keymap:
-            self.message_write(repr_keysym(seq))
-            ev = self.getevent()
+            self.write_message(repr_keysym(seq))
+            ev, evtval = self.getevent()
             seq += ev
             cmdname = self.lookup_keyseq(seq)
     
@@ -60,12 +57,27 @@ class UIBase(object):
         return __tmacs__.globalmap.get(seq)
 
     def lookup_cmd(self, cmdname):
-        c = getattr(self, cmdname, None)
-        if hasattr(c, '__tmacs_cmd__'):
-            return c
+        c = getattr(__tmacs__.curview, cmdname, None)
+        if c and not hasattr(c, '__tmacs_cmd__'):
+            c = None
+
+        if c is None:
+            c = getattr(self, cmdname, None)
+            if not hasattr(c, '__tmacs_cmd__'):
+                c = None
+
+        return c
 
     def exec_cmd(self, cmd, state):
-        cmd.__tmacs_cmd__(cmd, state)
+        try:
+            cmd.__tmacs_cmd__(cmd, state)
+        except BaseException, ex:
+            msg = ex.message
+            if not msg:
+                msg = ex.__class__.__name__
+            self.beep()
+            self.write_message('[%s]' % msg)
+            set_exception(sys.exc_info())
 
     ### Commands
     
@@ -73,35 +85,75 @@ class UIBase(object):
     @annotate(None)
     @annotate(CmdLoopState)
     @returns(MessageToShow)
-    def uniarg(self, state):
+    def uniarg(self, state=__tmacs__):
         state.nextuniarg = state.uniarg * 4
-        
         return "Arg: %d" % state.nextuniarg
 
     @command
     @annotate(None)
     @annotate(CmdLoopState)
     @returns(ErrorToShow)
-    def unknowncommand(self, state):
+    def unknowncommand(self, state=__tmacs__):
         return "[Unknown command %s]" % state.cmdname
         
     @command
     @annotate(None)
     @annotate(CmdLoopState)
     @returns(ErrorToShow)
-    def illegalsequence(self, state):
+    def illegalsequence(self, state=__tmacs__):
         return "[Illegal input sequence '%s']" % repr_keysym(state.evtval)
         
     @command
     @annotate(None)
     @annotate(CmdLoopState)
     @returns(ErrorToShow)
-    def notbound(self, state):
+    def notbound(self, state=__tmacs__):
         return "[Key %s not bound]" % repr_keysym(state.keyseq)
         
+    @command
+    @annotate(None)
+    @annotate(CmdLoopState)
+    @annotate(AskAbandonChanged("Modified buffers exist. Leave anyway"))
+    def quit(self, state=__tmacs__, sure=True):
+        if sure:
+            state.quit = True
+        
+    @command
+    def abort(self):
+        raise KeyboardInterrupt
+
+    @command
+    def nop(self):
+        pass
+
+    ### binding commands
+    
+    @command
+    @annotate(None)
+    @annotate(ReadKeySeq(': describekey'))
+    @returns(MessageToShow)
+    def describekey(self, keyseq):
+        cmdname = self.lookup_keyseq(keyseq)
+        if cmdname is None:
+            return '[Key not bound]'
+        else:
+            return '%s %s' % (repr_keysym(keyseq), cmdname)
 
 
 class TestUI(UIBase):
+    from tmacs.edit.view import View as window_class
+    
+    def __init__(self):
+        self.windows = []
+
+
+    def add_window(self, buffer):
+        w = self.window_class(buffer)
+        if not self.windows:
+            __tmacs__.curview = w
+        self.windows.append(w)
+
+            
     def getevent(self):
         ri = raw_input('KeySym: ')
         ev = keysym(ri)
@@ -109,14 +161,36 @@ class TestUI(UIBase):
             return keysym("<IllegalSequence>"), ri
         return ev, None
 
-    def message_write(self, msg):
+
+    @command
+    @annotate(None)
+    @annotate(PromptText("Message:"))
+    def write_message(self, msg):
         print msg
 
+
+    @command
     def beep(self):
         sys.stderr.write('\a')
-        
 
-import sys
+
+    @command
+    def forceredraw(self):
+        for w in self.windows:
+            b = w.buf
+            print "BUFFER %s:" % b.name
+            print b[:]
+
+
+    def askyesno(self, prompt):
+        x = None
+        while True:
+            x = raw_input(prompt + '[y/n]? ')
+            if x in 'yY':
+                return True
+            elif x in 'nN':
+                return False
+        
 
 def test():
     import tmacs.ui.defmaps

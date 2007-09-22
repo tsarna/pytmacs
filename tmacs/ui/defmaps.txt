@@ -28,3 +28,14 @@
 <^U>			uniarg
 <IllegalSequence>	illegalsequence
 <AnyNormal>		insert
+<^G>			abort
+<^C>			insertspace
+<^L>			forceredraw
+<^X><^C>		quit
+<Esc>~			markunchanged
+<^X>?			describekey
+<Esc><Space>		setmark
+<Esc>.			setmark
+<^X><^X>		swapdotandmark
+<^X><^L>		regionlower
+<^X><^U>		regionupper

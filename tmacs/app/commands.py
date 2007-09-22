@@ -88,6 +88,14 @@ UniArg = UniArg()
 
 
 
+class KeySeq(object):
+    def gen_code(self, arg, indents):
+        return ([], '_state.keyseq')
+
+KeySeq = KeySeq()
+
+
+
 class CmdLoopState(object):
     def gen_code(self, arg, indents):
         return ([], "_state")
@@ -96,11 +104,63 @@ CmdLoopState = CmdLoopState()
 
 
 
-### UI-using interactive annotations
+### UI-using interactive annotations for arguments
+
+class WithPrompt(object):
+    def __init__(self, prompt):
+        self.prompt = prompt
+    
+
+class PromptText(WithPrompt):
+    def gen_code(self, arg, indents):
+        return ([], "'XXX'")
+    
+
+class ReadKeySeq(WithPrompt):
+    def gen_code(self, arg, indents):
+        return ([
+            "%sui.write_message(%s)" % (indents, repr(self.prompt + ' ')),
+            "%s%s, %s_cmdname, %s_evtval = ui.readkeyseq()" % (indents, arg, arg, arg),
+        ], arg)
+
+        
+class AskYesNo(WithPrompt):
+    pass
+
+
+class AskAbandonChanged(WithPrompt):
+    def gen_code(self, arg, indents):
+        return ([
+            "%s%s = not tmacs.edit.buffer.changed_buffers_exist()" % (indents, arg),
+            "%sif not %s:" % (indents, arg),
+            "%s %s = ui.askyesno(%s)" % (indents, arg, repr(self.prompt))
+        ], arg)
+
+
+class AnyFileName(WithPrompt):
+    def gen_code(self, arg, indents):
+        return ([], "'XXX'")
+
+
+class NewBufferName(WithPrompt):
+    def gen_code(self, arg, indents):
+        return ([], "'XXX'")
+
+
+class UniArgOrInt(WithPrompt):
+    def gen_code(self, arg, indents):
+        return ([
+            "%s%s = _state.uniarg" % (indents, arg),
+            "%sif %s is True:" % (indents, arg), 
+            "%s  %s = ui.ask_int(%s)" % (indents, arg, repr(self.prompt)), 
+        ], arg)
+
+
+### UI-using interactive annotations for returns
 
 class MessageToShow(object):   
     def gen_code(self, arg, indents):
-        return "%sui.message_write(%s)" % (indents, arg)
+        return "%sui.write_message(%s)" % (indents, arg)
                 
                     
 MessageToShow = MessageToShow()
@@ -109,14 +169,14 @@ MessageToShow = MessageToShow()
 
 class ErrorToShow(object):   
     def gen_code(self, arg, indents):
-        return "%sui.beep()\n%sui.message_write(%s)" % (indents, indents, arg)
+        return "%sui.beep()\n%sui.write_message(%s)" % (indents, indents, arg)
                 
                     
 ErrorToShow = ErrorToShow()
                     
 
 
-### Support functions    
+### Support functions
 
 def getargnames(func):
     sp = getargspec(func)

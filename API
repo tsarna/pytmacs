@@ -1,10 +1,10 @@
-$Id: API,v 1.14 2007-09-22 16:16:29 tsarna Exp $
+$Id: API,v 1.15 2007-09-22 20:11:54 tsarna Exp $
 
 Buffer				API
 
 change-file-name         ^XN	Buffer.filename=			C
 write-file               ^X^W			.save(xxx)
-unmark-buffer            M-~	Buffer.changed=				C
+unmark-buffer            M-~	view.markunchanged			K
 filter-buffer            ^X#			.filter()
 name-buffer              M-^N	Buffer.name=				C
 read-file                ^X^R			.load()
@@ -66,32 +66,31 @@ replace-string           M-R
 
 REGION
 
-case-region-lower        ^X^L		View.regionlower()		C
-case-region-upper        ^X^U		View.regionupper()		C
+case-region-lower        ^X^L		View.regionlower()		K
+case-region-upper        ^X^U		View.regionupper()		K
 copy-region              M-W
 count-words              M-^C
 
 VIEW
 
-exchange-point-and-mark  ^X^X		View.swapdotandmark()		C
-set-mark                 M- 		view.setmark()			C
+exchange-point-and-mark  ^X^X		View.swapdotandmark()		K
+set-mark                 M- 		view.setmark()			K
 buffer-position          M-^[
 insert-file              ^X^I
 fill-paragraph           M-Q
 
 UI
 
-abort-command            ^G
+abort-command            ^G		ui.abort()			K
 change-screen-size
 change-screen-width
-clear-and-redraw         ^L
+clear-and-redraw         ^L						K
 clear-message-line
 delete-other-windows     ^X1
 delete-window            ^X0
-universal-argument       ^U		ui.uniarg			K
-exit-emacs               ^X^C
+universal-argument       ^U		ui.uniarg()			K
+exit-emacs               ^X^C		ui.quit()			K
 grow-window              ^X^
-meta-prefix              ^]
 move-window-down         ^X^N
 move-window-up           ^X^P
 next-window              ^XO
@@ -105,6 +104,7 @@ save-window
 update-screen
 next-page                ^V
 previous-page            M-V
+nop                      M-FNC						C
 
 MODES
 
@@ -132,10 +132,11 @@ store-macro
 BINDINGS
 
 bind-to-key              M-K
-ctlx-prefix              ^X
+meta-prefix              ^]		escmap				K
+ctlx-prefix              ^X		ctlxmap				K
 unbind-key               M-^K
 describe-bindings
-describe-key             ^X?
+describe-key             ^X?		describekey			K
 
 UNSORTED
 
@@ -148,7 +149,6 @@ i-shell
 kill-paragraph           M-^W
 kill-region              ^W
 kill-to-end-of-line      ^K
-nop                      M-FNC
 pipe-command             ^X@
 quote-character          ^Q
 re-tag-word
@@ -162,5 +162,5 @@ suspend-emacs            ^XD
 tag-word                 M-T
 view-file                ^X^V
 wrap-word                M-FNW
-write-message
+write-message				ui.write_message		C
 yank                     ^Y

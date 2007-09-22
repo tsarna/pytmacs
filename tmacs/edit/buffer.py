@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.7 2007-09-18 23:15:31 tsarna Exp $
+# $Id: buffer.py,v 1.8 2007-09-22 20:11:56 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -7,6 +7,8 @@ import __tmacs__
 
 if not hasattr(__tmacs__, "buffers"):
     __tmacs__.buffers = {}
+
+_protected_attr= {}.has_key
 
 class Buffer(ubuf):
     # settings defaults
@@ -118,7 +120,7 @@ class Buffer(ubuf):
         if f is not None:
             self.append(top)
 
-            for data in codecs.iterdecode(f, vars['encoding']):
+            for data in codecs.iterdecode(f, vars['coding']):
                 self.append(data)
 
             # postSniff(self, vars, self[-3036:])
@@ -134,6 +136,7 @@ class Buffer(ubuf):
         if hasattr(__tmacs__, 'postSniff'):
             __tmacs__.postSniff(self)        
 
+        self.changed = False
 
 
 def uniqify(n):
@@ -150,7 +153,7 @@ def uniqify(n):
     
 
 
-def loadFile(filename, bufname=None, encoding=None):
+def load_file(filename, bufname=None, encoding=None):
     if bufname is None:
         fn = bufname = os.path.basename(filename)
 
@@ -158,7 +161,7 @@ def loadFile(filename, bufname=None, encoding=None):
         bufname = uniqify(bufname)
         
     b = Buffer(bufname)
-    b.loadFile(filename, encoding=encoding, nofileok=True)
+    b.load(filename, encoding=encoding, nofileok=True)
         
     return b
 
@@ -225,3 +228,9 @@ def make_buffer_list():
 def open_for_write(buffer, filename):
     f = open(filename, 'w', encoding=buffer.encoding)
 
+
+def changed_buffers_exist():
+    for b in __tmacs__.buffers.values():
+        if b.changed and getattr(b, 'filename', None):
+            return True
+    return False
