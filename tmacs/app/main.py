@@ -1,6 +1,6 @@
 from tmacs.app.rcfile import runRCFile
 from tmacs.edit.buffer import find_buffer, load_file, Buffer
-from tmacs.ui.ui import TestUI, set_exception
+from tmacs.ui.charcell import TestUI, set_exception
 import os, __tmacs__
 
 
