@@ -57,22 +57,17 @@ class UIBase(object):
         
     def readkeyseq(self, state):
         seq, evtval = self.getevent()
-        cmdname = self.lookup_keyseq(state, seq)
+        cmdname = state.curview.keymap.get(seq)
 
         while type(cmdname) is keymap:
             self.write_message(repr_keysym(seq))
             ev, evtval = self.getevent()
             seq += ev
-            cmdname = self.lookup_keyseq(state, seq)
+            cmdname = state.curview.keymap.get(seq)
     
         return seq, cmdname, evtval
 
-    def lookup_keyseq(self, state, seq):
-        return state.curview.keymap.get(seq)
-
     def lookup_cmd(self, state, cmdname):
-        if type(cmdname) is not str:
-            1/0
         c = state.curview.lookup_cmd(cmdname)
         if c is None:
             c = getattr(self, cmdname, None)
@@ -188,7 +183,7 @@ class UIBase(object):
     @annotate(CmdLoopState)
     @returns(MessageToShow)
     def describekey(self, keyseq, state=__tmacs__):
-        cmdname = self.lookup_keyseq(state, keyseq)
+        cmdname = state.curview.keymap.get(keyseq)
         if cmdname is None:
             return '[Key not bound]'
         else:
