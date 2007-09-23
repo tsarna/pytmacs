@@ -1,3 +1,6 @@
+:basemap
+<^G>			abort
+:globalmap
 <Left>			prev
 <^B>			prev
 <Right>			next
@@ -6,16 +9,16 @@
 <Esc><GT>		tobufend
 <^A>			tolinestart
 <^E>			tolineend
-<Esc>g			toline
-<Esc>b			prevword
-<Esc>f			nextword
+<Esc>G			toline
+<Esc>B			prevword
+<Esc>F			nextword
 <Down>			nextline
 <^N>			nextline
 <Up>			prevline
 <^P>			prevline
-<Esc>c			wordtitle
-<Esc>l			wordlower
-<Esc>u			wordupper
+<Esc>C			wordtitle
+<Esc>L			wordlower
+<Esc>U			wordupper
 <Backspace>		delprev
 <^H>			delprev
 <Delete>		delnext
@@ -28,7 +31,6 @@
 <^U>			uniarg
 <IllegalSequence>	illegalsequence
 <AnyNormal>		insert
-<^G>			abort
 <^C>			insertspace
 <^L>			forceredraw
 <^X><^C>		quit
@@ -39,8 +41,8 @@
 <^X><^X>		swapdotandmark
 <^X><^L>		regionlower
 <^X><^U>		regionupper
-<Esc>x			executecmd
-<^X>f			setfillcolumn
+<Esc>X			executecmd
+<^X>F			setfillcolumn
 <Esc>0			uniarg
 <Esc>1			uniarg
 <Esc>2			uniarg

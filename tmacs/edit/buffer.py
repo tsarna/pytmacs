@@ -1,8 +1,9 @@
-# $Id: buffer.py,v 1.8 2007-09-22 20:11:56 tsarna Exp $
+# $Id: buffer.py,v 1.9 2007-09-23 21:39:32 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
 from tmacs.edit.ubuf import ubuf, marker
+from tmacs.ui.keys import keymap
 import __tmacs__
 
 if not hasattr(__tmacs__, "buffers"):
@@ -24,6 +25,9 @@ class Buffer(ubuf):
             kw['encoding'] = getattr(__tmacs__, 'default_encoding', 'utf8')
 
         apply(super(Buffer, self).__init__, args, kw)
+
+        self.keymap = keymap('buffer-local', inherit=[__tmacs__.globalmap])
+
 
     ### special attributes
     

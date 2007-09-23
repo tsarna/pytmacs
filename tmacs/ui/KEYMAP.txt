@@ -3,7 +3,7 @@ TMACS Keymaps
 =============
 
 :Author: Ty Sarna
-:Version: $Id: KEYMAP.txt,v 1.1 2007-09-22 16:27:38 tsarna Exp $
+:Version: $Id: KEYMAP.txt,v 1.2 2007-09-23 21:39:34 tsarna Exp $
 
 .. contents ::
 
@@ -29,12 +29,130 @@ A map may be bound to an entry in another map, thereby creating a prefix::
 
     >>> globalmap.bind('<Esc>', escmap)
     >>> globalmap
-    <ESC>   (submap 'escmap')
+    <ESC>   --> escmap
     <ESC>.  setmark
+
+(Note that `repr()` of a map will include its submaps, and will indicate
+prefixes with an arrow.)
 
 Once a prefix is defined in a map, bindings can be made through it. For
 example we could bind space in escmap, or we could do::
 
     >>> globalmap.bind('<Esc><Space>', 'setmark')
+    >>> globalmap
+    <ESC>       --> escmap
+    <ESC>.      setmark
+    <ESC><Space>        setmark
+            
 
-        
+Lookups
+-------
+
+The method that does the heavy lifting is `get()`. It can look up a
+single item::
+
+    >>> globalmap.get('\x1b') is escmap
+    True
+
+A wrapper called `lookup()` is provided for convenience that takes a
+keysym as input rather than the raw characters::
+
+    >>> globalmap.lookup('<Esc>') is escmap
+    True
+
+Both methods handle prefixes by following through to the other maps::
+    
+    >>> globalmap.lookup('<Esc>.')
+    'setmark'
+
+A second parameter may be passed, which is a default value to return if
+the lookup fails::
+
+    >>> globalmap.lookup('F', False)
+    False
+    >>> globalmap.get('F', False)
+    False
+
+Without a default, get returns None, and lookup throws an error:
+
+    >>> globalmap.get('F') is None
+    True
+    >>> globalmap.lookup('F')
+    Traceback (most recent call last):
+        ...
+    KeyError: 'F'
+           
+
+Inheritance
+-----------
+
+A map may be chained with a list of maps as fallbacks, effectively
+inheriting any bindings in those maps::
+
+    >>> basemap = keymap(name='basemap')
+    >>> basemap.bind('<^G>', 'abort')
+    >>> globalmap.lookup('<^G>', False)
+    False
+    >>> globalmap.inherit = [basemap]
+    >>> globalmap.lookup('<^G>', False)
+    'abort'
+
+
+Copying
+-------
+
+It's possible to copy a map. A copied map is indepenandtly modifiable
+without changing the original::
+
+    >>> c = globalmap.copy()
+    >>> c.inherit.append(escmap)
+    >>> c.name = 'foo'
+    >>> c.bind('X', 'X')
+    >>> c.nocase = True
+    >>> globalmap
+    <ESC>       --> escmap
+    <ESC>.      setmark
+    <ESC><Space>        setmark
+    >>> globalmap.name
+    'globalmap'
+    >>> globalmap.inherit == [basemap]
+    True
+    >>> globalmap.nocase
+    False
+
+
+Case Insensitivity
+------------------
+
+Sometimes when a prefix character is used, you will want to treat the suffix
+in a case-insensitive manner. This is because prefixes are often though
+of being a kind of shift character, and the user will expect <Esc>F to
+be the same wether the F is upper or lower case, just as ^F is
+normally the same wether you hit control-f or control-F.
+
+To support this it's possible to mark a keymap as 'nocase'. This is
+normally done only on submaps, and any submaps of a nocase submap should
+also be nocase, or unexpected behavior will occur.
+
+Sample use::
+
+    >>> globalmap.bind('<ESC>F', 'nextword')
+    >>> globalmap.bind('<ESC>b', 'prevword')
+    >>> globalmap.lookup('<ESC>f', False)
+    False
+    >>> escmap.nocase = True
+    >>> globalmap.lookup('<ESC>f', False)
+    'nextword'
+
+Note that changing nocase after the fact is probably a bad idea, since
+it may render previous bindings unfindable::
+
+    >>> globalmap.lookup('<ESC>b', False)
+    False
+
+However, new bindings will work fine:
+    
+    >>> globalmap.bind('<ESC>b', 'prevword')
+    >>> globalmap.lookup('<ESC>b', False)
+    'prevword'
+

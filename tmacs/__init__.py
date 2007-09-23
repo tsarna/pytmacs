@@ -3,6 +3,18 @@
 import sys, os, imp
 
 sys.modules['__tmacs__'] = imp.new_module('__tmacs__')
+import __tmacs__
+
+from tmacs.ui.keys import *
+
+__tmacs__.basemap = basemap = keymap('basemap')
+__tmacs__.escmap = escmap = keymap('escmap', nocase=True)
+__tmacs__.ctlxmap = ctlxmap = keymap('ctlxmap', nocase=True)
+__tmacs__.globalmap = globalmap = keymap('globalmap', inherit=[basemap],
+mapping={
+    keysym('<Esc>') : escmap, keysym('<^X>') : ctlxmap
+})
+
 
 if __name__ == '__main__':
     from tmacs.app.main import main

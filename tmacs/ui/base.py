@@ -8,6 +8,8 @@ def set_exception(exctuple):
     b = find_buffer('__errors__')
     del b[:]
     b.append(u''.join(traceback.format_exception(*exctuple)))
+    # XXXxs
+    print u''.join(traceback.format_exception(*exctuple))
     
     return b
     
@@ -21,8 +23,20 @@ class UIBase(object):
     def run(self):
         for b in __tmacs__.buffers.values():
             self.add_window(b)
-            
-        return self.cmdloop(__tmacs__)
+
+        state = __tmacs__
+        state.quit = False
+        
+        while not state.quit:
+            try:
+                self.cmdloop(state)
+            except BaseException, ex:
+                msg = ex.message
+                if not msg:
+                    msg = ex.__class__.__name__
+                self.beep()
+                self.write_message('[%s]' % msg)
+                set_exception(sys.exc_info())
         
     def cmdloop(self, state):
         state.quit = False
@@ -30,43 +44,45 @@ class UIBase(object):
         state.nextuniarg = True
     
         while not state.quit:
-            state.keyseq, state.cmdname, state.evtval = self.readkeyseq()
+            state.keyseq, state.cmdname, state.evtval = self.readkeyseq(state)
             if state.cmdname is None:
                 state.cmdname = "notbound"
-            state.thiscmd = self.lookup_cmd(state.cmdname)
+            state.thiscmd = self.lookup_cmd(state, state.cmdname)
             if state.thiscmd is None:
-                state.thiscmd = self.lookup_cmd("unknowncommand")
+                state.thiscmd = self.lookup_cmd(state, "unknowncommand")
             state.prevuniarg, state.uniarg, state.nextuniarg = \
                 state.uniarg, state.nextuniarg, True
             self.executecmd(state.thiscmd, state)
             # XXX redraw if no input pending
         
-    def readkeyseq(self):
+    def readkeyseq(self, state):
         seq, evtval = self.getevent()
-        cmdname = self.lookup_keyseq(seq)
+        cmdname = self.lookup_keyseq(state, seq)
 
         while type(cmdname) is keymap:
             self.write_message(repr_keysym(seq))
             ev, evtval = self.getevent()
             seq += ev
-            cmdname = self.lookup_keyseq(seq)
+            cmdname = self.lookup_keyseq(state, seq)
     
         return seq, cmdname, evtval
 
-    def lookup_keyseq(self, seq):
-        return __tmacs__.globalmap.get(seq)
+    def lookup_keyseq(self, state, seq):
+        return state.curview.keymap.get(seq)
 
-    def lookup_cmd(self, cmdname):
-        c = getattr(__tmacs__.curview, cmdname, None)
-        if c and not hasattr(c, '__tmacs_cmd__'):
-            c = None
-
+    def lookup_cmd(self, state, cmdname):
+        if type(cmdname) is not str:
+            1/0
+        c = state.curview.lookup_cmd(cmdname)
         if c is None:
             c = getattr(self, cmdname, None)
-            if not hasattr(c, '__tmacs_cmd__'):
-                c = None
+
+        if c and not hasattr(c, '__tmacs_cmd__'):
+            # not really a command
+            return None
 
         return c
+
 
     ### Commands
     
@@ -75,15 +91,7 @@ class UIBase(object):
     @annotate(ReadCmd(': '))
     @annotate(CmdLoopState)
     def executecmd(self, cmd, state=__tmacs__):
-        try:
-            cmd.__tmacs_cmd__(cmd, state)
-        except BaseException, ex:
-            msg = ex.message
-            if not msg:
-                msg = ex.__class__.__name__
-            self.beep()
-            self.write_message('[%s]' % msg)
-            set_exception(sys.exc_info())
+        cmd.__tmacs_cmd__(cmd, state)
 
 
     @command
@@ -177,9 +185,10 @@ class UIBase(object):
     @command
     @annotate(None)
     @annotate(ReadKeySeq(': describekey'))
+    @annotate(CmdLoopState)
     @returns(MessageToShow)
-    def describekey(self, keyseq):
-        cmdname = self.lookup_keyseq(keyseq)
+    def describekey(self, keyseq, state=__tmacs__):
+        cmdname = self.lookup_keyseq(state, keyseq)
         if cmdname is None:
             return '[Key not bound]'
         else:

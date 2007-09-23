@@ -122,7 +122,7 @@ class ReadKeySeq(WithPrompt):
     def gen_code(self, arg, indents):
         return ([
             "%sui.write_message(%s)" % (indents, repr(self.prompt + ' ')),
-            "%s%s, %s_cmdname, %s_evtval = ui.readkeyseq()" % (indents, arg, arg, arg),
+            "%s%s, %s_cmdname, %s_evtval = ui.readkeyseq(_state)" % (indents, arg, arg, arg),
         ], arg)
 
         
@@ -161,10 +161,12 @@ class UniArgOrInt(WithPrompt):
 class ReadCmd(WithPrompt):
     def gen_code(self, arg, indents):
         return ([
-            "%s%s = ui.askstring(%s)" % (indents, arg, repr(self.prompt)),
-            "%s%s = ui.lookup_cmd(%s)" % (indents, arg, arg),
-            "%sif %s is None:" % (indents, arg), 
-            "%s return" % indents,
+            "%s%s_str = ui.askstring(%s)" % (indents, arg, repr(self.prompt)),
+            "%s%s = ui.lookup_cmd(_state, %s_str)" % (indents, arg, arg),
+            "%sif %s is None and %s_str:" % (indents, arg, arg), 
+            """%s raise KeyError, "no such command '%%s'" %% %s_str""" % (indents, arg),
+            "%selse:" % indents,
+            "%s return" % indents
         ], arg)
         
         

@@ -1,6 +1,9 @@
 from tmacs.app.commands import *
 
 class BasicView(object):
+    def lookup_cmd(self, cmdname):
+        return getattr(self, cmdname, None)
+
     ### Cursor Movement
     
     @command
@@ -116,12 +119,16 @@ class View(BasicView):
     mark = None
     
     def __init__(self, buffer):
+        self.setbuffer(buffer)
+
+    def setbuffer(self, buffer):
         self.buf = buffer
         self.dot = buffer.marker()
         sl = getattr(buffer, 'start_line', None)
         if sl is not None:
             self.dot.toline(sl)
             del buffer.start_line
+        self.keymap = buffer.keymap
 
     ### Buffer Commands
 

@@ -63,9 +63,13 @@ def repr_keysym(u):
 
 
 class keymap(dict):
-    def __init__(self, name, *args):
-        dict.__init__(self, *args)
+    def __init__(self, name, inherit=None, mapping={}, nocase=False):
+        dict.__init__(self, mapping)
         self.name = name
+        if inherit is None:
+            inherit = []
+        self.inherit = inherit
+        self.nocase = nocase
 
     def bind(self, sym, val):
         self[keysym(sym)] = val
@@ -77,6 +81,8 @@ class keymap(dict):
         return v
         
     def __setitem__(self, seq, val):
+        if self.nocase:
+            seq = seq.upper()
         if len(seq) == 1:
             dict.__setitem__(self, seq, val)
         else:
@@ -87,20 +93,33 @@ class keymap(dict):
             nextmap[seq[1:]] = val
 
     def get(self, seq, default=None):
+        if self.nocase:
+            seq = seq.upper()
+        v = _marker
         if len(seq) == 1:
-            v = dict.get(self, seq, default)
-            if v is not default:
+            v = dict.get(self, seq, _marker)
+            if v is not _marker:
                 return v
             o = ord(seq)
             if o >= 32 and o < 0xEC00:
-                return dict.get(self, anynormal, default)
+                v = dict.get(self, anynormal, _marker)
         else:
             k = seq[0]
-            nextmap = dict.get(self, k)
+            nextmap = dict.get(self, k, _marker)
             if type(nextmap) is self.__class__:
-                return nextmap.get(seq[1:], default)
+                v = nextmap.get(seq[1:], _marker)
+
+        if v is _marker:
+            for i in self.inherit:
+                v = i.get(seq, _marker)
+                if v is not _marker:
+                    break
                 
-            return default
+        if v is _marker:
+            v = default
+         
+        return v
+
 
     def walk(self):
         for k, v in dict.items(self):
@@ -114,6 +133,7 @@ class keymap(dict):
     def items(self):
         return list(self.walk)
 
+
     def __repr__(self):
         l = []
         for k, v in self.walk():
@@ -126,3 +146,7 @@ class keymap(dict):
         l.sort()
         l = [k + u'\t' + v for k, v in l] 
         return u'\n'.join(l)
+
+
+    def copy(self):
+        return keymap(self.name, inherit=self.inherit[:], mapping=self, nocase=self.nocase)
