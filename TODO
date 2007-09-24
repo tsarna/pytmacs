@@ -1,5 +1,12 @@
-$Id: TODO,v 1.35 2007-09-24 18:36:53 tsarna Exp $
+$Id: TODO,v 1.36 2007-09-24 23:18:04 tsarna Exp $
 
+termioscap:
+    reactor as attribute
+    getmap as attribute
+    decode_and_send: split multiple chars into separate queues
+    timeout at the c level (make cb an attr and clear it)
+    implement doRead at the C level
+    	
 ubuf:
     textarg		from ubuf
     .borrow()		with args

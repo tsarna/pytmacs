@@ -31,8 +31,6 @@ typedef struct {
 
     PyObject *map;
     PyObject *curmap;
-    PyObject *target;
-    PyObject *send;
     PyObject *reactor;
 
     struct termios old_termios;
@@ -87,12 +85,12 @@ AllocMap(void)
 static int
 PutMap(PyObject *o, unsigned char *s, size_t l, Py_UNICODE u)
 {
-    PyObject *v, *t;
+    PyObject *v;
     
     if (l > 1) {
         v = PyTuple_GET_ITEM(o, *s);
 
-        if (PyTuple_CheckExact(v)) {
+        if (PyTuple_CheckExact(v) && (PyTuple_GET_SIZE(o) == 256)) {
             return PutMap(v, s+1, l-1, u);
         } else if (v == Py_None) {
             v = AllocMap();
@@ -114,19 +112,11 @@ PutMap(PyObject *o, unsigned char *s, size_t l, Py_UNICODE u)
 
             return 0;
         } else {
-            v = PyUnicode_FromOrdinal(u);
-            if (!v) {
-                return 0;
+            v = Py_BuildValue("(u#s)", &u, 1, NULL);
+            if (v) {
+                PyTuple_SetItem(o, *s, v);
             } else {
-                t = PyTuple_New(1);
-                if (t) {
-                    PyTuple_SET_ITEM(t, 0, v);
-                    PyTuple_SetItem(o, *s, t);
-                } else {
-                    Py_DECREF(v);
-                    
-                    return 0;
-                }
+                return 0;
             }
         }
     }
@@ -140,8 +130,6 @@ static void
 tclayer_dealloc(TCLayerObject *self)
 {
     Py_XDECREF(self->map);
-    Py_XDECREF(self->target);
-    Py_XDECREF(self->send);
     
     self->ob_type->tp_free((PyObject *)self);
     
@@ -152,31 +140,27 @@ tclayer_dealloc(TCLayerObject *self)
 
 
 
-static
+static int
 window_size(TCLayerObject *self)
 {
-    PyObject *o = NULL, *args = NULL, *ret = NULL;
+    PyObject *ret = NULL;
     struct winsize ws;
+    Py_UNICODE uc = TCKEYSYM_WindowResize;
     
     ws.ws_row = self->li;
     ws.ws_col = self->co;
     
     ioctl(self->fd, TIOCGWINSZ, &ws);
 
-    o = PyObject_GetAttrString(self->target, "windowSize");
-    if (o && PyCallable_Check(o)) {
-        args = Py_BuildValue("(ii)", ws.ws_col, ws.ws_row);
-        if (args) {
-            ret = PyObject_CallObject(o, args);
-        }
-    }
-
-    Py_XDECREF(o);
-    Py_XDECREF(args);
-    Py_XDECREF(ret);
+    ret = PyObject_CallMethod((PyObject *)self, "postevent", "((u#(ii)))",
+        &uc, 1, ws.ws_col, ws.ws_row);
     
-    if (!ret) {
-        PyErr_Clear();
+    if (ret) {
+        Py_DECREF(ret);
+
+        return 1;
+    } else {
+        return 0;
     }
 }
 
@@ -195,24 +179,17 @@ reset_input(TCLayerObject *self)
 static int
 illegal_sequence(TCLayerObject *self)
 {
-    PyObject *o = NULL, *args = NULL, *ret = NULL;
+    PyObject *ret = NULL;
+    Py_UNICODE uc = TCKEYSYM_IllegalSequence;
     
-    o = PyObject_GetAttrString(self->target, "illegalSequence");
-
-    if (o && PyCallable_Check(o)) {
-        args = Py_BuildValue("(s#)", self->inhold, self->inholdlen);
-        if (args) {
-            ret = PyObject_CallObject(o, args);
-        }
-    }
-
-    Py_XDECREF(o);
-    Py_XDECREF(args);
-    Py_XDECREF(ret);
+    ret = PyObject_CallMethod((PyObject *)self, "postevent", "((u#s#))",
+        &uc, 1, self->inhold, self->inholdlen);
     
     reset_input(self);
 
     if (ret) {
+        Py_DECREF(ret);
+
         return 1;
     } else {
         return 0;
@@ -228,22 +205,20 @@ decode_and_send(TCLayerObject *self)
     
     o = PyUnicode_Decode((char *)self->inhold, self->inholdlen, "utf8", "strict");
     if (o) {
-        args = Py_BuildValue("(O)", o);
-        if (args) {
-            ret = PyObject_CallObject(self->send, args);
-        }
+        ret = PyObject_CallMethod((PyObject *)self, "postevent", "((Os))",
+            o, NULL);
     } else {
         PyErr_Clear();
         return illegal_sequence(self);
     }
     
     Py_XDECREF(o);
-    Py_XDECREF(args);
-    Py_XDECREF(ret);
 
     reset_input(self);
     
     if (ret) {
+        Py_DECREF(ret);
+
         return 1;
     } else {
         return 0;
@@ -395,9 +370,11 @@ termcap_init(TCLayerObject *self, char *term, char *termenc)
         if (PyTuple_GET_ITEM(self->map, i) == Py_None) {
             o = PyUnicode_Decode((char *)&c, 1, termenc, "strict");
             if (o) {
-                tp = PyTuple_New(1);
+                tp = PyTuple_New(2);
                 if (tp) {
                     PyTuple_SET_ITEM(tp, 0, o);
+                    Py_INCREF(Py_None);
+                    PyTuple_SET_ITEM(tp, 1, Py_None);
                     PyTuple_SetItem(self->map, i, tp);
                 } else {
                     Py_DECREF(o);
@@ -411,45 +388,6 @@ termcap_init(TCLayerObject *self, char *term, char *termenc)
     }
     
     return 1;
-}
-
-
-
-static int
-target_init(TCLayerObject *self)
-{
-    PyObject *o, *args, *ret;
-    int r = 0;
-    
-    o = PyObject_GetAttrString(self->target, "send");
-    if (o && PyCallable_Check(o)) {
-        self->send = o;
-    } else {
-        goto failed;
-    }
-
-    o = PyObject_GetAttrString(self->target, "setOutput");
-    if (o && PyCallable_Check(o)) {
-        args = Py_BuildValue("(O)", self);
-        if (!args) {
-            goto failed;
-        }
-        
-        ret = PyObject_CallObject(o, args);
-        Py_DECREF(args);
-        if (ret) {
-            Py_DECREF(ret);
-        } else {
-            goto failed;
-        }
-        
-        r = 1;
-    }
-
-failed:
-    Py_XDECREF(o);
-
-    return r;
 }
 
 
@@ -476,7 +414,7 @@ output_init(TCLayerObject *self)
 {
     putpad(self, self->TI);
 
-    window_size(self);
+    return window_size(self);
 }
 
 
@@ -515,26 +453,21 @@ tclayer_new(PyTypeObject *type, PyObject *args, PyObject *kdws)
         return NULL;
     }
 
-    self->map = self->target = self->reactor = NULL;
+    self->map = self->reactor = NULL;
     
-    if (!PyArg_ParseTuple(args, "iOO|zz",
-        &(self->fd), &(self->target), &(self->reactor), 
-        &term, &termenc)) {
+    if (!PyArg_ParseTuple(args, "iO|zz",
+        &(self->fd), &(self->reactor), &term, &termenc)) {
 
         goto failnew;
     }
-    
-    Py_INCREF(self->target);
     
     term = term ? term : getenv("TERM");
     termenc = termenc? termenc : "utf8";
 
     if (termcap_init(self, term, termenc)) {
-        if (target_init(self)) {
-            if (termios_init(self)) {
-                if (output_init(self)) {
-                    return (PyObject *)self;
-                }
+        if (termios_init(self)) {
+            if (output_init(self)) {
+                return (PyObject *)self;
             }
         }
     }
@@ -695,20 +628,20 @@ TCLayer_reactor(TCLayerObject *self, PyObject *args)
 
 
 static PyObject *
-TCLayer_send(TCLayerObject *self, PyObject *args)
+TCLayer_feed(TCLayerObject *self, PyObject *args)
 {
-    PyObject *o;
+    PyObject *o, *ret;
     unsigned char *inbuf;
     size_t inlen;
     
-    if (!PyArg_ParseTuple(args, "s#:send", (char *)&inbuf, &inlen)) {
+    if (!PyArg_ParseTuple(args, "s#:feed", (char *)&inbuf, &inlen)) {
         return NULL;
     } 
 
     while (inlen) {
         self->inhold[self->inholdlen++] = *inbuf; 
 
-        if (self->inholdlen+1 >= 16) {
+        if (self->inholdlen >= MAXINHOLD) {
             if (!illegal_sequence(self)) {
                 return NULL;
             }
@@ -723,13 +656,14 @@ TCLayer_send(TCLayerObject *self, PyObject *args)
 
             o = PyTuple_GET_ITEM(self->curmap, *inbuf);
             if (PyTuple_CheckExact(o)) {
-                if (PyTuple_GET_SIZE(o) == 1) {
-                    o = PyObject_CallObject(self->send, o);
+                if (PyTuple_GET_SIZE(o) == 2) {
+                    ret = PyObject_CallMethod((PyObject *)self,
+                        "postevent", "(O)", o);
 
-                    Py_XDECREF(o);
+                    Py_XDECREF(ret);
                     reset_input(self);
 
-                    if (!o) {
+                    if (!ret) {
                         return NULL;
                     }                  
                 } else {
@@ -782,7 +716,7 @@ static PyMethodDef TCLayer_methods[] = {
     {"getmap",      (PyCFunction)TCLayer_getmap,        METH_NOARGS},
     {"got_SIGWINCH",(PyCFunction)TCLayer_got_SIGWINCH,  METH_NOARGS},
     {"reactor",     (PyCFunction)TCLayer_reactor,       METH_NOARGS},
-    {"send",        (PyCFunction)TCLayer_send,          METH_VARARGS},
+    {"feed",        (PyCFunction)TCLayer_feed,          METH_VARARGS},
     {"timeout",     (PyCFunction)TCLayer_timeout,       METH_NOARGS},
 
     {NULL,          NULL}
