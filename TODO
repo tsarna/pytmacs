@@ -1,8 +1,5 @@
-$Id: TODO,v 1.34 2007-09-22 22:50:36 tsarna Exp $
+$Id: TODO,v 1.35 2007-09-24 18:36:53 tsarna Exp $
 
-ui:
-    bindkey unbindkey describe_bindings
-    
 ubuf:
     textarg		from ubuf
     .borrow()		with args
@@ -26,6 +23,9 @@ marker:
     changed flag
     nonzero -- returns changed flag?
 	
+ui:
+    bindkey unbindkey describe_bindings
+    
 Buffer:
 	tests:
 		.save()

@@ -12,11 +12,11 @@ PACKAGE_NAME = "TMACS"
 PACKAGE_VERSION = "2.0a0"
 
 extensions = [
-#    Extension("tmacs.termioscap._tclayer",
-#        ["tmacs/termioscap/_tclayer.c"],
-##        define_macros=[('XML_STATIC',1),('HAVE_MEMMOVE',1)]   # XXX
-#        libraries=['termcap'],
-#    ),
+    Extension("tmacs.termioscap._tclayer",
+        ["tmacs/termioscap/_tclayer.c"],
+#        define_macros=[('XML_STATIC',1),('HAVE_MEMMOVE',1)]   # XXX
+        libraries=['termcap'],
+    ),
     Extension("tmacs.edit.ubuf",
         ["tmacs/edit/ubuf.c", "tmacs/edit/marker.c"]
     ),

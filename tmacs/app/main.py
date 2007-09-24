@@ -1,4 +1,5 @@
 from tmacs.app.rcfile import runRCFile
+from tmacs.app.reactor import UntwistedReactor as Reactor
 from tmacs.edit.buffer import find_buffer, load_file, Buffer
 from tmacs.ui.charcell import set_exception, TestUI
 import os, __tmacs__
@@ -9,7 +10,7 @@ def main(argv, environ):
     __tmacs__.ui = ui = TestUI()
         
     #from tmacs.termioscap import start
-    #__tmacs__.reactor = reactor = start(ui)
+    __tmacs__.reactor = reactor = Reactor()
 
     c = environ.get('TMACS_FILE_CODING', 'utf8')
     __tmacs__.default_encoding = c
