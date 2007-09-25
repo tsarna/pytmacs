@@ -19,6 +19,7 @@ class UIBase(object):
     def __init__(self):
         super(UIBase, self).__init__()
         self.default_sit = 3
+        self.minibufs = []
         
     def run(self):
         for b in __tmacs__.buffers.values():
@@ -35,7 +36,7 @@ class UIBase(object):
                 if not msg:
                     msg = ex.__class__.__name__
                 self.beep()
-                self.set_message('[%s]' % msg)
+                self.write_message('[%s]' % msg)
                 set_exception(sys.exc_info())
         
         self.cleanup()
@@ -67,7 +68,8 @@ class UIBase(object):
         cmdname = state.curview.keymap.get(seq)
 
         while type(cmdname) is keymap:
-            self.set_message(repr_keysym(seq))
+            if not self.minibufs:
+                self.set_message(repr_keysym(seq))
             ev, evtval = self.getevent()
             seq += ev
             cmdname = state.curview.keymap.get(seq)

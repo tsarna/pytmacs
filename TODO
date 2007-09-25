@@ -1,4 +1,4 @@
-$Id: TODO,v 1.37 2007-09-25 01:05:55 tsarna Exp $
+$Id: TODO,v 1.38 2007-09-25 05:02:01 tsarna Exp $
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
@@ -6,8 +6,8 @@ termioscap:
     implement doRead at the C level
 
 tcui:
-    sit_for
-    make message_write clear
+    Check if describekey clears prompt while inputting, it should not
+    why doesn't esc prompt print?
         	
 ubuf:
     _new?
@@ -63,5 +63,3 @@ implement tclayer write w/ unicode encode
 
 write keysyms repr doctests
 write termioscap description
-
-

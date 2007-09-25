@@ -81,8 +81,11 @@ class CharCellUI(UIBase):
     def write_message(self, message):
         self._message = message
         self._message_upd = True
-        self.sitfor(3)
-        self.clear_message()
+        if self.minibufs:
+            self.sitfor(3)
+            self.clear_message()
+        else:
+            self.refresh()
         
     def refresh(self, force=False):
         if force or not self.evpending():
