@@ -1,5 +1,6 @@
 :basemap
 <^G>			abort
+<WindowResize>		nop
 :globalmap
 <Left>			prev
 <^B>			prev

@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.9 2007-09-23 21:39:32 tsarna Exp $
+# $Id: buffer.py,v 1.10 2007-09-25 03:57:11 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -234,7 +234,10 @@ def open_for_write(buffer, filename):
 
 
 def changed_buffers_exist():
-    for b in __tmacs__.buffers.values():
-        if b.changed and getattr(b, 'filename', None):
-            return True
+    for n, b in __tmacs__.buffers.items():
+        if b.changed:
+            if n == '__scratch__':
+                return True
+            if not n.startswith("__") and not n.endswith("__"):
+                return True
     return False

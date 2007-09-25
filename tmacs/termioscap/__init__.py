@@ -1,7 +1,7 @@
 from tmacs.termioscap._tclayer import _tclayer
 from tmacs.ui.charcell import CharCellUI
 from tmacs.app.commands import *
-from Queue import Queue, Full
+from Queue import Queue, Full, Empty
 import os, __tmacs__, traceback
 import sys
 
@@ -10,8 +10,8 @@ class TCLayer(_tclayer):
     count = 0
 
     def __init__(self, fd, reactor, term=None, termenc="utf8"):
-        _tclayer.__init__(self, fd, reactor, term, termenc)
         self.queue = Queue(500)
+        _tclayer.__init__(self, fd, reactor, term, termenc)
         reactor.addReader(self)
 
     def doRead(self):
@@ -42,9 +42,8 @@ class TCLayer(_tclayer):
             self.queue.put(event)
         except Full:
             pass
-        except AttributeError:
-            sys.stderr.write("NO QUEUE YET")
         if (event[0] == u'q'):
+            __tmacs__.quit = True
             self.reactor.crash()
 
     def getevent(self):
@@ -55,6 +54,22 @@ class TCLayer(_tclayer):
         self.queue.task_done()
         return ev
 
+    def waitevent(self, secs):
+        if self.ungotten:
+            return True
+        try:
+            ev = self.queue.get(timeout=secs)
+            self.ungetevent(ev)
+            return True
+        except Empty:
+            return False
+            
+    def evpending(self):
+        if self.ungotten:
+            return True
+        return not self.queue.empty()
+
+                
 
 class TCUI(TCLayer, CharCellUI):
     from tmacs.edit.view import View as window_class
@@ -74,20 +89,14 @@ class TCUI(TCLayer, CharCellUI):
     def ungetevent(self, ev):
         self.ungotten.append(ev)
 
-    def write_message(self, message):
-        self.moveto(0, 24)
-        self.write(message)
-        self.eeol()
-
     @command
     def forceredraw(self):
-        lines = 24
         l = []
         for w in self.windows:
            b = w.buf
-           if len(l) < (lines - 1):
+           if len(l) < (self.lines - 1):
                l.append("BUFFER %s:" % b.name)
-               l.extend(b[:].encode('utf8').split('\n')[:lines - len(l) - 1])
+               l.extend(b[:].encode('utf8').split('\n')[:self.lines - len(l) - 1])
         self.moveto(0, 0)
         self.write('\r\n'.join(l))
 

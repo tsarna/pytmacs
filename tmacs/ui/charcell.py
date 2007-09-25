@@ -42,18 +42,60 @@ class CCAskYesNo(object):
                 
         
 class CharCellUI(UIBase):
+    def __init__(self):
+        super(CharCellUI, self).__init__()
+        self._message = ""
+        self._message_upd = False
+    
     def askyesno(self, prompt, default=None):
         state = CCAskYesNo(default)
-        self.write_message(prompt)
+        if default == True:
+            yn = "Y/n"
+        elif default == False:
+            yn = "y/N"
+        else:
+            yn = "y/n"
+            
+        prompt += " [%s]? " % yn
+        self.set_message(prompt)
         try:
             state.curview = state
             self.cmdloop(state)
             return state.answer            
         finally:
             # remove circular ref
+            self.clear_message()
             del state.curview
 
+    def set_message(self, message):
+        self._message = message
+        self._message_upd = True
+        self.refresh()
+        
+    def clear_message(self):
+        if self._message:
+            self._message = ""
+            self._message_upd = True
+            self.refresh()
+        
+    def write_message(self, message):
+        self._message = message
+        self._message_upd = True
+        self.sitfor(3)
+        self.clear_message()
+        
+    def refresh(self, force=False):
+        if force or not self.evpending():
+            if self._message_upd:
+                self.moveto(0, self.lines-1)
+                m = self._message[:self.columns]
+                self.write(m.encode('utf8'))
+                self.eeol()
+                self._message_upd = False
 
+    def sitfor(self, secs):
+        self.refresh()
+        self.waitevent(secs)
 
     
 

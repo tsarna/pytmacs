@@ -8,6 +8,7 @@ def set_exception(exctuple):
     b = find_buffer('__errors__')
     del b[:]
     b.append(u''.join(traceback.format_exception(*exctuple)))
+    #print u''.join(traceback.format_exception(*exctuple))
     
     return b
     
@@ -16,7 +17,8 @@ def set_exception(exctuple):
 
 class UIBase(object):
     def __init__(self):
-        pass
+        super(UIBase, self).__init__()
+        self.default_sit = 3
         
     def run(self):
         for b in __tmacs__.buffers.values():
@@ -33,7 +35,7 @@ class UIBase(object):
                 if not msg:
                     msg = ex.__class__.__name__
                 self.beep()
-                self.write_message('[%s]' % msg)
+                self.set_message('[%s]' % msg)
                 set_exception(sys.exc_info())
         
         self.cleanup()
@@ -57,14 +59,15 @@ class UIBase(object):
             state.prevuniarg, state.uniarg, state.nextuniarg = \
                 state.uniarg, state.nextuniarg, True
             self.executecmd(state.thiscmd, state)
-            # XXX redraw if no input pending
+            self.refresh()
         
     def readkeyseq(self, state):
         seq, evtval = self.getevent()
+        self.clear_message()
         cmdname = state.curview.keymap.get(seq)
 
         while type(cmdname) is keymap:
-            self.write_message(repr_keysym(seq))
+            self.set_message(repr_keysym(seq))
             ev, evtval = self.getevent()
             seq += ev
             cmdname = state.curview.keymap.get(seq)
@@ -108,19 +111,19 @@ class UIBase(object):
             first = True
         
         if n is False:
-            self.write_message("Arg: -")
+            self.set_message("Arg: -")
         else:
-            self.write_message("Arg: %d" % n)
+            self.set_message("Arg: %d" % n)
         ev, arg = self.getevent()
 
         if first:
             if ev == '-':
-                self.write_message("Arg: -")
+                self.set_message("Arg: -")
                 n = False
                 ev, arg = self.getevent()
             elif ev.isdigit():
                 n = int(ev)
-                self.write_message("Arg: %d" % n)
+                self.set_message("Arg: %d" % n)
                 ev, arg = self.getevent()
 
         while ev.isdigit():
@@ -131,7 +134,7 @@ class UIBase(object):
                 n = n * 10 - d
             else:
                 n = n * 10 + d
-            self.write_message("Arg: %d" % n)
+            self.set_message("Arg: %d" % n)
             ev, arg = self.getevent()
         
         self.ungetevent((ev, arg))

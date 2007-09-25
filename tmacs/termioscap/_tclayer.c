@@ -175,13 +175,13 @@ window_size(tclayer *self)
     ws.ws_row = self->li;
     ws.ws_col = self->co;
     
-    ioctl(self->fd, TIOCGWINSZ, &ws);
-    
-    self->li = ws.ws_row;
-    self->co = ws.ws_col;
+    if (ioctl(self->fd, TIOCGWINSZ, &ws) >= 0) {
+        self->li = ws.ws_row;
+        self->co = ws.ws_col;
+    }
 
     ret = PyObject_CallMethod((PyObject *)self, "postevent", "((u#(ii)))",
-        &uc, 1, ws.ws_col, ws.ws_row);
+        &uc, 1, self->co, self->li);
     
     if (ret) {
         Py_DECREF(ret);
