@@ -8,8 +8,6 @@ def set_exception(exctuple):
     b = find_buffer('__errors__')
     del b[:]
     b.append(u''.join(traceback.format_exception(*exctuple)))
-    # XXXxs
-    print u''.join(traceback.format_exception(*exctuple))
     
     return b
     
@@ -38,6 +36,12 @@ class UIBase(object):
                 self.write_message('[%s]' % msg)
                 set_exception(sys.exc_info())
         
+        self.cleanup()
+        self.reactor.crash()
+
+    def cleanup(self):
+        pass
+                
     def cmdloop(self, state):
         state.quit = False
         state.uniarg = None

@@ -1,17 +1,18 @@
 from tmacs.app.rcfile import runRCFile
 from tmacs.app.reactor import UntwistedReactor as Reactor
 from tmacs.edit.buffer import find_buffer, load_file, Buffer
-from tmacs.ui.charcell import set_exception, TestUI
+from tmacs.ui.charcell import set_exception
+from tmacs.termioscap import TCUI
 import os, __tmacs__
 
 
 
 def main(argv, environ):
-    __tmacs__.ui = ui = TestUI()
-        
     #from tmacs.termioscap import start
     __tmacs__.reactor = reactor = Reactor()
 
+    __tmacs__.ui = ui = TCUI(reactor)
+        
     c = environ.get('TMACS_FILE_CODING', 'utf8')
     __tmacs__.default_encoding = c
 
@@ -53,9 +54,14 @@ def main(argv, environ):
     if not __tmacs__.buffers:
         Buffer('__scratch__')
             
-    #reactor.run()
-    
     for mod in ('tmacs.ui.defmaps', 'tmacs.edit.buffer'):
         exec "import %s" % mod in __tmacs__.__dict__
         
-    ui.run()
+    from threading import Thread
+    __tmacs__.uithread = uithread = Thread(target=ui.run)
+
+    uithread.start()
+
+    reactor.run()
+    
+

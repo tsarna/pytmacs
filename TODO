@@ -1,13 +1,16 @@
-$Id: TODO,v 1.36 2007-09-24 23:18:04 tsarna Exp $
+$Id: TODO,v 1.37 2007-09-25 01:05:55 tsarna Exp $
 
 termioscap:
-    reactor as attribute
-    getmap as attribute
     decode_and_send: split multiple chars into separate queues
     timeout at the c level (make cb an attr and clear it)
     implement doRead at the C level
-    	
+
+tcui:
+    sit_for
+    make message_write clear
+        	
 ubuf:
+    _new?
     textarg		from ubuf
     .borrow()		with args
     dealloc		point uobj to full memory
@@ -16,6 +19,7 @@ ubuf:
     file-like tests from Buffer
 
 marker:
+    _new?
     call
     file:
 	readlines()
