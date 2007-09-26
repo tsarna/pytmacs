@@ -5,6 +5,11 @@ import sys, traceback, __tmacs__
 
 
 def set_exception(exctuple):
+    """
+    Record the text of an exception (represented as a sys.exc_info()-type
+    3-tuple) in a buffer so the user can inspect it.
+    """
+    
     b = find_buffer('__errors__')
     del b[:]
     b.append(u''.join(traceback.format_exception(*exctuple)))
@@ -16,12 +21,22 @@ def set_exception(exctuple):
 # UI Base Class
 
 class UIBase(object):
+    """
+    Base class for all user interfaces
+    """
+    
     def __init__(self):
         super(UIBase, self).__init__()
         self.default_sit = 3
+
+        # the stack of minibuffers
         self.minibufs = []
         
     def run(self):
+        """
+        Run the user interface. This is the top level loop of the
+        application thread.
+        """
         for b in __tmacs__.buffers.values():
             self.add_window(b)
 
@@ -45,9 +60,19 @@ class UIBase(object):
         self.reactor.crash()
 
     def cleanup(self):
+        """
+        Do any cleanup necessary to shut down the UI (close windows, etc).
+        To be overridden by subclasses.
+        """
         pass
                 
     def cmdloop(self, state):
+        """
+        Run a command loop.  Read key sequences, run the commands
+        they're mapped to, and refresh the display. May be nested.
+        (eg for minibuffers)
+        """
+        
         state.quit = False
         state.uniarg = None
         state.nextuniarg = True
@@ -65,6 +90,13 @@ class UIBase(object):
             self.refresh()
         
     def readkeyseq(self, state, prompt=""):
+        """
+        Read a key sequence. The optional prompt is used by the
+        ReadKeySeq annotation.
+        
+        Returns: the key sequence, the command it maps to, and the value
+        associated with the last event in the sequence.
+        """        
         if prompt:
             self.set_message(prompt)
             disp = True
@@ -94,6 +126,11 @@ class UIBase(object):
         return seq, cmdname, evtval
 
     def lookup_cmd(self, state, cmdname):
+        """
+        Look up a command by name. Delegates to the current view,
+        then we look in ourself for UI-wide commands. Returns None
+        on command not found.
+        """
         c = self.curview.lookup_cmd(cmdname)
         if c is None:
             c = getattr(self, cmdname, None)
@@ -112,6 +149,7 @@ class UIBase(object):
     @annotate(ReadCmd(': '))
     @annotate(CmdLoopState)
     def executecmd(self, cmd, state=__tmacs__):
+        """Execute a named command."""
         cmd.__tmacs_cmd__(cmd, state)
 
 
@@ -119,6 +157,9 @@ class UIBase(object):
     @annotate(None)
     @annotate(CmdLoopState)
     def uniarg(self, state=__tmacs__):
+        """
+        Input the universal argument for the following command.
+        """
         k = state.keyseq[-1]
         first = False
         if k.isdigit():
@@ -167,6 +208,9 @@ class UIBase(object):
     @annotate(CmdLoopState)
     @returns(ErrorToShow)
     def unknowncommand(self, state=__tmacs__):
+        """
+        This command is run when a key sequence maps to an unknown command.
+        """
         return "[Unknown command %s]" % state.cmdname
 
         
@@ -175,6 +219,9 @@ class UIBase(object):
     @annotate(CmdLoopState)
     @returns(ErrorToShow)
     def illegalsequence(self, state=__tmacs__):
+        """
+        This command is run when an illegal or undecodable key
+        sequence is read/"""
         return "[Illegal input sequence '%s']" % repr_keysym(state.evtval)
 
         
@@ -183,6 +230,9 @@ class UIBase(object):
     @annotate(CmdLoopState)
     @returns(ErrorToShow)
     def notbound(self, state=__tmacs__):
+        """
+        This command is run when a key sequence that is not bound is input.
+        """
         return "[Key %s not bound]" % repr_keysym(state.keyseq)
         
     @command
@@ -190,15 +240,18 @@ class UIBase(object):
     @annotate(CmdLoopState)
     @annotate(AskAbandonChanged("Modified buffers exist. Leave anyway"))
     def quit(self, state=__tmacs__, sure=True):
+        """Quit the application."""
         if sure:
             state.quit = True
         
     @command
     def abort(self):
+        """Abort the current operation."""
         raise KeyboardInterrupt
 
     @command
     def nop(self):
+        """This command does nothing."""
         pass
 
     ### binding commands
@@ -209,6 +262,7 @@ class UIBase(object):
     @annotate(CmdLoopState)
     @returns(MessageToShow)
     def describekey(self, keyseq, state=__tmacs__):
+        """Describe the binding for a key sequence."""
         cmdname = self.curview.keymap.get(keyseq)
         if cmdname is None:
             return '[Key not bound]'
