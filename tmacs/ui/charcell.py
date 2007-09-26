@@ -139,36 +139,42 @@ class CharCellUI(UIBase):
     def add_window(self, buffer):
         """
         Add a window. Used at startup time to indicate a buffer we
-        want to start displaying. Not valid after layout_windows()
-        
-        XXX should enforce that
+        want to start displaying.
         """
         self.windows.append(self.window_class(buffer))
             
     def layout_windows(self):
         """
-        Distribute screen space to requested windows
+        Called at startup to lay out the initially requested windows.
+        """
+        self.balancewindows()    
+        self.focuswindow(self.windows[0])
         
-        XXX should become balancewindows
+
+    @command
+    def balancewindows(self):
+        """
+        Evenly Distribute screen space to requested windows.
+        Drop later windows if there is no space.
         """
         lines = self.lines - 1
         top = 0
 
         wl = self.windows        
-        # start dumping the last-added windows 
+        # start dumping the last-added windows if not enough space
         nw = len(wl)
         while (nw > (lines // 2)):
             wl.pop()
             nw -= 1
 
-        # now divide out the space            
+        # now divvy up the space
         for w in wl:
             height = lines // nw
             w.position(0, top, self.columns, height)
             top += height
-            lines -= height            
-    
-        self.focuswindow(wl[0])
+            lines -= height
+            nw -= 1
+            
 
     def focuswindow(self, window):
         """

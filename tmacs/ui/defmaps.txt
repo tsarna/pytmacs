@@ -58,5 +58,6 @@
 <^X>0			delwindow
 <^X>1			onlywindow
 <^X>2			splitwindow
+<^X>+			balancewindows
 <^X>O			nextwindow
 <^X>P			prevwindow

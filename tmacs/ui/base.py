@@ -64,16 +64,25 @@ class UIBase(object):
             self.executecmd(state.thiscmd, state)
             self.refresh()
         
-    def readkeyseq(self, state):
-        disp = False
-        
+    def readkeyseq(self, state, prompt=""):
+        if prompt:
+            self.set_message(prompt)
+            disp = True
+        else:
+            disp = False
+
         seq, evtval = self.getevent()
-        self.clear_message()
+        if not prompt:
+            self.clear_message()
+
         cmdname = self.curview.keymap.get(seq)
 
         while type(cmdname) is keymap:
             if not self.minibufs:
-                self.set_message(repr_keysym(seq))
+                if prompt:
+                    self.set_message("%s %s" % (prompt, repr_keysym(seq)))
+                else:
+                    self.set_message(repr_keysym(seq))
                 disp = True
             ev, evtval = self.getevent()
             seq += ev

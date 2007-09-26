@@ -1,4 +1,4 @@
-$Id: TODO,v 1.41 2007-09-26 20:40:38 tsarna Exp $
+$Id: TODO,v 1.42 2007-09-26 22:02:20 tsarna Exp $
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
@@ -8,10 +8,6 @@ termioscap:
 tcui:
     views created with ui param, store ui
     why doesn't esc prompt print?
-    delete-window
-    balance windows
-    next/prev window
-    Check if describekey clears prompt while inputting, it should not
         	
 baseui:
     bindkey unbindkey describe_bindings

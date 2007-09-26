@@ -121,8 +121,8 @@ class PromptText(WithPrompt):
 class ReadKeySeq(WithPrompt):
     def gen_code(self, arg, indents):
         return ([
-            "%sui.write_message(%s)" % (indents, repr(self.prompt + ' ')),
-            "%s%s, %s_cmdname, %s_evtval = ui.readkeyseq(_state)" % (indents, arg, arg, arg),
+            "%s%s, %s_cmdname, %s_evtval = ui.readkeyseq(_state, %s)" % (
+                indents, arg, arg, arg, repr(self.prompt)),
         ], arg)
 
         
