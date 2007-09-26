@@ -55,3 +55,4 @@
 <Esc>8			uniarg
 <Esc>9			uniarg
 <Esc>-			uniarg
+<^X>2			splitwindow

@@ -571,6 +571,26 @@ tclayer_beep(tclayer *self, PyObject *args)
 
 
 
+static PyObject *
+tclayer_standout(tclayer *self, PyObject *args)
+{
+    putpad(self, self->SO);
+    
+    Py_RETURN_NONE;
+}
+
+
+
+static PyObject *
+tclayer_nostandout(tclayer *self, PyObject *args)
+{
+    putpad(self, self->SE);
+    
+    Py_RETURN_NONE;
+}
+
+
+
 /* Begin tclayer methods */
 
 
@@ -726,6 +746,8 @@ static PyMethodDef tclayer_methods[] = {
     {"eeol",        (PyCFunction)tclayer_eeol,          METH_NOARGS},
     {"eeop",        (PyCFunction)tclayer_eeop,          METH_NOARGS},
     {"beep",        (PyCFunction)tclayer_beep,          METH_NOARGS},
+    {"standout",    (PyCFunction)tclayer_standout,      METH_NOARGS},
+    {"nostandout",  (PyCFunction)tclayer_nostandout,    METH_NOARGS},
 
     {"cleanup",     (PyCFunction)tclayer_cleanup,       METH_NOARGS},
     {"fileno",      (PyCFunction)tclayer_fileno,        METH_NOARGS},

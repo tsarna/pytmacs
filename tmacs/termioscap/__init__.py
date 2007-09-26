@@ -72,19 +72,11 @@ class TCLayer(_tclayer):
                 
 
 class TCUI(TCLayer, CharCellUI):
-    from tmacs.edit.view import View as window_class
-
     def __init__(self, reactor):
         TCLayer.__init__(self, sys.stdin.fileno(), reactor)
         CharCellUI.__init__(self)
         self.windows = []
         self.ungotten = []
-
-    def add_window(self, buffer):
-        w = self.window_class(buffer)
-        if not self.windows:
-            __tmacs__.curview = w
-        self.windows.append(w)
 
     def ungetevent(self, ev):
         self.ungotten.append(ev)

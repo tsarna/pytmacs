@@ -1,3 +1,4 @@
+from tmacs.edit.view import View
 from tmacs.ui.base import *
 import __tmacs__
 
@@ -39,14 +40,99 @@ class CCAskYesNo(object):
     def notbound(self):
         pass # don't want beeping
 
-                
+
+
+class CharCellWindow(View):
+    def __init__(self, buffer):
+        super(CharCellWindow, self).__init__(buffer)
+        self._status_upd = True
+        # force redraw of all
+
+    def copy(self):
+        n = super(CharCellWindow, self).copy()
+        n.left, n.top, n.width, n.height = self.left, self.top, self.width, self.height
+        n._active = False
         
+        return n
+        
+    def position(self, left, top, width, height):
+        self.left, self.top, self.width, self.height = left, top, width, height
+        self._status_upd = True
+        # force redraw of all        
+
+    def focus(self):
+        self._active = True
+        self._status_upd = True
+        
+    def blur(self):
+        self._active = False
+        self._status_upd = True
+        
+    def refresh(self, ui):
+        if self._status_upd:
+            if self._active:
+                l = '== ' + self.buf.name + ' '
+                l += '=' * (self.width - len(l))
+            else:
+                l = '   ' + self.buf.name + ' '
+                l += ' ' * (self.width - len(l))
+
+            l = l[:self.width]
+        
+            ui.moveto(0, self.top + self.height - 1)
+            ui.standout()
+            ui.write(l)
+            ui.nostandout()
+            self._status_upd = False
+
+        # XXX
+        txt = self.buf[:].split('\n')[:self.height-1]
+        row = self.top
+        for l in txt:
+            ui.moveto(self.left, row)
+            ui.write(l[:self.width])
+            ui.eeol()
+            row += 1 
+        
+
 class CharCellUI(UIBase):
+    window_class = CharCellWindow
+    
     def __init__(self):
         super(CharCellUI, self).__init__()
         self._message = ""
         self._message_upd = False
+        self.curview = None # XXX state's curview??
     
+    def add_window(self, buffer):
+        self.windows.append(self.window_class(buffer))
+            
+    def layout_windows(self):
+        lines = self.lines - 1
+        top = 0
+
+        wl = self.windows        
+        # start dumping the last-added windows 
+        nw = len(wl)
+        while (nw > (lines // 2)):
+            wl.pop()
+            nw -= 1
+
+        # now divide out the space            
+        for w in wl:
+            height = lines // nw
+            w.position(0, top, self.columns, height)
+            top += height
+            lines -= height            
+    
+        self.focuswindow(wl[0])
+
+    def focuswindow(self, window):
+        if self.curview is not None:
+            self.curview.blur()
+        self.curview = window
+        window.focus() 
+        
     def askyesno(self, prompt, default=None):
         state = CCAskYesNo(default)
         if default == True:
@@ -59,13 +145,14 @@ class CharCellUI(UIBase):
         prompt += " [%s]? " % yn
         self.set_message(prompt)
         try:
-            state.curview = state
+            saved_view = self.curview
+            self.curview = state
             self.cmdloop(state)
             return state.answer            
         finally:
             # remove circular ref
             self.clear_message()
-            del state.curview
+            self.curview = saved_view
 
     def set_message(self, message):
         self._message = message
@@ -96,27 +183,41 @@ class CharCellUI(UIBase):
                 self.eeol()
                 self._message_upd = False
 
+            for w in self.windows:
+                w.refresh(self)
+
     def sitfor(self, secs):
         self.refresh()
         self.waitevent(secs)
 
-    
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def splitwindow(self, select=True):
+        w = self.curview
+        if w.height < 4:
+            raise ValueError, "Window too small to split"
+        nw = w.copy()
+        nw.height //= 2
+        w.height -= nw.height
+        nw.top += w.height
+        
+        wl = self.windows
+        wl.insert(wl.index(w) + 1, nw)
+
+        if select == 2:
+            self.focuswindow(nw)
+        else:
+            self.focuswindow(w)
+
 
 class TestUI(CharCellUI):
-    from tmacs.edit.view import View as window_class
-    
     def __init__(self):
         self.windows = []
         self.ungotten = []
 
 
-    def add_window(self, buffer):
-        w = self.window_class(buffer)
-        if not self.windows:
-            __tmacs__.curview = w
-        self.windows.append(w)
-
-            
     def getevent(self):
         if self.ungotten:
             return self.ungotten.pop()

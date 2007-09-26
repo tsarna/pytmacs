@@ -28,6 +28,8 @@ class UIBase(object):
         state = __tmacs__
         state.quit = False
         
+        self.layout_windows()
+        
         while not state.quit:
             try:
                 self.cmdloop(state)
@@ -65,19 +67,19 @@ class UIBase(object):
     def readkeyseq(self, state):
         seq, evtval = self.getevent()
         self.clear_message()
-        cmdname = state.curview.keymap.get(seq)
+        cmdname = self.curview.keymap.get(seq)
 
         while type(cmdname) is keymap:
             if not self.minibufs:
                 self.set_message(repr_keysym(seq))
             ev, evtval = self.getevent()
             seq += ev
-            cmdname = state.curview.keymap.get(seq)
+            cmdname = self.curview.keymap.get(seq)
     
         return seq, cmdname, evtval
 
     def lookup_cmd(self, state, cmdname):
-        c = state.curview.lookup_cmd(cmdname)
+        c = self.curview.lookup_cmd(cmdname)
         if c is None:
             c = getattr(self, cmdname, None)
 
@@ -192,7 +194,7 @@ class UIBase(object):
     @annotate(CmdLoopState)
     @returns(MessageToShow)
     def describekey(self, keyseq, state=__tmacs__):
-        cmdname = state.curview.keymap.get(keyseq)
+        cmdname = self.curview.keymap.get(keyseq)
         if cmdname is None:
             return '[Key not bound]'
         else:

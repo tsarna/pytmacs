@@ -1,4 +1,4 @@
-$Id: TODO,v 1.38 2007-09-25 05:02:01 tsarna Exp $
+$Id: TODO,v 1.39 2007-09-26 03:57:10 tsarna Exp $
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
@@ -6,8 +6,16 @@ termioscap:
     implement doRead at the C level
 
 tcui:
-    Check if describekey clears prompt while inputting, it should not
+    views created with ui param, store ui
+    doc strings - base
+    doc strings - charcell
+    doc strings - keys
     why doesn't esc prompt print?
+	split-window arg check for "is not True"
+    only-window
+    delete-window
+    next/prev window
+    Check if describekey clears prompt while inputting, it should not
         	
 ubuf:
     _new?

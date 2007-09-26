@@ -119,8 +119,21 @@ class View(BasicView):
     mark = None
     
     def __init__(self, buffer):
-        self.setbuffer(buffer)
+        if buffer is not None:
+            self.setbuffer(buffer)
 
+    def copy(self):
+        n = self.__class__(None)
+        n.buf = self.buf
+        n.dot = self.dot.copy()
+        if self.mark is None:
+            n.mark = None
+        else:
+            n.mark = self.mark.copy()
+        n.keymap = self.keymap
+
+        return n
+        
     def setbuffer(self, buffer):
         self.buf = buffer
         self.dot = buffer.marker()
