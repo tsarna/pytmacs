@@ -65,6 +65,8 @@ class UIBase(object):
             self.refresh()
         
     def readkeyseq(self, state):
+        disp = False
+        
         seq, evtval = self.getevent()
         self.clear_message()
         cmdname = self.curview.keymap.get(seq)
@@ -72,9 +74,13 @@ class UIBase(object):
         while type(cmdname) is keymap:
             if not self.minibufs:
                 self.set_message(repr_keysym(seq))
+                disp = True
             ev, evtval = self.getevent()
             seq += ev
             cmdname = self.curview.keymap.get(seq)
+        
+        if disp:
+            self.clear_message()
     
         return seq, cmdname, evtval
 

@@ -49,6 +49,15 @@ class CharCellWindow(View):
         # force redraw of all
 
     def copy(self):
+        """
+        Return a copy of this window. It is half-shallow/half-deep copy
+        (middle of the pool copy?) in that markers will be copies
+        of the originals but the buffer will be shared.
+        
+        Positions will be shared, overlapping the original. They will
+        need to be adjusted to not overlap. The new window will not be active.
+        """
+        
         n = super(CharCellWindow, self).copy()
         n.left, n.top, n.width, n.height = self.left, self.top, self.width, self.height
         n._active = False
@@ -56,19 +65,37 @@ class CharCellWindow(View):
         return n
         
     def position(self, left, top, width, height):
+        """
+        Move to the specified size and position. Not bounds checked.
+        """
+        # XXX try to keep remaining lines in same place:
+        # adjust start by negative the amount that top moves
+        # dot may end up outside the new window and if so we'll
+        # need to recalculate start
+
         self.left, self.top, self.width, self.height = left, top, width, height
         self._status_upd = True
+
         # force redraw of all        
 
     def focus(self):
+        """
+        Take focus (become the active window)
+        """
         self._active = True
         self._status_upd = True
         
     def blur(self):
+        """
+        Give up focus (losing active status).
+        """
         self._active = False
         self._status_upd = True
         
     def refresh(self, ui):
+        """
+        Redraw ourself.
+        """
         if self._status_upd:
             if self._active:
                 l = '== ' + self.buf.name + ' '
@@ -105,9 +132,20 @@ class CharCellUI(UIBase):
         self.curview = None # XXX state's curview??
     
     def add_window(self, buffer):
+        """
+        Add a window. Used at startup time to indicate a buffer we
+        want to start displaying. Not valid after layout_windows()
+        
+        XXX should enforce that
+        """
         self.windows.append(self.window_class(buffer))
             
     def layout_windows(self):
+        """
+        Distribute screen space to requested windows
+        
+        XXX should become balancewindows
+        """
         lines = self.lines - 1
         top = 0
 
@@ -128,12 +166,22 @@ class CharCellUI(UIBase):
         self.focuswindow(wl[0])
 
     def focuswindow(self, window):
+        """
+        Choose a window to receive focus.
+        """
         if self.curview is not None:
             self.curview.blur()
         self.curview = window
         window.focus() 
         
     def askyesno(self, prompt, default=None):
+        """
+        Ask a yes/no question. A default may be specified in
+        which case <Return> activates the default.
+        
+        Prompt should not end with a quesiton mark, since an ending
+        will be calculated and applied.
+        """
         state = CCAskYesNo(default)
         if default == True:
             yn = "Y/n"
@@ -155,26 +203,46 @@ class CharCellUI(UIBase):
             self.curview = saved_view
 
     def set_message(self, message):
+        """
+        Set the status line to display a message.
+        Unlike write_message() this will always stay displayed until
+        cleared (explicitly or by readind new keys) or a new message is set.
+        """
         self._message = message
         self._message_upd = True
         self.refresh()
         
     def clear_message(self):
+        """
+        Clear the status line message, if any. Note that if a minibuffer
+        is in effect we'll go back to displaying that instead of
+        actually clearing the line.
+        """
         if self._message:
             self._message = ""
             self._message_upd = True
             self.refresh()
         
     def write_message(self, message):
+        """
+        Display a message on the status line. It will stay displayed
+        under the same conditions as set_message() message, unless
+        a minibuffer is in effect in which case it will automatically
+        clear after a few seconds to reveal the minibuffer.
+        """
         self._message = message
         self._message_upd = True
         if self.minibufs:
-            self.sitfor(3)
+            self.sitfor(3) # XXX
             self.clear_message()
         else:
             self.refresh()
         
     def refresh(self, force=False):
+        """
+        Update the display. If input is pending, the refresh will be
+        skipped or interrupted, unless Force is set.
+        """
         if force or not self.evpending():
             if self._message_upd:
                 self.moveto(0, self.lines-1)
@@ -187,6 +255,10 @@ class CharCellUI(UIBase):
                 w.refresh(self)
 
     def sitfor(self, secs):
+        """
+        Refresh the display and wait for the specified number of seconds
+        or until there is an input event available.
+        """
         self.refresh()
         self.waitevent(secs)
 
@@ -194,19 +266,26 @@ class CharCellUI(UIBase):
     @command
     @annotate(None)
     @annotate(UniArg)
-    def splitwindow(self, select=True):
+    def splitwindow(self, focustop=True):
+        """"
+        Split the current window vertically into two windows viewing the
+        same buffer. By default focus goes to the top window, with any
+        argument other than True, the bottom is focused
+        """
+
         w = self.curview
         if w.height < 4:
             raise ValueError, "Window too small to split"
         nw = w.copy()
-        nw.height //= 2
-        w.height -= nw.height
-        nw.top += w.height
+        
+        nwh = nw.height // 2
+        nw.position(nw.left, nw.top + w.height - nwh, nw.width, nwh)
+        w.position(w.left, w.top, w.width, w.height - nwh)
         
         wl = self.windows
         wl.insert(wl.index(w) + 1, nw)
 
-        if select == 2:
+        if focustop is not True:
             self.focuswindow(nw)
         else:
             self.focuswindow(w)

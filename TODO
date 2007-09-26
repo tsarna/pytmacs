@@ -1,4 +1,4 @@
-$Id: TODO,v 1.39 2007-09-26 03:57:10 tsarna Exp $
+$Id: TODO,v 1.40 2007-09-26 18:24:33 tsarna Exp $
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
@@ -7,16 +7,18 @@ termioscap:
 
 tcui:
     views created with ui param, store ui
-    doc strings - base
-    doc strings - charcell
-    doc strings - keys
     why doesn't esc prompt print?
-	split-window arg check for "is not True"
     only-window
     delete-window
+    balance windows
     next/prev window
     Check if describekey clears prompt while inputting, it should not
         	
+baseui:
+    bindkey unbindkey describe_bindings
+    docstrings
+    doc strings - keys
+    
 ubuf:
     _new?
     textarg		from ubuf
@@ -25,6 +27,7 @@ ubuf:
     efficient grow
     writelines
     file-like tests from Buffer
+    doc strings
 
 marker:
     _new?
@@ -41,10 +44,8 @@ marker:
     auto-adjust on edits (colseek!)
     changed flag
     nonzero -- returns changed flag?
+    doc strings
 	
-ui:
-    bindkey unbindkey describe_bindings
-    
 Buffer:
 	tests:
 		.save()
