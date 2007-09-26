@@ -119,7 +119,12 @@ class CharCellWindow(View):
             ui.moveto(self.left, row)
             ui.write(l[:self.width])
             ui.eeol()
-            row += 1 
+            row += 1
+
+        for row in range(row, self.top + self.height - 1):
+            ui.moveto(self.left, row)
+            ui.eeol()
+
         
 
 class CharCellUI(UIBase):
@@ -129,7 +134,7 @@ class CharCellUI(UIBase):
         super(CharCellUI, self).__init__()
         self._message = ""
         self._message_upd = False
-        self.curview = None # XXX state's curview??
+        self.curview = None
     
     def add_window(self, buffer):
         """
@@ -174,6 +179,20 @@ class CharCellUI(UIBase):
         self.curview = window
         window.focus() 
         
+    def _pickwindow(self, n):
+        """
+        Convert a universal argument into a window.
+        Default is current, 1 is the topmost, 2 second from top, etc.
+        Out of range throws IndexError.
+        """
+        if n is True:
+            return self.curview
+
+        if n >= 1 and n <= len(self.windows):
+            return self.windows[n - 1]
+
+        raise IndexError, "Window number out of range %d..%d" % (1, len(self.windows))
+                    
     def askyesno(self, prompt, default=None):
         """
         Ask a yes/no question. A default may be specified in
@@ -233,7 +252,7 @@ class CharCellUI(UIBase):
         self._message = message
         self._message_upd = True
         if self.minibufs:
-            self.sitfor(3) # XXX
+            self.sitfor(self.default_sit)
             self.clear_message()
         else:
             self.refresh()
@@ -290,6 +309,20 @@ class CharCellUI(UIBase):
         else:
             self.focuswindow(w)
 
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def onlywindow(self, winnum=True, window=None):
+        """
+        Delete all windows but the specified one (default current)
+        """
+        if window is None:
+            window = self._pickwindow(winnum)
+
+        self.windows = [window]
+        window.position(0, 0, self.columns, self.lines-1)
+        
+        
 
 class TestUI(CharCellUI):
     def __init__(self):

@@ -1,4 +1,4 @@
-$Id: API,v 1.19 2007-09-26 03:57:09 tsarna Exp $
+$Id: API,v 1.20 2007-09-26 20:40:38 tsarna Exp $
 
 Buffer				API
 
@@ -86,7 +86,7 @@ change-screen-size
 change-screen-width
 clear-and-redraw         ^L		ui.forceredraw()		K
 clear-message-line				ui.clear_message()
-delete-other-windows     ^X1			ui.onlywindow()
+delete-other-windows     ^X1		ui.onlywindow()			K
 delete-window            ^X0			ui.delwindow()
 universal-argument       ^U		ui.uniarg()			K
 exit-emacs               ^X^C		ui.quit()			K
@@ -99,7 +99,7 @@ previous-window          ^XP
 quick-exit               M-Z
 resize-window            ^XW
 restore-window
-split-current-window     ^X2		ui.splitwindow			K
+split-current-window     ^X2		ui.splitwindow()		K
 shrink-window            ^X^Z
 save-window
 update-screen

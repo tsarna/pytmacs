@@ -1,4 +1,4 @@
-$Id: TODO,v 1.40 2007-09-26 18:24:33 tsarna Exp $
+$Id: TODO,v 1.41 2007-09-26 20:40:38 tsarna Exp $
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
@@ -8,7 +8,6 @@ termioscap:
 tcui:
     views created with ui param, store ui
     why doesn't esc prompt print?
-    only-window
     delete-window
     balance windows
     next/prev window
