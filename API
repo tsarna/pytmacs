@@ -1,4 +1,4 @@
-$Id: API,v 1.20 2007-09-26 20:40:38 tsarna Exp $
+$Id: API,v 1.21 2007-09-26 21:28:22 tsarna Exp $
 
 Buffer				API
 
@@ -85,28 +85,28 @@ abort-command            ^G		ui.abort()			K
 change-screen-size
 change-screen-width
 clear-and-redraw         ^L		ui.forceredraw()		K
-clear-message-line				ui.clear_message()
+clear-message-line			ui.clear_message()		K
 delete-other-windows     ^X1		ui.onlywindow()			K
-delete-window            ^X0			ui.delwindow()
+delete-window            ^X0		ui.delwindow()			K
 universal-argument       ^U		ui.uniarg()			K
 exit-emacs               ^X^C		ui.quit()			K
 execute-named-command    M-X		ui.executecmd()			K
 grow-window              ^X^
 move-window-down         ^X^N
 move-window-up           ^X^P
-next-window              ^XO
-previous-window          ^XP
+next-window              ^XO		ui.nextwindow()			K
+previous-window          ^XP		ui.prevwindow()			K
 quick-exit               M-Z
 resize-window            ^XW
 restore-window
 split-current-window     ^X2		ui.splitwindow()		K
 shrink-window            ^X^Z
 save-window
-update-screen
+update-screen				ui.refresh()			K
 next-page                ^V
-nop                      M-FNC						C
+nop                      M-FNC		ui.nop()			K
 previous-page            M-V
-write-message				ui.write_message		C
+write-message				ui.write_message() (needs anno)	C
 
 MODES
 

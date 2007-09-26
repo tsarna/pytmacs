@@ -55,5 +55,8 @@
 <Esc>8			uniarg
 <Esc>9			uniarg
 <Esc>-			uniarg
+<^X>0			delwindow
 <^X>1			onlywindow
 <^X>2			splitwindow
+<^X>O			nextwindow
+<^X>P			prevwindow

@@ -1,32 +1,4 @@
 class TermWinUI(object):
-    def __init__(self):
-        self.windows = []
-        self.curwin = None
-
-    def deleteWindow(self, number=None, w=None):
-        """Delete the given window"""
-        
-        w, iscur = self._getWindow(number, w)
-
-        if len(self.windows) < 2:
-            raise ValueError, "Can't delete only window"
-
-        i = self.windows.index(w)
-        # give space to window above, unless top then give to next below
-        if i == 0:
-            other = self.windows[1]
-            other.resize(0, other.height + w.height)
-        else:
-            other = self.windows[i - 1]
-            other.resize(other.top, other.height + w.height)
-
-        w.delete()
-        self.windows.remove(w)
-
-        if iscur:
-            self.focusWindow(other)
-
-
     def resizeWindow(self, newsize=None, winnum=None, w=None):
         """Resize window"""
 
@@ -67,10 +39,6 @@ class TermWinUI(object):
         # XXX
 
     
-    def previousWindow(self): pass # XXX
-    
-    def nextWindow(self): pass # XXX
-
     def balanceWindows(self):
         """Balance sizes of windows"""
         

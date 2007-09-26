@@ -50,8 +50,8 @@ class CharCellWindow(View):
 
     def copy(self):
         """
-        Return a copy of this window. It is half-shallow/half-deep copy
-        (middle of the pool copy?) in that markers will be copies
+        Return a copy of this window. It is half-shallow/half-deep
+        (middle of the pool?) copy in that markers will be copies
         of the originals but the buffer will be shared.
         
         Positions will be shared, overlapping the original. They will
@@ -179,13 +179,19 @@ class CharCellUI(UIBase):
         self.curview = window
         window.focus() 
         
-    def _pickwindow(self, n):
+    def _pickwindow(self, n, delta=0):
         """
         Convert a universal argument into a window.
-        Default is current, 1 is the topmost, 2 second from top, etc.
-        Out of range throws IndexError.
+        1 is the topmost, 2 second from top, etc.
+        Default is current, or next window if delta=1, or previous
+        if delta=-1. Out of range throws IndexError.
         """
         if n is True:
+            if delta:
+                n = self.windows.index(self.curview)
+                n = (n + delta) % len(self.windows)
+                return self.windows[n]
+                
             return self.curview
 
         if n >= 1 and n <= len(self.windows):
@@ -231,6 +237,7 @@ class CharCellUI(UIBase):
         self._message_upd = True
         self.refresh()
         
+    @command
     def clear_message(self):
         """
         Clear the status line message, if any. Note that if a minibuffer
@@ -281,6 +288,45 @@ class CharCellUI(UIBase):
         self.refresh()
         self.waitevent(secs)
 
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def delwindow(self, winnum=True, window=None):
+        """
+        Delete the given window.
+        """
+        if window is None:
+            window = self._pickwindow(winnum)
+
+        if len(self.windows) <= 1:
+            raise ValueError, "Can't delete only window"
+
+        # Give space to the window above, unless we're at the top
+        i = self.windows.index(window)
+        if i == 0:
+            other = self.windows[1]
+            first = window
+        else:
+            other = self.windows[i - 1]
+            first = other
+        other.position(other.left, first.top, other.width, other.height + window.height)
+            
+        self.windows.remove(window)
+        if self.curview is window:
+            self.focuswindow(other)
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def onlywindow(self, winnum=True, window=None):
+        """
+        Delete all windows but the specified one (default current)
+        """
+        if window is None:
+            window = self._pickwindow(winnum)
+
+        self.windows = [window]
+        window.position(0, 0, self.columns, self.lines-1)
 
     @command
     @annotate(None)
@@ -312,67 +358,19 @@ class CharCellUI(UIBase):
     @command
     @annotate(None)
     @annotate(UniArg)
-    def onlywindow(self, winnum=True, window=None):
+    def nextwindow(self, n=True):
         """
-        Delete all windows but the specified one (default current)
+        Activate the next winwow down, wrapping around, or
+        to the numbered window if specified
         """
-        if window is None:
-            window = self._pickwindow(winnum)
-
-        self.windows = [window]
-        window.position(0, 0, self.columns, self.lines-1)
-        
-        
-
-class TestUI(CharCellUI):
-    def __init__(self):
-        self.windows = []
-        self.ungotten = []
-
-
-    def getevent(self):
-        if self.ungotten:
-            return self.ungotten.pop()
-            
-        ri = raw_input('KeySym: ')
-        ev = keysym(ri)
-        if len(ev) != 1:
-            return keysym("<IllegalSequence>"), ri
-        return ev, None
-
-
-    def ungetevent(self, ev):
-        self.ungotten.append(ev)
-
-        
+        self.focuswindow(self._pickwindow(n, delta=1))
+                
     @command
     @annotate(None)
-    @annotate(PromptText("Message:"))
-    def write_message(self, msg):
-        print msg.encode('utf8')
-
-
-    @command
-    def beep(self):
-        sys.stderr.write('\a')
-
-
-    @command
-    def forceredraw(self):
-        for w in self.windows:
-            b = w.buf
-            print "BUFFER %s:" % b.name
-            print b[:].encode('utf8')
-
-
-    def askstring(self, prompt):
-        return raw_input(prompt)
-
-
-
-def test():
-    import tmacs.ui.defmaps
-    
-    __tmacs__.ui = ui = TestUI()
-    
-    ui.cmdloop(__tmacs__)
+    @annotate(UniArg)
+    def prevwindow(self, n=True):
+        """
+        Activate the next winwow up, wrapping around, or
+        to the numbered window if specified
+        """
+        self.focuswindow(self._pickwindow(n, delta=-1))
