@@ -48,11 +48,12 @@ def main(argv, environ):
             b = load_file(arg, encoding=encoding)
             if line:
                 b.start_line = line
+            ui.add_window(b)
             line = encoding = None
 
     # if there are no buffers, create one
     if not __tmacs__.buffers:
-        Buffer('__scratch__')
+        ui.add_window(Buffer('__scratch__'))
             
     for mod in ('tmacs.ui.defmaps', 'tmacs.edit.buffer'):
         exec "import %s" % mod in __tmacs__.__dict__

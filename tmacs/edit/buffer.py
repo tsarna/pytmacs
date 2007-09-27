@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.10 2007-09-25 03:57:11 tsarna Exp $
+# $Id: buffer.py,v 1.11 2007-09-27 01:24:42 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -71,6 +71,9 @@ class Buffer(ubuf):
             
     def next_buffer(self):
         names = __tmacs__.buffers.keys()
+        names = [n for n in names if n == self.name
+            or not (n.startswith('__') and n.endswith('__'))]
+
         names.sort()
         newname = names[(names.index(self.name) + 1) % len(names)]
         return __tmacs__.buffers[newname]
@@ -236,8 +239,5 @@ def open_for_write(buffer, filename):
 def changed_buffers_exist():
     for n, b in __tmacs__.buffers.items():
         if b.changed:
-            if n == '__scratch__':
-                return True
-            if not n.startswith("__") and not n.endswith("__"):
-                return True
+            return True
     return False

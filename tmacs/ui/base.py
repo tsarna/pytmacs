@@ -13,6 +13,7 @@ def set_exception(exctuple):
     b = find_buffer('__errors__')
     del b[:]
     b.append(u''.join(traceback.format_exception(*exctuple)))
+    b.changed = False
     #print u''.join(traceback.format_exception(*exctuple))
     
     return b
@@ -37,15 +38,13 @@ class UIBase(object):
         Run the user interface. This is the top level loop of the
         application thread.
         """
-        for b in __tmacs__.buffers.values():
-            self.add_window(b)
 
         state = __tmacs__
-        state.quit = False
+        state._quit = False
         
         self.layout_windows()
         
-        while not state.quit:
+        while not state._quit:
             try:
                 self.cmdloop(state)
             except BaseException, ex:
@@ -73,11 +72,11 @@ class UIBase(object):
         (eg for minibuffers)
         """
         
-        state.quit = False
+        state._quit = False
         state.uniarg = None
         state.nextuniarg = True
     
-        while not state.quit:
+        while not state._quit:
             state.keyseq, state.cmdname, state.evtval = self.readkeyseq(state)
             if state.cmdname is None:
                 state.cmdname = "notbound"
@@ -242,8 +241,22 @@ class UIBase(object):
     def quit(self, state=__tmacs__, sure=True):
         """Quit the application."""
         if sure:
-            state.quit = True
+            state._quit = True
         
+    @command
+    def quickexit(self, state=__tmacs__):
+        """Save changed buffers and exit."""
+        
+        changed = [(n, b) for n, b in __tmacs__.buffers.items() if b.changed]
+        noname = [n for n, b in changed if not hasattr(b, 'filename')]
+        if noname:
+            raise ValueError, "Buffer %s is changed but has no filename" % noname[0]
+
+        for n, b in changed:
+            b.save()
+        
+        state._quit = True
+                                
     @command
     def abort(self):
         """Abort the current operation."""

@@ -61,3 +61,5 @@
 <^X>+			balancewindows
 <^X>O			nextwindow
 <^X>P			prevwindow
+<^Z>			quickexit
+<^X>X			nextbuffer

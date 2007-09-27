@@ -1,4 +1,11 @@
-$Id: TODO,v 1.43 2007-09-26 22:15:51 tsarna Exp $
+$Id: TODO,v 1.44 2007-09-27 01:24:36 tsarna Exp $
+
+modes
+minibuffer:
+    disable window commands, save, quit
+
+view:
+    kill/copy/yank
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
@@ -6,10 +13,15 @@ termioscap:
     implement doRead at the C level
 
 tcui:
-    views created with ui param, store ui
+    real buffer display
+    resize display
+    grow/shrink/resize
     why doesn't esc prompt print?
+    status line
         	
 baseui:
+    macros
+    quickexit
     bindkey unbindkey describe_bindings
     doc strings - keys
     
@@ -24,6 +36,7 @@ ubuf:
     doc strings
 
 marker:
+    searching
     _new?
     call
     file:

@@ -13,7 +13,7 @@ mapping = {
 
 class CCAskYesNo(object):
     def __init__(self, default=None):
-        self.quit = False
+        self._quit = False
         self.answer = default
         self.keymap = __tmacs__.yesnomap.copy()
         if default is True:
@@ -29,12 +29,12 @@ class CCAskYesNo(object):
     @command
     def yes(self):
         self.answer = True
-        self.quit = True
+        self._quit = True
 
     @command
     def no(self):
         self.answer = False
-        self.quit = True
+        self._quit = True
 
     @command
     def notbound(self):
@@ -43,10 +43,17 @@ class CCAskYesNo(object):
 
 
 class CharCellWindow(View):
+    _active = False
+    
     def __init__(self, buffer):
         super(CharCellWindow, self).__init__(buffer)
         self._status_upd = True
-        # force redraw of all
+        # XXX force redraw of all
+
+    def setbuffer(self, buffer):
+        super(CharCellWindow, self).setbuffer(buffer)
+        self._status_upd = True
+        # XXX force redraw of all
 
     def copy(self):
         """
@@ -60,7 +67,6 @@ class CharCellWindow(View):
         
         n = super(CharCellWindow, self).copy()
         n.left, n.top, n.width, n.height = self.left, self.top, self.width, self.height
-        n._active = False
         
         return n
         
@@ -98,12 +104,20 @@ class CharCellWindow(View):
         """
         if self._status_upd:
             if self._active:
-                l = '== ' + self.buf.name + ' '
-                l += '=' * (self.width - len(l))
+                f = '>'
             else:
-                l = '   ' + self.buf.name + ' '
-                l += ' ' * (self.width - len(l))
+                f = ' '
 
+            b = self.buf
+            if b.read_only:
+                s = '%'
+            elif b.changed:
+                s = '*'
+            else:
+                s = f
+            
+            l = '%s%s %s ' % (f, s, b.name)
+            l += f * (self.width - len(l))
             l = l[:self.width]
         
             ui.moveto(0, self.top + self.height - 1)

@@ -1,4 +1,4 @@
-$Id: API,v 1.21 2007-09-26 21:28:22 tsarna Exp $
+$Id: API,v 1.22 2007-09-27 01:24:36 tsarna Exp $
 
 Buffer				API
 
@@ -13,7 +13,6 @@ save-file                ^X^S			.save()
 delete-buffer            ^XK			del_buffer()
 list-buffers             ^X^B	tmacs.edit.buffer.make_buffer_list()
 execute-buffer			Buffer.execute()
-next-buffer              ^XX	Buffer.next_buffer()		
 
 CURSOR MOVEMENT
 
@@ -64,49 +63,47 @@ query-replace-string     M-^R
 reverse-incremental-search^XR
 replace-string           M-R
 
-REGION
-
-case-region-lower        ^X^L		View.regionlower()		K
-case-region-upper        ^X^U		View.regionupper()		K
-copy-region              M-W
-count-words              M-^C
-
 VIEW
 
-exchange-point-and-mark  ^X^X		View.swapdotandmark()		K
-set-mark                 M- 		view.setmark()			K
+quote-character          ^Q
+case-region-lower        ^X^L	view.regionlower()			K
+case-region-upper        ^X^U	view.regionupper()			K
+copy-region              M-W
+count-words              M-^C
+exchange-point-and-mark  ^X^X	view.swapdotandmark()			K
+set-mark                 M- 	view.setmark()				K
 buffer-position          M-^[
 insert-file              ^X^I
 fill-paragraph           M-Q
+next-buffer              ^XX	ui.nextbuffer()				K
 
 UI
 
-abort-command            ^G		ui.abort()			K
+abort-command            ^G	ui.abort()				K
 change-screen-size
 change-screen-width
-clear-and-redraw         ^L		ui.forceredraw()		K
-clear-message-line			ui.clear_message()		K
-delete-other-windows     ^X1		ui.onlywindow()			K
-delete-window            ^X0		ui.delwindow()			K
-universal-argument       ^U		ui.uniarg()			K
-exit-emacs               ^X^C		ui.quit()			K
-execute-named-command    M-X		ui.executecmd()			K
+clear-and-redraw         ^L	ui.forceredraw()			K
+clear-message-line		ui.clear_message()			K
+delete-other-windows     ^X1	ui.onlywindow()				K
+delete-window            ^X0	ui.delwindow()				K
+universal-argument       ^U	ui.uniarg()				K
+exit-emacs               ^X^C	ui.quit()				K
+execute-named-command    M-X	ui.executecmd()				K
 grow-window              ^X^
 move-window-down         ^X^N
 move-window-up           ^X^P
-next-window              ^XO		ui.nextwindow()			K
-previous-window          ^XP		ui.prevwindow()			K
-quick-exit               M-Z
+next-window              ^XO	ui.nextwindow()				K
+previous-window          ^XP	ui.prevwindow()				K
+quick-exit               ^Z	ui.quickexit()				K
 resize-window            ^XW
-restore-window
-split-current-window     ^X2		ui.splitwindow()		K
+select-buffer            ^XB
+split-current-window     ^X2	ui.splitwindow()			K
 shrink-window            ^X^Z
-save-window
-update-screen				ui.refresh()			K
+update-screen			ui.refresh()				K
 next-page                ^V
-nop                      M-FNC		ui.nop()			K
+nop                      M-FNC	ui.nop()				K
 previous-page            M-V
-write-message				ui.write_message() (needs anno)	C
+write-message			ui.write_message() (needs anno)		C
 
 MODES
 
@@ -134,11 +131,11 @@ store-macro
 BINDINGS
 
 bind-to-key              M-K
-meta-prefix              ^]		escmap				K
-ctlx-prefix              ^X		ctlxmap				K
+meta-prefix              ^]	escmap					K
+ctlx-prefix              ^X	ctlxmap					K
 unbind-key               M-^K
 describe-bindings
-describe-key             ^X?		describekey			K
+describe-key             ^X?	describekey				K
 
 UNSORTED
 
@@ -151,12 +148,10 @@ kill-paragraph           M-^W
 kill-region              ^W
 kill-to-end-of-line      ^K
 pipe-command             ^X@
-quote-character          ^Q
 re-tag-word
 redraw-display           M-^L
 scroll-next-down         M-^V
 scroll-next-up           M-^Z
-select-buffer            ^XB
 set                      ^XA
 shell-command            ^X!
 suspend-emacs            ^XD
@@ -164,3 +159,9 @@ tag-word                 M-T
 view-file                ^X^V
 wrap-word                M-FNW
 yank                     ^Y
+
+NOT GOING TO IMPLEMENT
+
+save-window
+restore-window
+

@@ -43,7 +43,7 @@ class TCLayer(_tclayer):
         except Full:
             pass
         if (event[0] == u'q'):
-            __tmacs__.quit = True
+            __tmacs__._quit = True
             self.reactor.crash()
 
     def getevent(self):

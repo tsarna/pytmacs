@@ -137,6 +137,7 @@ class View(BasicView):
     def setbuffer(self, buffer):
         self.buf = buffer
         self.dot = buffer.marker()
+        self.mark = None
         sl = getattr(buffer, 'start_line', None)
         if sl is not None:
             self.dot.toline(sl)
@@ -219,6 +220,10 @@ class View(BasicView):
     def setmark(self):
         self.mark = self.dot.copy()
         return "[Mark set]"
+
+    @command
+    def nextbuffer(self):
+        self.setbuffer(self.buf.next_buffer())
 
     ### Region
 
