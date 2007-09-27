@@ -117,6 +117,10 @@ class CharCellWindow(View):
                 s = f
             
             l = '%s%s %s ' % (f, s, b.name)
+            dn = b.get_display_name()
+            if dn:
+                l += "%s%s %s " % (f, f, dn)
+                
             l += f * (self.width - len(l))
             l = l[:self.width]
         

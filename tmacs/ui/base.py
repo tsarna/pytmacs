@@ -54,6 +54,7 @@ class UIBase(object):
                 self.beep()
                 self.write_message('[%s]' % msg)
                 set_exception(sys.exc_info())
+                self.refresh()
         
         self.cleanup()
         self.reactor.crash()
