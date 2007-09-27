@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.19 2007-09-17 23:19:29 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.20 2007-09-27 17:06:33 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -21,7 +21,6 @@ extern PyTypeObject marker_type;
 
 static int ubuf_set_encoding(ubuf *self, PyObject *value, void *closure);
 static void ubuf_dealloc(ubuf *self);
-static PyObject *ubuf_new(PyTypeObject *type, PyObject *args, PyObject *kdws);
 static int ubuf_init(ubuf *self, PyObject *args, PyObject *kwds);
 /* get/set methods */
 static int ubuf_set_err_notallowed(ubuf *self, PyObject *value, void *closure);
@@ -31,7 +30,6 @@ static PyObject *ubuf_get_encoding(ubuf *self, void *closure);
 static int ubuf_set_encoding(ubuf *self, PyObject *value, void *closure);
 static PyObject *ubuf_get_gapsize(ubuf *self, void *closure);
 static PyObject *ubuf_get_gapstart(ubuf *self, void *closure);
-static PyObject *ubuf_get_loaned(ubuf *self, void *closure);
 static PyObject *ubuf_get_read_only(ubuf *self, void *closure);
 static int ubuf_set_read_only(ubuf *self, PyObject *value, void *closure);
 static PyObject *ubuf_get_tabdispwidth(ubuf *self, void *closure);
@@ -46,7 +44,6 @@ static PyObject *ubuf_iter(PyObject *self);
 /* file-like methods */
 /* add-on methods */
 static PyObject *ubuf_append(PyObject *selfo, PyObject *arg);
-static PyObject *ubuf_borrow(ubuf *self, PyObject *args);
 
 /* Begin ubuf create/delete methods */
 
@@ -54,8 +51,6 @@ static void
 ubuf_dealloc(ubuf *self)
 {
     marker *cur, *next;
-    
-    /* XXX need to point uobj to the full memory */
 
     /* unlink all markers */
     cur = self->markers;
@@ -67,29 +62,11 @@ ubuf_dealloc(ubuf *self)
     }
     self->markers = NULL;
     
-    Py_XDECREF(self->uobj);
     Py_XDECREF(self->encoding);
-    
+
+    PyMem_Del(self->str);
+        
     self->ob_type->tp_free((PyObject *)self);
-}
-
-
-
-static PyObject *
-ubuf_new(PyTypeObject *type, PyObject *args, PyObject *kdws)
-{
-    ubuf *self;
-    
-    self = (ubuf *)(type->tp_alloc(type, 0));
-    if (self) {
-        self->uobj = NULL;
-        self->markers = NULL;
-        self->flags = 0;
-        self->length = self->gapstart = self->gapsize = 0;
-        self->tabdispwidth = 8;
-    }
-    
-    return (PyObject *)self;
 }
 
 
@@ -122,23 +99,22 @@ ubuf_init(ubuf *self, PyObject *args, PyObject *kwds)
         goto fail_new;
     }
 
-    if (u1) {
-        self->uobj = PyUnicode_FromUnicode(u1, l1);
-    } else {
-        self->uobj = PyUnicode_FromUnicode(NULL, 0);
-    }
-    
-    if (!self->uobj) {
-        goto fail_new;
+    self->gapstart = self->length = 0;
+    self->gapsize = (l1 + l2) + ((l1 + l2) >> 4);
+
+    if (l1 + l2) {
+        self->str = PyMem_New(Py_UNICODE, l1 + l2);
+        if (self->str) {
+            if (!ubuf_assign_slice(self, 0, 0, u1, l1, u2, l2)) {
+                goto fail_new;
+            }
+            
+            self->flags = 0;
+        } else {
+            goto fail_new;
+        }
     }
 
-    self->str = PyUnicode_AS_UNICODE(self->uobj);
-    self->gapstart = self->length = PyUnicode_GetSize(self->uobj);
-
-    if (u2) {
-        /* XXX */
-    }
-    
     Py_XDECREF(tobefreed);
 
     self->tabdispwidth = 8;
@@ -246,18 +222,6 @@ ubuf_set_encoding(ubuf *self, PyObject *value, void *closure)
 
 
 static PyObject *
-ubuf_get_loaned(ubuf *self, void *closure)
-{
-    if (UBUF_IS_LOANED(self)) {
-        Py_RETURN_TRUE;
-    }
-    
-    Py_RETURN_FALSE;
-}
-
-
-
-static PyObject *
 ubuf_get_read_only(ubuf *self, void *closure)
 {
     if (UBUF_IS_READONLY(self)) {
@@ -327,21 +291,10 @@ ubuf_set_tabdispwidth(ubuf *self, PyObject *value, void *closure)
 int
 ubuf_makewriteable(ubuf *self)
 {
-    if (!UBUF_CAN_WRITE(self)) {
-        if (UBUF_IS_READONLY(self)) {
-            PyErr_SetString(ReadOnlyBufferError, "buffer is read-only");
-            
-            return 0;
-        }
+    if (UBUF_IS_READONLY(self)) {
+        PyErr_SetString(ReadOnlyBufferError, "buffer is read-only");
         
-        /* see if we can recover a loaned buffer */
-        if (((PyObject *)self)->ob_refcnt == 1) {
-            self->flags &= ~UBUF_F_LOANED;   
-        } else {
-            PyErr_SetString(PyExc_RuntimeError, "Loaned Buffer Still Outstanding");
-            
-            return 0;
-        }
+        return 0;
     }
     
     return 1;
@@ -399,14 +352,13 @@ ubuf_grow(ubuf *self, Py_ssize_t grow_amt, Py_ssize_t gap_to)
     Py_UNICODE *newbuf;
 #if 1
     /* do it the easy way */
-    newbuf = PyMem_Realloc(self->str,
-        (self->length + self->gapsize + grow_amt) * sizeof(Py_UNICODE));
+    newbuf = PyMem_Resize(self->str, Py_UNICODE, 
+        self->length + self->gapsize + grow_amt);
     
     if (!newbuf) {
         return 0;
     }
     
-    PyUnicode_AS_UNICODE(self->uobj) = self->str = newbuf;
     self->gapsize += grow_amt;
     
     if (!ubuf_gap_to(self, gap_to)) {
@@ -518,11 +470,6 @@ ubuf_get_range(ubuf *self, Py_ssize_t s, Py_ssize_t e)
     } else if (e > self->gapstart) {
         /* straddling the gap */
 D(fprintf(stderr, "\nstraddling %d\n", e);)
-        if (UBUF_IS_LOANED(self)) {
-            PyErr_SetString(PyExc_AssertionError, "gap should not be in middle while loaned");
-
-            return 0;
-        }
         
         if (!ubuf_gap_to(self, e)) {
             return 0;
@@ -916,18 +863,6 @@ ubuf_append(PyObject *selfo, PyObject *v)
 
 
 
-static PyObject *
-ubuf_borrow(ubuf *self, PyObject *args)
-{
-    Py_INCREF(self->uobj);
-
-    self->flags |= UBUF_F_LOANED;
-        
-    return self->uobj;
-}
-
-
-
 static PyMethodDef ubuf_methods[] = {
     /* file-like methods */
     {"flush",       (PyCFunction)ubuf_flush,            METH_NOARGS},
@@ -936,7 +871,6 @@ static PyMethodDef ubuf_methods[] = {
         
     /* add-on methods */
     {"append",      (PyCFunction)ubuf_append,           METH_O},
-    {"borrow",      (PyCFunction)ubuf_borrow,           METH_NOARGS},
 
     {NULL,          NULL}
 };
@@ -974,11 +908,6 @@ static PyGetSetDef ubuf_getset[] = {
     {"gapstart",        (getter)ubuf_get_gapstart,
                         (setter)ubuf_set_err_notallowed,
                         "location of the start of the gap in the buffer",
-                        NULL},
-
-    {"loaned",          (getter)ubuf_get_loaned,
-                        (setter)ubuf_set_err_notallowed,
-                        "is the buffer loaned out?",
                         NULL},
 
     {"read_only",       (getter)ubuf_get_read_only,
@@ -1044,7 +973,7 @@ PyTypeObject ubuf_type = {
     0,                          /*tp_dictoffset*/
     (initproc)ubuf_init,        /*tp_init*/
     PyType_GenericAlloc,        /*tp_alloc*/
-    ubuf_new,                   /*tp_new*/
+    0,                          /*tp_new*/
     _PyObject_Del,              /*tp_free*/
     0,                          /*tp_is_gc*/
 };

@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.11 2007-09-27 01:24:42 tsarna Exp $
+# $Id: buffer.py,v 1.12 2007-09-27 17:06:33 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -71,7 +71,7 @@ class Buffer(ubuf):
             
     def next_buffer(self):
         names = __tmacs__.buffers.keys()
-        names = [n for n in names if n == self.name
+        names = [n for n in names if 1 or n == self.name
             or not (n.startswith('__') and n.endswith('__'))]
 
         names.sort()

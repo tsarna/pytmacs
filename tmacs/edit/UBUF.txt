@@ -272,45 +272,6 @@ the truth value of the flag is remembered, but it may not be deleted::
     TypeError: Cannot delete the changed attribute
 
 
-Borrowing/Loaning
------------------
-    
-A ubuf can be temporarily and efficiently converted to a unicode object. 
-This works by sharing the same underlying buffer memory as the buffer,
-and thus is very quick, but it also means that the ubuf must be made
-read-only for the duration.  While the unicode object returned has
-outstanding references, the buffer is considered "loaned". The operation
-of getting the loaned memory is called "borrowing".
-
-A ubuf has a loaned flag.  It is mainly intended for debugging and
-should not be used normally, but it is useful for illustrating the
-loaned state so we'll describe it here::
-
-    >>> u = ubuf(u"Hello")
-    >>> u.loaned
-    False
-    >>> u.borrow()
-    u'Hello'
-    >>> u.loaned
-    True
-
-Even though the reference to the unicode was dropped after it was
-printed, the loaned flag remains in effect. The next time a modification
-to the ubuf is attempted the unicode object will be checked for
-outstanding references and if none are left, only then will the loaned
-flag be reset. The loaned flag may not be changed manually:
-
-    >>> u.loaned = False
-    Traceback (most recent call last):
-	...
-    AttributeError: attribute is not writeable
-    >>> del u.loaned
-    Traceback (most recent call last):
-	...
-    AttributeError: attribute is not writeable
-
-
-
 Misc Attributes
 ---------------
 

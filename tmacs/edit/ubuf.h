@@ -1,4 +1,4 @@
-/* $Id: ubuf.h,v 1.13 2007-09-17 23:19:29 tsarna Exp $ */
+/* $Id: ubuf.h,v 1.14 2007-09-27 17:06:33 tsarna Exp $ */
 
 typedef struct marker marker;
 
@@ -9,7 +9,6 @@ typedef struct {
     PyObject_HEAD
 
     Py_UNICODE         *str;
-    PyObject           *uobj;
     PyObject           *encoding;
     marker             *markers;
     Py_ssize_t          length;     /* used size */
@@ -17,23 +16,16 @@ typedef struct {
     Py_ssize_t          gapsize;    /* how much gap is left */
     unsigned int        flags;      /* flags */
 #define UBUF_F_CHANGED      0x01
-#define UBUF_F_LOANED       0x02
-#define UBUF_F_READONLY     0x04
+#define UBUF_F_READONLY     0x02
     int                 softspace;
     unsigned char       tabdispwidth;
 } ubuf;
 
 #define UBUF_ENCODING(u)     PyString_AsString((u)->encoding)
 
-#define UBUF_CAN_WRITE(u)    (!((u)->flags & (UBUF_F_READONLY|UBUF_F_LOANED)))
-
 #define UBUF_IS_CHANGED(u)      ((u)->flags & (UBUF_F_CHANGED))
 #define UBUF_SET_CHANGED(u)     ((u)->flags |= UBUF_F_CHANGED)
 #define UBUF_CLEAR_CHANGED(u)   ((u)->flags &= ~UBUF_F_CHANGED)
-
-#define UBUF_IS_LOANED(u)       ((u)->flags & (UBUF_F_LOANED))
-#define UBUF_SET_LOANED(u)      ((u)->flags |= UBUF_F_LOANED)
-#define UBUF_CLEAR_LOANED(u)    ((u)->flags &= ~UBUF_F_LOANED)
 
 #define UBUF_IS_READONLY(u)     ((u)->flags & (UBUF_F_READONLY))
 #define UBUF_SET_READONLY(u)    ((u)->flags |= UBUF_F_READONLY)
