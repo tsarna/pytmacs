@@ -119,12 +119,13 @@ class BasicView(object):
 class View(BasicView):
     mark = None
     
-    def __init__(self, buffer):
+    def __init__(self, ui, buffer):
+        self.ui = ui
         if buffer is not None:
             self.setbuffer(buffer)
 
     def copy(self):
-        n = self.__class__(None)
+        n = self.__class__(self.ui, None)
         n.buf = self.buf
         n.dot = self.dot.copy()
         if self.mark is None:

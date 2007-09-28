@@ -45,8 +45,8 @@ class CCAskYesNo(object):
 class CharCellWindow(View):
     _active = False
     
-    def __init__(self, buffer):
-        super(CharCellWindow, self).__init__(buffer)
+    def __init__(self, ui, buffer):
+        super(CharCellWindow, self).__init__(ui, buffer)
         self._status_upd = True
         # XXX force redraw of all
 
@@ -98,13 +98,15 @@ class CharCellWindow(View):
         self._active = False
         self._status_upd = True
         
-    def refresh(self, ui):
+    def refresh(self):
         """
         Redraw ourself.
         """
+        ui = self.ui
         if self._status_upd:
             if self._active:
                 f = '>'
+                f = ui.activechar
             else:
                 f = ' '
 
@@ -143,6 +145,136 @@ class CharCellWindow(View):
             ui.moveto(self.left, row)
             ui.eeol()
 
+    def index(self):
+        """Find the index of this window"""
+        
+        return self.ui.windows.index(self)
+        
+    def delete(self):
+        """Delete this window"""
+        
+        ui = self.ui
+        if len(ui.windows) <= 1:
+            raise ValueError, "Can't delete only window"
+
+        # Give space to the window above, unless we're at the top
+        i = self.index()
+        if i == 0:
+            other = ui.windows[1]
+            first = self
+        else:
+            other = ui.windows[i - 1]
+            first = other
+
+        other.position(other.left, first.top,
+            other.width, other.height + self.height)
+            
+        del ui.windows[i]
+        
+        if self._active:
+            ui.focuswindow(other)
+        
+        del self.ui
+
+    def only(self):
+        """Make this the only window."""
+        
+        ui = self.ui
+        ui.windows = [self]
+        self.position(0, 0, ui.columns, ui.lines-1)
+
+
+    def split(self):
+        """Split this window."""
+        
+        if self.height < 4:
+            raise ValueError, "Window too small to split"
+        nw = self.copy()
+        
+        nwh = nw.height // 2
+        nw.position(nw.left, nw.top + self.height - nwh, nw.width, nwh)
+        self.position(self.left, self.top, self.width, self.height - nwh)
+        
+        wl = self.ui.windows
+        wl.insert(self.index() + 1, nw)
+
+        return nw
+
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def growwindow(self, n=True):
+        """Grow this window"""
+        
+        if n < 0:
+            return self.shrinkwindow(-n)
+
+        ui = self.ui
+        if len(ui.windows) == 1:
+            raise ValueError, "Can't grow only window"
+
+        wi = self.index()
+        if wi == len(ui.windows) - 1:
+            # shrink above
+            o = ui.windows[wi - 1]
+            if (o.height - n) < 2:
+                raise ValueError, "Not enough room to grow"
+
+            self.position(self.left, self.top - n, self.width, self.height + n)
+            o.position(o.left, o.top, o.width, o.height - n)
+        else:
+            # shrink below
+            o = ui.windows[wi + 1]
+            if (o.height - n) < 2:
+                raise ValueError, "Not enough room to grow"
+
+            self.position(self.left, self.top, self.width, self.height + n)
+            o.position(o.left, o.top + n, o.width, o.height - n)
+
+        
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def shrinkwindow(self, n=True):
+        """Shrink this window"""
+        if n < 0:
+            return self.growwindow(-n)
+
+        ui = self.ui
+        if len(ui.windows) == 1:
+            raise ValueError, "Can't shrink only window"
+
+        if (self.height - n) < 2:
+            raise ValueError, "Can't make window that small"
+
+        wi = self.index()
+        if wi == len(ui.windows) - 1:
+            # grow above
+            o = ui.windows[wi - 1]
+            self.position(self.left, self.top + n, self.width, self.height - n)
+            o.position(o.left, o.top, o.width, o.height + n)
+        else:
+            # grow below
+            o = ui.windows[wi + 1]
+            self.position(self.left, self.top, self.width, self.height - n)
+            o.position(o.left, o.top - n, o.width, o.height + n)
+                
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def resizewindow(self, n=True):
+        """
+        Resize this window. Must have a non-default argument.
+        The size includes the content areas and not the status line.
+        """
+        
+        if n is True or n == (self.height - 1):
+            return
+            
+        return self.growwindow(n - (self.height - 1))
+                
         
 
 class CharCellUI(UIBase):
@@ -159,7 +291,7 @@ class CharCellUI(UIBase):
         Add a window. Used at startup time to indicate a buffer we
         want to start displaying.
         """
-        self.windows.append(self.window_class(buffer))
+        self.windows.append(self.window_class(self, buffer))
             
     def layout_windows(self):
         """
@@ -322,7 +454,7 @@ class CharCellUI(UIBase):
                 self._message_upd = False
 
             for w in self.windows:
-                w.refresh(self)
+                w.refresh()
 
     def sitfor(self, secs):
         """
@@ -331,6 +463,7 @@ class CharCellUI(UIBase):
         """
         self.refresh()
         self.waitevent(secs)
+
 
     @command
     @annotate(None)
@@ -342,22 +475,8 @@ class CharCellUI(UIBase):
         if window is None:
             window = self._pickwindow(winnum)
 
-        if len(self.windows) <= 1:
-            raise ValueError, "Can't delete only window"
-
-        # Give space to the window above, unless we're at the top
-        i = self.windows.index(window)
-        if i == 0:
-            other = self.windows[1]
-            first = window
-        else:
-            other = self.windows[i - 1]
-            first = other
-        other.position(other.left, first.top, other.width, other.height + window.height)
-            
-        self.windows.remove(window)
-        if self.curview is window:
-            self.focuswindow(other)
+        window.delete()
+        
 
     @command
     @annotate(None)
@@ -369,8 +488,8 @@ class CharCellUI(UIBase):
         if window is None:
             window = self._pickwindow(winnum)
 
-        self.windows = [window]
-        window.position(0, 0, self.columns, self.lines-1)
+        window.only()
+
 
     @command
     @annotate(None)
@@ -382,22 +501,14 @@ class CharCellUI(UIBase):
         argument other than True, the bottom is focused
         """
 
-        w = self.curview
-        if w.height < 4:
-            raise ValueError, "Window too small to split"
-        nw = w.copy()
-        
-        nwh = nw.height // 2
-        nw.position(nw.left, nw.top + w.height - nwh, nw.width, nwh)
-        w.position(w.left, w.top, w.width, w.height - nwh)
-        
-        wl = self.windows
-        wl.insert(wl.index(w) + 1, nw)
+        ow = self.curview
+        nw = ow.split()
 
-        if focustop is not True:
-            self.focuswindow(nw)
+        if focustop is True:
+            self.focuswindow(ow)
         else:
-            self.focuswindow(w)
+            self.focuswindow(nw)
+
 
     @command
     @annotate(None)
@@ -408,6 +519,7 @@ class CharCellUI(UIBase):
         to the numbered window if specified
         """
         self.focuswindow(self._pickwindow(n, delta=1))
+
                 
     @command
     @annotate(None)

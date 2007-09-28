@@ -34,7 +34,7 @@ class TCLayer(_tclayer):
         super(TCLayer, self).timeout()
             
     def write(self, data):
-        os.write(self.fileno(), data)
+        os.write(self.fileno(), data.encode('utf8'))
 
     def postevent(self, event):
         self.count += 1
@@ -73,6 +73,10 @@ class TCLayer(_tclayer):
                 
 
 class TCUI(TCLayer, CharCellUI):
+    activechar = ">"
+    #activechar = u"\u2550"
+    #activechar = u"\xbb"
+        
     def __init__(self, reactor):
         TCLayer.__init__(self, sys.stdin.fileno(), reactor)
         CharCellUI.__init__(self)
