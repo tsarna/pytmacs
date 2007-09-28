@@ -1,11 +1,4 @@
-$Id: TODO,v 1.45 2007-09-28 04:52:18 tsarna Exp $
-
-modes
-minibuffer:
-    disable window commands, save, quit
-
-view:
-    kill/copy/yank
+$Id: TODO,v 1.46 2007-09-28 22:25:54 tsarna Exp $
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
@@ -13,31 +6,20 @@ termioscap:
     implement doRead at the C level
 
 tcui:
-    real buffer display
-    resize display
-    grow/shrink/resize
     status line
         	
 baseui:
-    macros
-    quickexit
     bindkey unbindkey describe_bindings
     doc strings - keys
     
 ubuf:
-    _new?
     textarg		from ubuf
-    .borrow()		with args
-    dealloc		point uobj to full memory
     efficient grow
     writelines
     file-like tests from Buffer
-    doc strings
 
 marker:
-    searching
-    _new?
-    call
+    call?
     file:
 	readlines()
 	encoding?
@@ -47,10 +29,8 @@ marker:
     editing:
 	trimline
 	twiddle
-    auto-adjust on edits (colseek!)
-    changed flag
+	tab
     nonzero -- returns changed flag?
-    doc strings
 	
 Buffer:
 	tests:
@@ -61,13 +41,6 @@ Buffer:
 	.load()
 	redo write_file based on iterator of buffer
 	del_buffer()
-	.set()
-	rework sniff based on set
-	
-	illegal-attributes:
-		closed
-		softspace
-		display_name
 
 sniff:
 	regex

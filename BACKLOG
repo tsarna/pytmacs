@@ -1,0 +1,33 @@
+$Id: BACKLOG,v 1.1 2007-09-28 22:25:54 tsarna Exp $
+
+Needed for 2.0
+--------------
+
+buffer attributes work: set and sniff
+ubuf doc strings
+marker doc strings
+marker work: displaycol attr and finish autoadjust
+charcell unit tests
+searching
+macros
+window resize works
+true buffer display
+minibuffer
+modes mechanism
+python mode
+c mode
+wrap mode
+kill/yank
+
+Post-1.0 project story ideas
+----------------------------
+
+add-ons mechanism
+undo
+horizontal window splitting
+command-oriented macros (record commands not keystrokes, produce a new
+	function definition)
+python interactor
+icb interactor
+autosave
+
