@@ -1,6 +1,8 @@
 from tmacs.edit.view import View
 from tmacs.ui.base import *
 import __tmacs__
+from __tmacs__ import __version__ as app_version, __appname__ as app_name
+
 
 __tmacs__.yesnomap = keymap("yesnomap", inherit=[__tmacs__.basemap],
 mapping = {
@@ -98,12 +100,11 @@ class CharCellWindow(View):
         self._active = False
         self._status_upd = True
         
-    def refresh(self):
-        """
-        Redraw ourself.
-        """
-        ui = self.ui
+    def refresh_status(self):
+        """Refresh the status line."""
+
         if self._status_upd:
+            ui = self.ui
             if self._active:
                 f = '>'
                 f = ui.activechar
@@ -118,7 +119,7 @@ class CharCellWindow(View):
             else:
                 s = f
             
-            l = '%s%s %s ' % (f, s, b.name)
+            l = '%s%s %s %s %s%s %s ' % (f, s, app_name, app_version, f, f, b.name)
             dn = b.get_display_name()
             if dn:
                 l += "%s%s %s " % (f, f, dn)
@@ -132,7 +133,14 @@ class CharCellWindow(View):
             ui.nostandout()
             self._status_upd = False
 
+        
+    def refresh(self):
+        """
+        Redraw ourself.
+        """
+        self.refresh_status()
         # XXX
+        ui = self.ui
         txt = self.buf[:].split('\n')[:self.height-1]
         row = self.top
         for l in txt:

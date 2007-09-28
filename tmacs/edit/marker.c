@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.35 2007-09-20 01:00:51 tsarna Exp $ */
+/* $Id: marker.c,v 1.36 2007-09-28 22:26:13 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -19,7 +19,6 @@ PyTypeObject marker_type;
 /* prototypes for static functions */
 
 static void marker_dealloc(marker *self);
-static PyObject *marker_new(PyTypeObject *type, PyObject *args, PyObject *kdws);
 static int marker_init(marker *self, PyObject *args, PyObject *kwds);
 /* link/unlink */
 static void marker_link_buffer(marker *self, ubuf *buf);
@@ -101,24 +100,6 @@ marker_dealloc(marker *self)
     marker_unlink_buffer(self);
     
     self->ob_type->tp_free((PyObject *)self);
-}
-
-
-
-static PyObject *
-marker_new(PyTypeObject *type, PyObject *args, PyObject *kdws)
-{
-    marker *self;
-    
-    self = (marker *)(type->tp_alloc(type, 0));
-    if (self) {
-        self->start = self->end = 0;
-        self->flags = 0;
-        self->buffer = NULL;
-        self->next = NULL;
-    }
-    
-    return (PyObject *)self;
 }
 
 
@@ -1674,7 +1655,7 @@ PyTypeObject marker_type = {
     0,                          /*tp_dictoffset*/
     (initproc)marker_init,      /*tp_init*/
     PyType_GenericAlloc,        /*tp_alloc*/
-    marker_new,                 /*tp_new*/
+    0,                          /*tp_new*/
     _PyObject_Del,              /*tp_free*/
     0,                          /*tp_is_gc*/
 };

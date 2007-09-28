@@ -279,6 +279,6 @@ class UIBase(object):
         """Describe the binding for a key sequence."""
         cmdname = self.curview.keymap.get(keyseq)
         if cmdname is None:
-            return '[Key not bound]'
+            return '[Key %s not bound]' % repr_keysym(keyseq)
         else:
             return '%s %s' % (repr_keysym(keyseq), cmdname)
