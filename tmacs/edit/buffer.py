@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.12 2007-09-27 17:06:33 tsarna Exp $
+# $Id: buffer.py,v 1.13 2007-09-28 00:53:07 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -69,14 +69,16 @@ class Buffer(ubuf):
                 dn = '[%s]' % dn
         return dn
             
+    def is_hidden(self):
+        n = self.name
+        return n.startswith('__') and n.endswith('__')
+        
     def next_buffer(self):
-        names = __tmacs__.buffers.keys()
-        names = [n for n in names if 1 or n == self.name
-            or not (n.startswith('__') and n.endswith('__'))]
-
-        names.sort()
-        newname = names[(names.index(self.name) + 1) % len(names)]
-        return __tmacs__.buffers[newname]
+        bufs = __tmacs__.buffers.items()
+        bufs = [n for n, b in bufs if not b.is_hidden()]
+        bufs.sort()
+        name = bufs[(bufs.index(self.name) + 1) % len(bufs)]
+        return __tmacs__.buffers[name]
 
     def __repr__(self):
         return "<Buffer '%s'>" % self.name
@@ -237,7 +239,7 @@ def open_for_write(buffer, filename):
 
 
 def changed_buffers_exist():
-    for n, b in __tmacs__.buffers.items():
+    for b in __tmacs__.buffers.values():
         if b.changed:
             return True
     return False
