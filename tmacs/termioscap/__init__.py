@@ -24,20 +24,21 @@ class TCLayer(_tclayer):
 
         r = self.reactor
         if self.cb is None:
-            self.cb = r.callLater(0.3, self.timeout)
+            self.cb = r.callLater(0.2, self.timeout)
         else:
-            self.cb.reset(0.3)
+            self.cb.reset(0.2)
 
     def timeout(self):
+        #print >>sys.stderr, "TIMEOUT"
         self.cb = None
-        _TCLayer.timeout(self)
+        super(TCLayer, self).timeout()
             
     def write(self, data):
         os.write(self.fileno(), data)
 
     def postevent(self, event):
         self.count += 1
-        # print repr(event)
+        #print >>sys.stderr, repr(event)
         try:
             self.queue.put(event)
         except Full:
