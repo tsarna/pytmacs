@@ -10,7 +10,7 @@ def set_exception(exctuple):
     3-tuple) in a buffer so the user can inspect it.
     """
     
-    b = find_buffer('__errors__')
+    b = find_buffer('__error__')
     del b[:]
     b.append(u''.join(traceback.format_exception(*exctuple)))
     b.changed = False

@@ -1,4 +1,5 @@
 from tmacs.app.commands import *
+from tmacs.edit.buffer import make_buffer_list
 
 class BasicView(object):
     def lookup_cmd(self, cmdname):
@@ -169,6 +170,11 @@ class View(BasicView):
     def setfillcolumn(self, n=True):
         self.buf.fillcolumn = n
         return "[Fill column is %d]" % n
+        
+    @command
+    @returns(BufferToShow)
+    def bufferlist(self):
+        return make_buffer_list()
         
     ### Cursor Movement
 

@@ -63,3 +63,4 @@
 <^X>P			prevwindow
 <^Z>			quickexit
 <^X>X			nextbuffer
+<^X><^B>		bufferlist

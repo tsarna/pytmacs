@@ -188,7 +188,14 @@ class ErrorToShow(object):
                 
                     
 ErrorToShow = ErrorToShow()
-                    
+
+
+
+class BufferToShow(object):
+    def gen_code(self, arg, indents):
+        return "%sui.popupbuffer(%s)" % (indents, arg)
+
+BufferToShow = BufferToShow()
 
 
 ### Support functions

@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.13 2007-09-28 00:53:07 tsarna Exp $
+# $Id: buffer.py,v 1.14 2007-09-28 01:13:49 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -75,7 +75,7 @@ class Buffer(ubuf):
         
     def next_buffer(self):
         bufs = __tmacs__.buffers.items()
-        bufs = [n for n, b in bufs if not b.is_hidden()]
+        bufs = [n for n, b in bufs if b is self or not b.is_hidden()]
         bufs.sort()
         name = bufs[(bufs.index(self.name) + 1) % len(bufs)]
         return __tmacs__.buffers[name]
@@ -184,10 +184,10 @@ def find_buffer(name):
     
 
 def _bufnamecmp(a, b):
-    sa = a[0].startswith('__'); sb = b[0].startswith('__')
-    if sa and sb or not sa and not sb:
-        return cmp(a, b)
-    elif sa:
+    ha = a.is_hidden(); hb = b.is_hidden()
+    if ha and hb or not ha and not hb:
+        return cmp(a.name, b.name)
+    elif ha:
         return 1
     else:
         return -1
@@ -196,17 +196,19 @@ def _bufnamecmp(a, b):
 def make_buffer_list():
     l = []
     
-    for n, b in __tmacs__.buffers.items():
+    bl = __tmacs__.buffers.values()
+    bl.sort(cmp=_bufnamecmp)
+        
+    for b in bl:
         f = " %"[b.read_only]
         f += " *"[b.changed]
         
         l.append([
-            f + n, str(len(b)),
+            f + b.name, str(len(b)),
             getattr(b, 'encoding', ''),
             b.get_display_name()
         ])
         
-    l.sort(cmp=_bufnamecmp)
     l.insert(0, ['  Buffer', 'Size', 'Enc', 'File'])
     
     dl = []

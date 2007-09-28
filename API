@@ -1,4 +1,4 @@
-$Id: API,v 1.22 2007-09-27 01:24:36 tsarna Exp $
+$Id: API,v 1.23 2007-09-28 01:13:45 tsarna Exp $
 
 Buffer				API
 
@@ -11,7 +11,7 @@ read-file                ^X^R			.load()
 set-fill-column          ^XF	view.setfillcolumn()			K
 save-file                ^X^S			.save()
 delete-buffer            ^XK			del_buffer()
-list-buffers             ^X^B	tmacs.edit.buffer.make_buffer_list()
+list-buffers             ^X^B	view.bufferlist()			K
 execute-buffer			Buffer.execute()
 
 CURSOR MOVEMENT

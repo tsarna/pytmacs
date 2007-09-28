@@ -167,8 +167,28 @@ class CharCellUI(UIBase):
         """
         self.balancewindows()    
         self.focuswindow(self.windows[0])
-        
 
+    def getpopup(self):
+        """
+        Get a window to display a buffer in
+        """
+        if len(self.windows) == 1:
+            self.splitwindow()
+            return self.windows[1] # the other one
+        else:
+            for w in self.windows:
+                if not w._active:
+                    return w
+
+    def popupbuffer(self, buffer):
+        """
+        Pop up a buffer in a new window, if not already displayed
+        """
+        for w in self.windows:
+            if w.buf is buffer:
+                return
+        self.getpopup().setbuffer(buffer)
+        
     @command
     def balancewindows(self):
         """
