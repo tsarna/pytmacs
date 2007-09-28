@@ -1,4 +1,4 @@
-$Id: TODO,v 1.44 2007-09-27 01:24:36 tsarna Exp $
+$Id: TODO,v 1.45 2007-09-28 04:52:18 tsarna Exp $
 
 modes
 minibuffer:
@@ -16,7 +16,6 @@ tcui:
     real buffer display
     resize display
     grow/shrink/resize
-    why doesn't esc prompt print?
     status line
         	
 baseui:
