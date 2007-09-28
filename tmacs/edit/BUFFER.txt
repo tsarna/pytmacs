@@ -3,7 +3,7 @@ Editor Buffers
 ==============
 
 :Author: Ty Sarna
-:Version: $Id: BUFFER.txt,v 1.4 2007-09-28 00:53:07 tsarna Exp $
+:Version: $Id: BUFFER.txt,v 1.5 2007-09-28 04:50:11 tsarna Exp $
 
 .. contents ::
 
@@ -149,10 +149,10 @@ Note that if the buffer already exists, it will be reused::
     >>> print b[:].encode('utf8')
       Buffer         Size Enc  File
     ---------------- ---- ---- -----------------
-      __buffers__     147 utf8 [List of Buffers]
      *exec-test        41 utf8
      *file-like-1      13 utf8
      *test-file-like   25 utf8
+      __buffers__     147 utf8 [List of Buffers]
 
 
 
