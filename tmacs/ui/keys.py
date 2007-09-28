@@ -8,6 +8,11 @@ _marker = object()
 
 
 def keysym(k):
+    """
+    Parse a string containing a sequence of human readable
+    key symbols and return a unicode string containing the characters
+    representing those keys.
+    """
     r = []
 
     while k:
@@ -47,6 +52,10 @@ def keysym(k):
 
 
 def repr_keysym(u):
+    """
+    Convert a unicode string to a new string containing the human
+    readable representation of the keys represented by those characters.
+    """
     r = []
     
     for b in u:
@@ -63,6 +72,13 @@ def repr_keysym(u):
 
 
 class keymap(dict):
+    """
+    A keymap represents a set of bindings from keys to command strings.
+    Keys may be bound to other maps, allowing sequences of keys to
+    be bound to commands. Keymaps may also be set to inherit from a
+    list of other keymaps.
+    """
+
     def __init__(self, name, inherit=None, mapping={}, nocase=False):
         dict.__init__(self, mapping)
         self.name = name
@@ -72,15 +88,21 @@ class keymap(dict):
         self.nocase = nocase
 
     def bind(self, sym, val):
+        """Bind a keysym to a value (command or keymap)"""
+        
         self[keysym(sym)] = val
 
     def lookup(self, sym, default=_marker):
+        """Look up a keysym"""
+        
         v = self.get(keysym(sym), default)
         if v is _marker:
             raise KeyError, sym
         return v
         
     def __setitem__(self, seq, val):
+        """Set a mapping by key codes"""
+
         if self.nocase:
             seq = seq.upper()
         if len(seq) == 1:
@@ -93,6 +115,8 @@ class keymap(dict):
             nextmap[seq[1:]] = val
 
     def get(self, seq, default=None):
+        """Look up a mapping by codes"""
+        
         if self.nocase:
             seq = seq.upper()
         v = _marker
@@ -122,6 +146,11 @@ class keymap(dict):
 
 
     def walk(self):
+        """
+        Iterator over a keymap and its submaps, producing a flattened
+        list of bindings.
+        """
+        
         for k, v in dict.items(self):
             if type(v) is self.__class__:
                 yield k, v
@@ -131,10 +160,15 @@ class keymap(dict):
                 yield (k, v)
             
     def items(self):
+        """
+        Return a flattened list of bindings in ourself and our submaps.
+        """
         return list(self.walk)
 
 
     def __repr__(self):
+        """Textual representation of this keymap (and submaps)."""
+
         l = []
         for k, v in self.walk():
             k = repr_keysym(k)
@@ -149,4 +183,6 @@ class keymap(dict):
 
 
     def copy(self):
+        """Duplicate a keymap. This is a shallow copy opertation."""
+        
         return keymap(self.name, inherit=self.inherit[:], mapping=self, nocase=self.nocase)
