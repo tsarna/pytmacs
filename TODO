@@ -1,15 +1,14 @@
-$Id: TODO,v 1.47 2007-09-29 01:48:03 tsarna Exp $
+$Id: TODO,v 1.48 2007-09-29 04:19:24 tsarna Exp $
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
     implement doRead at the C level
+    implement tclayer write w/ unicode encode
+    write termioscap docsand tests
+    docstrings
 
-tcui:
-    status line
-        	
 baseui:
     bindkey unbindkey describe_bindings
-    doc strings - keys
     
 ubuf:
     textarg		from ubuf
@@ -46,7 +45,4 @@ sniff:
 	postSniff
 	safe eval?
 	
-implement tclayer write w/ unicode encode
 
-write keysyms repr doctests
-write termioscap description

@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.20 2007-09-27 17:06:33 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.21 2007-09-29 04:19:28 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -129,6 +129,17 @@ fail_new:
     return -1;
 }
 
+
+PyDoc_STRVAR(ubuf_doc,
+"ubuf([text, [encoding]]) -> a unicode buffer-gap editing buffer\n\
+\n\
+'text' is the initial text of the buffer, as a unicode, str\n\
+(encoded with the encoding specified in the second argument)\n\
+or another ubuf.\n\
+\n\
+'encoding' is the initial value of the 'encoding' attribute of the\n\
+resulting buffer, used to specify the default encoding when converting\n\
+to or from byte strings.");
 
 
 /* Begin ubuf get/set methods */
@@ -822,6 +833,12 @@ ubuf_iter(PyObject *self)
 }
 
 
+PyDoc_STRVAR(ubuf_xreadlines_doc,
+"This is an alias for iter() on the buffer, for compatability with\n\
+the file-like interface. It returns an iterator over lines of the\n\
+file.");
+    
+        
 
 /* Begin ubuf file-like methods */
 
@@ -830,7 +847,9 @@ ubuf_flush(ubuf *self, PyObject *args)
 {
     Py_RETURN_NONE;
 }
-    
+
+PyDoc_STRVAR(ubuf_flush_doc,
+"This is a no-op for file-like interface compatability.");
     
         
 /* Begin ubuf add-on methods */
@@ -862,15 +881,21 @@ ubuf_append(PyObject *selfo, PyObject *v)
 }
 
 
+PyDoc_STRVAR(ubuf_append_doc,
+"Append the text argument (either a unicode, a string the ubuf's\n\
+default encoding, or another ubuf) to the buffer. The buffer must\n\
+not be read_only.");
+
+
 
 static PyMethodDef ubuf_methods[] = {
     /* file-like methods */
-    {"flush",       (PyCFunction)ubuf_flush,            METH_NOARGS},
-    {"write",       (PyCFunction)ubuf_append,           METH_O},
-    {"xreadlines",  (PyCFunction)ubuf_iter,             METH_NOARGS},
+    {"flush",       (PyCFunction)ubuf_flush,    METH_NOARGS, ubuf_flush_doc},
+    {"write",       (PyCFunction)ubuf_append,   METH_O, ubuf_append_doc},
+    {"xreadlines",  (PyCFunction)ubuf_iter,     METH_NOARGS, ubuf_xreadlines_doc},
         
     /* add-on methods */
-    {"append",      (PyCFunction)ubuf_append,           METH_O},
+    {"append",      (PyCFunction)ubuf_append,   METH_O, ubuf_append_doc},
 
     {NULL,          NULL}
 };
@@ -882,7 +907,8 @@ static PyMethodDef ubuf_module_methods[] = {
 
 
 static PyMemberDef ubuf_members[] = {
-    {"softspace",  T_INT, offsetof(ubuf, softspace), 0, NULL},
+    {"softspace",  T_INT, offsetof(ubuf, softspace), 0,
+    "Used by the print statement for bookkeeping"},
 
     {NULL}
 };
@@ -892,32 +918,32 @@ static PyMemberDef ubuf_members[] = {
 static PyGetSetDef ubuf_getset[] = {
     {"changed",         (getter)ubuf_get_changed,
                         (setter)ubuf_set_changed,
-                        "has the buffer been modified?",
+                        "Has the buffer been modified?",
                         NULL},
 
     {"encoding",        (getter)ubuf_get_encoding,
                         (setter)ubuf_set_encoding,
-                        "encoding to use for this buffer",
+                        "Default encoding to use for this buffer when converting\nto or from byte strings",
                         NULL},
 
     {"gapsize",         (getter)ubuf_get_gapsize,
                         (setter)ubuf_set_err_notallowed,
-                        "size of the gap in the buffer",
+                        "The size of the gap in the buffer (mainly intended for debugging).",
                         NULL},
 
     {"gapstart",        (getter)ubuf_get_gapstart,
                         (setter)ubuf_set_err_notallowed,
-                        "location of the start of the gap in the buffer",
+                        "The location of the start of the gap in the buffer\n(mainly intended for debugging).",
                         NULL},
 
     {"read_only",       (getter)ubuf_get_read_only,
                         (setter)ubuf_set_read_only,
-                        "is the buffer marked read-only?",
+                        "Is the buffer marked read-only?",
                         NULL},
 
     {"tabdispwidth",    (getter)ubuf_get_tabdispwidth,
                         (setter)ubuf_set_tabdispwidth,
-                        "is the buffer marked read-only?",
+                        "How many columns does a tab represent?",
                         NULL},
 
     {NULL}
@@ -956,7 +982,7 @@ PyTypeObject ubuf_type = {
     0,                          /*tp_setattro*/
     0,                          /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,     /*tp_flags*/
-    0,                          /*tp_doc*/ 
+    ubuf_doc,                   /*tp_doc*/ 
     0,                          /*tp_traverse*/ 
     0,                          /*tp_clear*/   
     0,                          /*tp_richcompare*/
@@ -991,7 +1017,7 @@ initubuf(void)
         return;
         
     m = Py_InitModule3("ubuf", ubuf_module_methods,
-        "Unicode buffer-gap base type");
+        "Unicode buffer-gap editing buffer type");
 
     Py_INCREF(&ubuf_type);
     PyModule_AddObject(m, "ubuf", (PyObject *)&ubuf_type);

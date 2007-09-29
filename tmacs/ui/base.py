@@ -221,7 +221,8 @@ class UIBase(object):
     def illegalsequence(self, state=__tmacs__):
         """
         This command is run when an illegal or undecodable key
-        sequence is read/"""
+        sequence is read.
+        """
         return "[Illegal input sequence '%s']" % repr_keysym(state.evtval)
 
         

@@ -6,7 +6,7 @@ sys.modules['__tmacs__'] = imp.new_module('__tmacs__')
 import __tmacs__
 
 __tmacs__.__appname__ = "TMACS"
-__tmacs__.__version__ = "2.0dev1"
+__tmacs__.__version__ = "2.0dev2"
 
 from tmacs.ui.keys import *
 
