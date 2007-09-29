@@ -1,14 +1,14 @@
-==================
-TMACS Input System
-==================
+=============
+TMACS Keysyms
+=============
 
 :Author: Ty Sarna
-:Version: $Id: INPUT.txt,v 1.3 2007-09-22 16:20:34 tsarna Exp $
+:Version: $Id: KEYSYMS.txt,v 1.1 2007-09-29 01:41:22 tsarna Exp $
 
 .. contents ::
 
-Input
------
+Background
+----------
 
 From the point of view of the application proper, keyboard input comes
 in the form of unicode characters.  Both for regular characters, like
@@ -35,10 +35,10 @@ Keysyms
 To make describing input keys easier, TMACS has the notion of "Keysyms",
 a (unicode) string containing more human-readable descriptions of key
 sequences.  These can be converted back and forth to raw unicode strings.
-This is implemented by a pair of functions in the ``tmacs.ui.keysym``
+This is implemented by a pair of functions in the ``tmacs.ui.keys``
 module::
 
-    >>> from tmacs.ui.keysym import keysym, repr_keysym
+    >>> from tmacs.ui.keys import keysym, repr_keysym
 
 ``keysym`` converts the friendly "keysym" form to a regular unicode
 string, and ``repr_keysym`` converts back to the friendly form.
@@ -116,22 +116,37 @@ Of course, trying to use the special characters alone won't work::
         ...
     ValueError: Unterminated [] key symbol
     
-repr
+Getting keysms back from a raw unicode string is done with `repr_keysym()`.
+For normal characters in a string it just passes them through::
 
+    >>> repr_keysym(u'x')
+    u'x'
+    >>> repr_keysym(u'abc')
+    u'abc'
 
-Input Chain
------------
+Control characters are converted as one would expect::
 
-The input side works like this::
+    >>> repr_keysym(u'\r\n\a')
+    u'<^M><^J><^G>'
 
-    (...Something...)-->TermioscapInput--->UI
+The TMACS-defined key name characters are expanded::
 
-Something at a lower level interfaces with the event loop.  reads raw
-input bytes and other events and sends them to the platform-specific
-TermioscapInput module, which runs a state machine to translate them to
-calls to an input method on WindowSystem as Unicode characters. 
-WindowSystem is the first platform-independant part of the input chain,
-and it is intended that stuff to the "left" of it would be replaced with
-something else in a non-Unix/TTY "platform". 
+    >>> repr_keysym(u'\uec43')
+    u'<Right>'
 
+Unicode characters outside the ASCII range are converted to square
+bracket numeric form, for clarity in identifying them::
+
+    >>> repr_keysym(u'\u0327')
+    u'[0327]'
+
+Finally the characters used for keysym syntax are quoted::
+
+    >>> repr_keysym(u"<>[]")
+    u'<LT><GT><[><]>'
+
+Of course these can all be mixed together::
+
+    >>> repr_keysym(u"a\u0329bc\rx[y]z<\uec43>!")
+    u'a[0329]bc<^M>x<[>y<]>z<LT><Right><GT>!'
 

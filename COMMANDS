@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.2 2007-09-28 21:31:13 tsarna Exp $
+$Id: COMMANDS,v 1.3 2007-09-29 01:41:21 tsarna Exp $
 
 Buffer				API
 
@@ -76,6 +76,12 @@ buffer-position          M-^[
 insert-file              ^X^I
 fill-paragraph           M-Q
 next-buffer              ^XX	ui.nextbuffer()				K
+scroll-next-down         M-^V
+scroll-next-up           M-^Z
+move-window-down         ^X^N
+move-window-up           ^X^P
+next-page                ^V
+previous-page            M-V
 
 UI
 
@@ -90,8 +96,6 @@ universal-argument       ^U	ui.uniarg()				K
 exit-emacs               ^X^C	ui.quit()				K
 execute-named-command    M-X	ui.executecmd()				K
 grow-window              ^X^	view.growwindow()			K
-move-window-down         ^X^N
-move-window-up           ^X^P
 next-window              ^XO	ui.nextwindow()				K
 previous-window          ^XP	ui.prevwindow()				K
 quick-exit               ^Z	ui.quickexit()				K
@@ -100,9 +104,7 @@ select-buffer            ^XB
 split-current-window     ^X2	ui.splitwindow()			K
 shrink-window            ^X^Z	view.shrinkwindow()			K
 update-screen			ui.refresh()				K
-next-page                ^V
 nop                      M-FNC	ui.nop()				K
-previous-page            M-V
 write-message			ui.write_message() (needs anno)		C
 
 MODES
@@ -150,8 +152,6 @@ kill-to-end-of-line      ^K
 pipe-command             ^X@
 re-tag-word
 redraw-display           M-^L
-scroll-next-down         M-^V
-scroll-next-up           M-^Z
 set                      ^XA
 shell-command            ^X!
 suspend-emacs            ^XD

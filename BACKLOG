@@ -1,13 +1,15 @@
-$Id: BACKLOG,v 1.1 2007-09-28 22:25:54 tsarna Exp $
+$Id: BACKLOG,v 1.2 2007-09-29 01:41:21 tsarna Exp $
 
 Needed for 2.0
 --------------
+charcell unit tests
 
+termioscap -- move more to C
+scrolly commands (pageing and scroll up/down)
 buffer attributes work: set and sniff
 ubuf doc strings
 marker doc strings
 marker work: displaycol attr and finish autoadjust
-charcell unit tests
 searching
 macros
 window resize works
