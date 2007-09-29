@@ -1,8 +1,7 @@
-$Id: TODO,v 1.46 2007-09-28 22:25:54 tsarna Exp $
+$Id: TODO,v 1.47 2007-09-29 01:48:03 tsarna Exp $
 
 termioscap:
     decode_and_send: split multiple chars into separate queues
-    timeout at the c level (make cb an attr and clear it)
     implement doRead at the C level
 
 tcui:

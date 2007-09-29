@@ -6,7 +6,6 @@ import os, __tmacs__, traceback
 import sys
 
 class TCLayer(_tclayer):
-    cb = None
     count = 0
 
     def __init__(self, fd, reactor, term=None, termenc="utf8"):
@@ -23,16 +22,11 @@ class TCLayer(_tclayer):
             self.reactor.crash()
 
         r = self.reactor
-        if self.cb is None:
-            self.cb = r.callLater(0.2, self.timeout)
+        if self.callback is None:
+            self.callback = r.callLater(0.2, self.timeout)
         else:
-            self.cb.reset(0.2)
+            self.callback.reset(0.2)
 
-    def timeout(self):
-        #print >>sys.stderr, "TIMEOUT"
-        self.cb = None
-        super(TCLayer, self).timeout()
-            
     def write(self, data):
         os.write(self.fileno(), data.encode('utf8'))
 

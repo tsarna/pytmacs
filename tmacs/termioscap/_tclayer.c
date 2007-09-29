@@ -33,6 +33,7 @@ typedef struct {
     PyObject *map;
     PyObject *curmap;
     PyObject *reactor;
+    PyObject *callback;
 
     struct termios old_termios;
     struct termios new_termios;
@@ -709,6 +710,10 @@ tclayer_feed(tclayer *self, PyObject *args)
 static PyObject *
 tclayer_timeout(tclayer *self, PyObject *args)
 {
+    /* clear timeout since it expired*/
+    Py_XDECREF(self->callback);
+    self->callback = NULL;
+    
     if (self->inholdlen) {
         if (!decode_and_send(self)) {
             return NULL;
@@ -723,6 +728,9 @@ tclayer_timeout(tclayer *self, PyObject *args)
 static PyMemberDef tclayer_members[] = {
     {"reactor", T_OBJECT, offsetof(tclayer, reactor),
         READONLY, "I/O reactor instance"},
+    
+    {"callback", T_OBJECT, offsetof(tclayer, callback),
+        0, "Timeout callback"},
     
     {"map", T_OBJECT, offsetof(tclayer, map),
         READONLY, "Input byte translation map tree"},
