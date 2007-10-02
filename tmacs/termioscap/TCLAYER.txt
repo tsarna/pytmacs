@@ -3,7 +3,7 @@ Termioscap Translation Layer
 ============================
 
 :Author: Ty Sarna
-:Version: $Id: TCLAYER.txt,v 1.1 2007-10-02 23:26:34 tsarna Exp $
+:Version: $Id: TCLAYER.txt,v 1.2 2007-10-02 23:45:18 tsarna Exp $
 
 .. contents ::
 
@@ -36,13 +36,13 @@ The TCLayer class is provided by the tmacs.termioscap package::
 Now we create the TCLayer. Note the "Readed added" output -- that's from
 the `addReader()` method of the `FakeReactor`::
     
-    >>> tc = TCLayer(f1, r, 'vt100', 'utf8')
+    >>> tc = TCLayer(f1, 1, r, 'vt100', 'utf8')
     Reader added
 
 Note that because of restrictions in the underlying POSIX facilities,
 only one TCLayer can be created::
 
-    >>> tc2 = TCLayer(f1, r, 'vt100', 'utf8')
+    >>> tc2 = TCLayer(f1, 1, r, 'vt100', 'utf8')
     Traceback (most recent call last):
         ...
     OSError: only one instance allowed due to termcap

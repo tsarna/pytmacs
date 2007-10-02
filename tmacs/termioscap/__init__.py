@@ -8,10 +8,9 @@ import sys
 class TCLayer(_tclayer):
     count = 0
 
-    def __init__(self, fd, reactor, term=None, termenc="utf8"):
+    def __init__(self, ifd, ofd, reactor, term=None, termenc="utf8"):
         self.queue = Queue(500)
-        _tclayer.__init__(self, fd, reactor, term, termenc)
-        reactor.addReader(self)
+        _tclayer.__init__(self, ifd, ofd, reactor, term, termenc)
         self.ungotten = []
 
     def doRead(self):
@@ -76,7 +75,7 @@ class TCUI(TCLayer, CharCellUI):
     #activechar = u"\xbb"
         
     def __init__(self, reactor):
-        TCLayer.__init__(self, sys.stdin.fileno(), reactor)
+        TCLayer.__init__(self, sys.stdin.fileno(), sys.stdout.fileno(), reactor)
         CharCellUI.__init__(self)
         self.windows = []
 

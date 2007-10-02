@@ -49,7 +49,7 @@ typedef struct {
     
     int li, co;
     
-    int fd;
+    int ifd, ofd;
     int enclen;
 } tclayer;
 
@@ -176,7 +176,7 @@ window_size(tclayer *self)
     ws.ws_row = self->li;
     ws.ws_col = self->co;
     
-    if (ioctl(self->fd, TIOCGWINSZ, &ws) >= 0) {
+    if (ioctl(self->ifd, TIOCGWINSZ, &ws) >= 0) {
         self->li = ws.ws_row;
         self->co = ws.ws_col;
     }
@@ -430,6 +430,11 @@ termcap_init(tclayer *self, char *term, char *termenc)
         }
     }
     
+    if (!PyObject_CallMethod((PyObject *)self->reactor,
+    "addReader", "(O)", self)) {
+        return 0;
+    }
+    
     return 1;
 }
 
@@ -438,13 +443,13 @@ termcap_init(tclayer *self, char *term, char *termenc)
 static int
 termios_init(tclayer *self)
 {
-    if (isatty(self->fd)) {
-        tcgetattr(self->fd, &(self->old_termios));
+    if (isatty(self->ifd)) {
+        tcgetattr(self->ifd, &(self->old_termios));
 
         self->new_termios = self->old_termios;
         cfmakeraw(&(self->new_termios));
     
-        tcsetattr(0, TCSASOFT | TCSAFLUSH, &(self->new_termios));
+        tcsetattr(self->ifd, TCSASOFT | TCSAFLUSH, &(self->new_termios));
     }
     
     return 1;
@@ -465,7 +470,7 @@ output_init(tclayer *self)
 static int
 termios_cleanup(tclayer *self)
 {
-    if (isatty(self->fd)) {
+    if (isatty(self->ifd)) {
         tcsetattr(0, TCSASOFT | TCSAFLUSH, &(self->old_termios));
     }
     
@@ -489,8 +494,8 @@ tclayer_init(tclayer *self, PyObject *args, PyObject *kwds)
 {
     char *term = NULL, *termenc = NULL;
 
-    if (!PyArg_ParseTuple(args, "iO|zz",
-        &(self->fd), &(self->reactor), &term, &termenc)) {
+    if (!PyArg_ParseTuple(args, "iiO|zz",
+        &(self->ifd), &(self->ofd), &(self->reactor), &term, &termenc)) {
 
         goto failnew;
     }
@@ -535,7 +540,7 @@ putpad(tclayer *self, const char *str)
 {
     tputs(str, 1, ttputc);
     
-    write(self->fd, thelayer->obuf, thelayer->obuflen);
+    write(self->ofd, thelayer->obuf, thelayer->obuflen);
 
     thelayer->obuflen = 0;
 }
@@ -644,7 +649,7 @@ tclayer_cleanup(tclayer *self, PyObject *args)
 static PyObject *
 tclayer_fileno(tclayer *self, PyObject *args)
 {
-    return Py_BuildValue("i", self->fd);
+    return Py_BuildValue("i", self->ifd);
 }
 
 
