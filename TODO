@@ -1,10 +1,8 @@
-$Id: TODO,v 1.48 2007-09-29 04:19:24 tsarna Exp $
+$Id: TODO,v 1.49 2007-10-02 23:27:16 tsarna Exp $
 
 termioscap:
-    decode_and_send: split multiple chars into separate queues
     implement doRead at the C level
     implement tclayer write w/ unicode encode
-    write termioscap docsand tests
     docstrings
 
 baseui:
