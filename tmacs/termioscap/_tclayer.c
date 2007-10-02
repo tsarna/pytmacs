@@ -231,11 +231,25 @@ static int
 decode_and_send(tclayer *self)
 {
     PyObject *o = NULL, *args = NULL, *ret = NULL;
+    Py_ssize_t l, i;
     
     o = PyUnicode_Decode((char *)self->inhold, self->inholdlen, "utf8", "strict");
     if (o) {
-        ret = PyObject_CallMethod((PyObject *)self, "postevent", "((Os))",
-            o, NULL);
+        l = PyUnicode_GET_SIZE(o);
+        if (l == 1) {
+            ret = PyObject_CallMethod((PyObject *)self, "postevent", "((Os))",
+                o, NULL);
+        } else {
+            /* need to split into individual character events */
+            i = 0;
+            ret = Py_None;
+            while (ret && (i < l)) {
+                ret = PyObject_CallMethod((PyObject *)self, "postevent", "((u#s))",
+                    &(PyUnicode_AS_UNICODE(o)[i]), 1, NULL);
+                i++;
+                Py_XDECREF(ret);
+            }
+        }
     } else {
         PyErr_Clear();
         return illegal_sequence(self);
@@ -451,7 +465,9 @@ output_init(tclayer *self)
 static int
 termios_cleanup(tclayer *self)
 {
-    tcsetattr(0, TCSASOFT | TCSAFLUSH, &(self->old_termios));
+    if (isatty(self->fd)) {
+        tcsetattr(0, TCSASOFT | TCSAFLUSH, &(self->old_termios));
+    }
     
     return 1;
 }
@@ -688,12 +704,18 @@ tclayer_feed(tclayer *self, PyObject *args)
                     self->curmap = o;
                 }
             } else if (o == Py_None) {
-                self->inholdlen--;
-                if (!decode_and_send(self)) {
-                    return NULL;
-                }
+                if (self->inholdlen > 1) {
+                    self->inholdlen--;
+                    if (!decode_and_send(self)) {
+                        return NULL;
+                    }
 
-                continue;   /* retry */
+                    continue;   /* retry w/ current character */
+                } else {
+                    if (!decode_and_send(self)) {
+                        return NULL;
+                    }
+                }
             } else if (PyInt_CheckExact(o)) {
                 self->enclen = PyInt_AS_LONG(o);
             }
@@ -713,7 +735,7 @@ tclayer_timeout(tclayer *self, PyObject *args)
     /* clear timeout since it expired*/
     Py_XDECREF(self->callback);
     self->callback = NULL;
-    
+
     if (self->inholdlen) {
         if (!decode_and_send(self)) {
             return NULL;

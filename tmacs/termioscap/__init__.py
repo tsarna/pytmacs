@@ -12,6 +12,7 @@ class TCLayer(_tclayer):
         self.queue = Queue(500)
         _tclayer.__init__(self, fd, reactor, term, termenc)
         reactor.addReader(self)
+        self.ungotten = []
 
     def doRead(self):
         try:
@@ -49,6 +50,9 @@ class TCLayer(_tclayer):
         self.queue.task_done()
         return ev
 
+    def ungetevent(self, ev):
+        self.ungotten.append(ev)
+
     def waitevent(self, secs):
         if self.ungotten:
             return True
@@ -75,10 +79,6 @@ class TCUI(TCLayer, CharCellUI):
         TCLayer.__init__(self, sys.stdin.fileno(), reactor)
         CharCellUI.__init__(self)
         self.windows = []
-        self.ungotten = []
-
-    def ungetevent(self, ev):
-        self.ungotten.append(ev)
 
     @command
     def forceredraw(self):

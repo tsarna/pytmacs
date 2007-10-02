@@ -1,4 +1,4 @@
-# $Id: test_tmacs.py,v 1.7 2007-09-29 01:41:21 tsarna Exp $
+# $Id: test_tmacs.py,v 1.8 2007-10-02 23:26:32 tsarna Exp $
 
 def additional_tests():
     import doctest
@@ -15,7 +15,7 @@ def additional_tests():
        'tmacs/ui/KEYSYMS.txt',
        'tmacs/ui/KEYMAP.txt',
        'tmacs/ui/CHARCELL.txt',
-#       'tmacs/termioscap/README.txt',
+       'tmacs/termioscap/TCLAYER.txt',
         optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE,
     )
 

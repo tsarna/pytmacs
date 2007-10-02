@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.3 2007-09-29 01:41:21 tsarna Exp $
+$Id: COMMANDS,v 1.4 2007-10-02 23:26:32 tsarna Exp $
 
 Buffer				API
 
@@ -65,10 +65,14 @@ replace-string           M-R
 
 VIEW
 
+copy-region              M-W
+yank                     ^Y
 quote-character          ^Q
+kill-paragraph           M-^W
+kill-region              ^W
+kill-to-end-of-line      ^K
 case-region-lower        ^X^L	view.regionlower()			K
 case-region-upper        ^X^U	view.regionupper()			K
-copy-region              M-W
 count-words              M-^C
 exchange-point-and-mark  ^X^X	view.swapdotandmark()			K
 set-mark                 M- 	view.setmark()				K
@@ -146,9 +150,6 @@ execute-file
 find-file                ^X^F
 help                     M-?
 i-shell
-kill-paragraph           M-^W
-kill-region              ^W
-kill-to-end-of-line      ^K
 pipe-command             ^X@
 re-tag-word
 redraw-display           M-^L
@@ -158,7 +159,6 @@ suspend-emacs            ^XD
 tag-word                 M-T
 view-file                ^X^V
 wrap-word                M-FNW
-yank                     ^Y
 
 NOT GOING TO IMPLEMENT
 

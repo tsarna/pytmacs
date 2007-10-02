@@ -1,0 +1,212 @@
+============================
+Termioscap Translation Layer
+============================
+
+:Author: Ty Sarna
+:Version: $Id: TCLAYER.txt,v 1.1 2007-10-02 23:26:34 tsarna Exp $
+
+.. contents ::
+
+Intro
+-----
+
+The tmacs.termioscap (short for termios+termcap) layer is the low-level
+platform specific part of the character cell editing user interface.
+It deals with setting terminal modes, using information from the termcap
+(or terminfo) database to provide terminal-independant terminal
+functions, and converting from multibyte sequences to since characters
+for cursor keys and the like.
+
+For testing we will use a pipe to run the layer on so we can control the
+input and check the output::
+
+    >>> import os
+    >>> f1, f2 = os.pipe()
+
+We also need a reactor. Since we are testing TCLayer and not the
+reactor, we'll use a fake one that will do our bidding::
+
+    >>> from tmacs.termioscap.test import FakeReactor
+    >>> r = FakeReactor()
+
+The TCLayer class is provided by the tmacs.termioscap package::
+        
+    >>> from tmacs.termioscap import TCLayer
+
+Now we create the TCLayer. Note the "Readed added" output -- that's from
+the `addReader()` method of the `FakeReactor`::
+    
+    >>> tc = TCLayer(f1, r, 'vt100', 'utf8')
+    Reader added
+
+Note that because of restrictions in the underlying POSIX facilities,
+only one TCLayer can be created::
+
+    >>> tc2 = TCLayer(f1, r, 'vt100', 'utf8')
+    Traceback (most recent call last):
+        ...
+    OSError: only one instance allowed due to termcap
+    
+
+Input
+-----
+
+The TCLayer will have a Queue for events::
+
+    >>> tc.queue
+    <Queue.Queue instance at ...>
+
+There will be an event pending at the start::
+
+    >>> tc.evpending()
+    True
+
+Which is a the initial `<WindowResize>`::
+
+    >>> from tmacs.ui.keys import repr_keysym
+    >>> ev = tc.getevent()
+    >>> (repr_keysym(ev[0]), ev[1])
+    (u'<WindowResize>', (80, 24))
+
+Now that we got it, there will not be another event pending::
+
+    >>> tc.evpending()
+    False
+    
+Simple characters input translate thrrough directly::
+
+    >>> os.write(f2, "x")
+    1
+    >>> tc.doRead()
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> ev
+    (u'x', None)
+
+Events are always a 2-tuple of a single unicode character event code and
+an associated value or None.
+
+There is an "unget" facility for peeking ahead input. If we unget this
+event, it will become pending again and we can re-read it::
+
+    >>> tc.evpending()
+    False
+    >>> tc.ungetevent(ev)
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> ev
+    (u'x', None)
+    >>> tc.evpending()
+    False
+
+Since we set utf8 as the terminal encoding, we can feed the layer utf8
+byte sequences and receive back the single character::
+
+    >>> seq = u'\u2550'.encode('utf8')
+    >>> os.write(f2, seq)
+    3
+    >>> tc.doRead()
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> ev
+    (u'\u2550', None)
+    >>> tc.evpending()
+    False
+     
+The bytes don't have to all arrive at once, either::
+
+    >>> os.write(f2, seq[0])
+    1
+    >>> tc.doRead()
+    >>> os.write(f2, seq[1:])
+    2
+    >>> tc.doRead()
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> ev
+    (u'\u2550', None)
+    >>> tc.evpending()
+    False
+
+Although they must arrive before the timeout fires::
+
+    >>> os.write(f2, seq[:2])
+    2
+    >>> tc.doRead()
+    >>> r.itsLater() # causes previous callback to expire & fire
+    >>> os.write(f2, seq[2:])
+    1
+    >>> tc.doRead()
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> (repr_keysym(ev[0]), ev[1])
+    (u'<IllegalSequence>', '\xe2\x95')
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> (repr_keysym(ev[0]), ev[1])
+    (u'<IllegalSequence>', '\x90')
+    >>> tc.evpending()
+    False
+
+Cursor (and other special) key sequences work similarly::
+
+    >>> seq = '\x1b[B'
+    >>> os.write(f2, seq)
+    3
+    >>> tc.doRead()
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> (repr_keysym(ev[0]), ev[1])
+    (u'<Down>', None)
+    >>> tc.evpending()
+    False
+
+These bytes don't have to all arrive at once, either::
+
+    >>> os.write(f2, seq[0])
+    1
+    >>> tc.doRead()
+    >>> os.write(f2, seq[1:])
+    2
+    >>> tc.doRead()
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> (repr_keysym(ev[0]), ev[1])
+    (u'<Down>', None)
+    >>> tc.evpending()
+    False
+
+But they too must arrive before the timeout fires::
+
+    >>> os.write(f2, seq[:2])
+    2
+    >>> tc.doRead()
+    >>> r.itsLater() # causes previous callback to expire & fire
+    >>> os.write(f2, seq[2:])
+    1
+    >>> tc.doRead()
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> (repr_keysym(ev[0]), ev[1])
+    (u'<ESC>', None)
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> (repr_keysym(ev[0]), ev[1])
+    (u'<[>', None)
+    >>> tc.evpending()
+    True
+    >>> ev = tc.getevent()
+    >>> (repr_keysym(ev[0]), ev[1])
+    (u'B', None)
+    >>> tc.evpending()
+    False

@@ -1,4 +1,4 @@
-$Id: BACKLOG,v 1.3 2007-09-29 04:19:24 tsarna Exp $
+$Id: BACKLOG,v 1.4 2007-10-02 23:26:32 tsarna Exp $
 
 Needed for 2.0
 --------------
@@ -6,7 +6,6 @@ charcell unit tests
 termioscap -- move more to C
 scrolly commands (pageing and scroll up/down)
 buffer attributes work: set and sniff
-ubuf doc strings
 marker doc strings
 marker work: displaycol attr and finish autoadjust
 searching
