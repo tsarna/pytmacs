@@ -14,11 +14,7 @@ class TCLayer(_tclayer):
         self.ungotten = []
 
     def doRead(self):
-        try:
-            super(TCLayer, self).doRead()
-        except:
-            sys.stderr.write(''.join(traceback.format_exception(*sys.exc_info())))
-            self.reactor.crash()
+        super(TCLayer, self).doRead()
 
         r = self.reactor
         if self.callback is None:

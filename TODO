@@ -1,7 +1,8 @@
-$Id: TODO,v 1.49 2007-10-02 23:27:16 tsarna Exp $
+$Id: TODO,v 1.50 2007-10-03 00:09:09 tsarna Exp $
 
 termioscap:
     implement doRead at the C level
+	need to get termenc from environment
     implement tclayer write w/ unicode encode
     docstrings
 
