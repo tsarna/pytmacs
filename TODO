@@ -1,10 +1,8 @@
-$Id: TODO,v 1.51 2007-10-03 02:58:53 tsarna Exp $
+$Id: TODO,v 1.52 2007-10-03 15:02:04 tsarna Exp $
 
 termioscap:
-    need to get termenc from environment
     cache timeout method pointer
     implement tclayer write w/ unicode encode
-    docstrings
 
 baseui:
     bindkey unbindkey describe_bindings

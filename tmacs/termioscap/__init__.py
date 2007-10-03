@@ -1,16 +1,15 @@
-# $Id: __init__.py,v 1.15 2007-10-03 03:02:49 tsarna Exp $
+# $Id: __init__.py,v 1.16 2007-10-03 15:02:06 tsarna Exp $
 
 from tmacs.termioscap._tclayer import _tclayer
 from tmacs.ui.charcell import CharCellUI
 from tmacs.app.commands import *
 from Queue import Queue, Full, Empty
-import os, __tmacs__, traceback
-import sys
+import sys, os, __tmacs__, traceback
 
 class TCLayer(_tclayer):
     count = 0
 
-    def __init__(self, ifd, ofd, reactor, term=None, termenc="utf8"):
+    def __init__(self, ifd, ofd, reactor, term=None, termenc=None):
         self.queue = Queue(500)
         _tclayer.__init__(self, ifd, ofd, reactor, term, termenc)
         self.ungotten = []

@@ -13,7 +13,7 @@ def main(argv, environ):
 
     __tmacs__.ui = ui = TCUI(reactor)
         
-    c = environ.get('TMACS_FILE_CODING', 'utf8')
+    c = environ.get('TMACS_FILE_ENCODING', 'utf8')
     __tmacs__.default_encoding = c
 
     exc = runRCFile(__tmacs__)

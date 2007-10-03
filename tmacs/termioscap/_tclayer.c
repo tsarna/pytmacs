@@ -1,4 +1,4 @@
-/* $Id: _tclayer.c,v 1.14 2007-10-03 14:54:52 tsarna Exp $ */
+/* $Id: _tclayer.c,v 1.15 2007-10-03 15:02:06 tsarna Exp $ */
 
 #include <Python.h>
 #include "structmember.h"
@@ -513,6 +513,7 @@ tclayer_init(tclayer *self, PyObject *args, PyObject *kwds)
     }
     
     term = term ? term : getenv("TERM");
+    termenc = termenc? termenc : getenv("TMACS_TERM_ENCODING");
     termenc = termenc? termenc : "utf8";
 
     if (termcap_init(self, term, termenc)) {
