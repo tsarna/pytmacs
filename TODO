@@ -1,7 +1,6 @@
-$Id: TODO,v 1.52 2007-10-03 15:02:04 tsarna Exp $
+$Id: TODO,v 1.53 2007-10-03 15:07:48 tsarna Exp $
 
 termioscap:
-    cache timeout method pointer
     implement tclayer write w/ unicode encode
 
 baseui:

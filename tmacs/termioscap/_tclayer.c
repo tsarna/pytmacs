@@ -1,4 +1,4 @@
-/* $Id: _tclayer.c,v 1.15 2007-10-03 15:02:06 tsarna Exp $ */
+/* $Id: _tclayer.c,v 1.16 2007-10-03 15:07:50 tsarna Exp $ */
 
 #include <Python.h>
 #include "structmember.h"
@@ -37,6 +37,7 @@ typedef struct {
     PyObject *curmap;
     PyObject *reactor;
     PyObject *callback;
+    PyObject *timeout;
 
     struct termios old_termios;
     struct termios new_termios;
@@ -105,6 +106,8 @@ tclayer_dealloc(tclayer *self)
 {
     Py_XDECREF(self->map);
     Py_XDECREF(self->reactor);
+    Py_XDECREF(self->callback);
+    Py_XDECREF(self->timeout);
     
     self->ob_type->tp_free((PyObject *)self);
     
@@ -519,7 +522,12 @@ tclayer_init(tclayer *self, PyObject *args, PyObject *kwds)
     if (termcap_init(self, term, termenc)) {
         if (termios_init(self)) {
             if (output_init(self)) {
-                return 0;
+                self->timeout = PyObject_GetAttrString((PyObject *)self,
+                    "timeout");
+
+                if (self->timeout) {
+                    return 0;
+                }
             }
         }
     }
@@ -669,26 +677,8 @@ PyDoc_STRVAR(tclayer_cleanup_doc,
 static PyObject *
 tclayer_cleanup(tclayer *self, PyObject *args)
 {
-    PyObject *o = NULL, *a = NULL, *ret = NULL;
-
     output_cleanup(self);
     termios_cleanup(self);
-
-    o = PyObject_GetAttrString(self->reactor, "stop");
-    if (o && PyCallable_Check(o)) {
-        a = PyTuple_New(0);
-        if (a) {
-            ret = PyObject_CallObject(o, a);
-        }
-    }
-
-    Py_XDECREF(o);
-    Py_XDECREF(a);
-    Py_XDECREF(ret);
-    
-    if (!ret) {
-        return NULL;
-    }
 
     Py_RETURN_NONE;
 }
@@ -809,7 +799,7 @@ tclayer_doRead(tclayer *self, PyObject *args)
     unsigned char inbuf[IBUFSIZ];
     Py_ssize_t inlen;
     Timeout timo;
-    PyObject *ret, *o;
+    PyObject *ret;
     
     inlen = read(self->ifd, inbuf, IBUFSIZ);
     if (inlen < 0) {
@@ -845,15 +835,10 @@ tclayer_doRead(tclayer *self, PyObject *args)
                 }
             }
             
-            o = PyObject_GetAttrString((PyObject *)self, "timeout");
-            if (o) {
-                ret = PyObject_CallMethod(self->reactor,
-                    "callLater", "(dO)", timeouts[timo], o);
-                if (ret) {
-                    self->callback = ret;
-                } else {
-                    return NULL;
-                }
+            ret = PyObject_CallMethod(self->reactor,
+                "callLater", "(dO)", timeouts[timo], self->timeout);
+            if (ret) {
+                self->callback = ret;
             } else {
                 return NULL;
             }
