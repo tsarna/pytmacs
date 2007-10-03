@@ -1,4 +1,4 @@
-/* $Id: _tclayer.c,v 1.13 2007-10-03 14:29:45 tsarna Exp $ */
+/* $Id: _tclayer.c,v 1.14 2007-10-03 14:54:52 tsarna Exp $ */
 
 #include <Python.h>
 #include "structmember.h"
@@ -660,6 +660,11 @@ tclayer_nostandout(tclayer *self, PyObject *args)
 
 
 
+PyDoc_STRVAR(tclayer_cleanup_doc,
+"Restore terminal to previous state in preparation for exit");
+
+
+
 static PyObject *
 tclayer_cleanup(tclayer *self, PyObject *args)
 {
@@ -689,11 +694,23 @@ tclayer_cleanup(tclayer *self, PyObject *args)
 
 
 
+PyDoc_STRVAR(tclayer_fileno_doc,
+"Return the input file descriptor number. Used by the reactor.");
+
+
+
 static PyObject *
 tclayer_fileno(tclayer *self, PyObject *args)
 {
     return Py_BuildValue("i", self->ifd);
 }
+
+
+
+PyDoc_STRVAR(tclayer_got_SIGWINCH_doc,
+"Clients of _TCLayer should arrange to have this method called\n\
+when SIGWINCH occurs, so that _TCLayer can update its idea of\n\
+the terminal's size.");
 
 
 
@@ -777,6 +794,14 @@ tclayer_feed(tclayer *self, unsigned char *inbuf, Py_ssize_t inlen)
 
 
 
+PyDoc_STRVAR(tclayer_doRead_doc,
+"The reactor calls this method to indicate new input for reading.\n\
+doRead will consume it, run its state machine, and call postevent\n\
+on itself to queue events for the client. (postevent() must be\n\
+defined in a subclass.)");
+
+
+
 static PyObject *
 tclayer_doRead(tclayer *self, PyObject *args)
 {
@@ -839,6 +864,12 @@ tclayer_doRead(tclayer *self, PyObject *args)
 
 
 
+PyDoc_STRVAR(tclayer_timeout_doc,
+"Through the reactor, _TCLayer will arrange to have this method called\n\
+some time after input is read to handle partial input sequences.");
+
+
+
 static PyObject *
 tclayer_timeout(tclayer *self, PyObject *args)
 {
@@ -897,14 +928,25 @@ static PyMethodDef tclayer_methods[] = {
     {"nostandout",  (PyCFunction)tclayer_nostandout,    METH_NOARGS,
         tclayer_nostandout_doc},
 
-    {"cleanup",     (PyCFunction)tclayer_cleanup,       METH_NOARGS},
-    {"fileno",      (PyCFunction)tclayer_fileno,        METH_NOARGS},
-    {"got_SIGWINCH",(PyCFunction)tclayer_got_SIGWINCH,  METH_NOARGS},
-    {"doRead",      (PyCFunction)tclayer_doRead,        METH_NOARGS},
-    {"timeout",     (PyCFunction)tclayer_timeout,       METH_NOARGS},
+    {"cleanup",     (PyCFunction)tclayer_cleanup,       METH_NOARGS,
+        tclayer_cleanup_doc},
+        
+    {"fileno",      (PyCFunction)tclayer_fileno,        METH_NOARGS,
+        tclayer_fileno_doc},
+        
+    {"got_SIGWINCH",(PyCFunction)tclayer_got_SIGWINCH,  METH_NOARGS,
+        tclayer_got_SIGWINCH_doc},
+        
+    {"doRead",      (PyCFunction)tclayer_doRead,        METH_NOARGS,
+        tclayer_doRead_doc},
+        
+    {"timeout",     (PyCFunction)tclayer_timeout,       METH_NOARGS,
+        tclayer_timeout_doc},
 
     {NULL,          NULL}
 };
+
+
 
 PyDoc_STRVAR(tclayer_doc,
 "tclayer(infd, outfd, reactor, [terminaltype, [termencoding]])\n\
