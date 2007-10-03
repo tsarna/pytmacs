@@ -10,6 +10,16 @@ from bisect import insort_right
 from time import sleep, time
 from errno import EINTR
 
+CANCELED, ACTIVE, CALLED = -1, 0, 1
+
+class AlreadyCalled(Exception):
+    """DelayedCall was already called"""
+
+    
+class AlreadyCanceled(Exception):
+    """DelayedCall was canceled"""
+    
+    
 class UntwistedReactor(object):
     """Primitive partial replacement for 'twisted.internet.reactor'"""
 
@@ -23,10 +33,10 @@ class UntwistedReactor(object):
     checkInterval = 5
 
     def callLater(self, delay, callable, *args, **kw):
-        insort_right(self.laters, _Appt(time()+delay, callable, args, kw))
+        return _DelayedCall(time()+delay, self, callable, args, kw)
 
     def addReader(self, reader):
-        if reader not in self.readers: self.readers.append(reader)
+         if reader not in self.readers: self.readers.append(reader)
 
     def addWriter(self, writer):
         if writer not in self.writers: self.writers.append(writer)
@@ -45,6 +55,7 @@ class UntwistedReactor(object):
                 try:
                     self.iterate()
                 except:
+                    raise
                     pass # log it
         finally:
             self.running = False
@@ -93,17 +104,62 @@ class UntwistedReactor(object):
             sleep(delay)
 
 
-class _Appt(object):
+class _DelayedCall(object):
+    """callLater() result objects"""
 
-    """Simple "Appointment" for doing 'callLater()' invocations"""
+    __slots__ = 'time','reactor','state','func','args','kw'
 
-    __slots__ = 'time','func','args','kw'
-
-    def __init__(self,t,f,a,k):
-        self.time = t; self.func = f; self.args = a; self.kw = k
+    def __init__(self, t, r, f, a, k):
+        self.time = t; self.reactor = r; self.state = ACTIVE
+        self.func = f; self.args = a; self.kw = k
+        insort_right(r.laters, self)
 
     def __call__(self):
+        self.state = CALLED
         return self.func(*self.args, **self.kw)
 
     def __cmp__(self, other):
         return cmp(self.time, other.time)
+        
+    def active(self):
+        """Not canceled or called"""
+
+        return self.state == ACTIVE
+
+    def cancel(self):
+        """Don't run this delayed call"""
+        
+        if self.state == ACTIVE:
+            self.state = CANCELED
+            l = self.reactor.laters
+            l.remove(self)
+        elif self.state == CALLED:
+            raise AlreadyCalled
+        elif self.state == CANCELED:
+            raise AlreadyCanceled
+
+    def delay(self, delay):
+        """Reschedule for 'delay' seconds from current scheduled time"""
+
+        if self.state == ACTIVE:
+            self.time += delay
+            l = self.reactor.laters
+            l.remove(self)
+            insort_right(l, self)
+        elif self.state == CALLED:
+            raise AlreadyCalled
+        elif self.state == CANCELED:
+            raise AlreadyCanceled
+        
+    def reset(self, delay):
+        """Reschedule for 'delay' seconds from now"""
+
+        if self.state == ACTIVE:
+            self.time = time() + delay
+            l = self.reactor.laters
+            l.remove(self)
+            insort_right(l, self)
+        elif self.state == CALLED:
+            raise AlreadyCalled
+        elif self.state == CANCELED:
+            raise AlreadyCanceled

@@ -57,7 +57,7 @@ class UIBase(object):
                 self.refresh()
         
         self.cleanup()
-        self.reactor.crash()
+        self.reactor.stop()
 
     def cleanup(self):
         """

@@ -55,6 +55,14 @@ typedef struct {
 } tclayer;
 
 
+typedef enum Timeout {
+    TO_ERR, TO_NONE, TO_TRAVERSE, TO_ENCODE, TO_MAX
+} Timeout;
+
+static double timeouts[TO_MAX] = { /* correspond to the above */
+    0.0, 0.2, 0.2, 5.0
+};
+
 
 static tclayer *thelayer = NULL;
 
@@ -666,7 +674,7 @@ tclayer_got_SIGWINCH(tclayer *self, PyObject *args)
 
 
 
-static PyObject *
+static Timeout
 tclayer_feed(tclayer *self, unsigned char *inbuf, Py_ssize_t inlen)
 {
     PyObject *o, *ret;
@@ -676,11 +684,11 @@ tclayer_feed(tclayer *self, unsigned char *inbuf, Py_ssize_t inlen)
 
         if (self->inholdlen >= MAXINHOLD) {
             if (!illegal_sequence(self)) {
-                return NULL;
+                return TO_ERR;
             }
         } else if (self->enclen == self->inholdlen) {
             if (!decode_and_send(self)) {
-                return NULL;
+                return TO_ERR;
             }
         } else if (self->enclen > 0) {
             /* just wait until we get a whole multibyte seq */
@@ -697,8 +705,8 @@ tclayer_feed(tclayer *self, unsigned char *inbuf, Py_ssize_t inlen)
                     reset_input(self);
 
                     if (!ret) {
-                        return NULL;
-                    }                  
+                        return TO_ERR;
+                    }  
                 } else {
                     /* move to next map */
 
@@ -708,13 +716,13 @@ tclayer_feed(tclayer *self, unsigned char *inbuf, Py_ssize_t inlen)
                 if (self->inholdlen > 1) {
                     self->inholdlen--;
                     if (!decode_and_send(self)) {
-                        return NULL;
+                        return TO_ERR;
                     }
 
                     continue;   /* retry w/ current character */
                 } else {
                     if (!decode_and_send(self)) {
-                        return NULL;
+                        return TO_ERR;
                     }
                 }
             } else if (PyInt_CheckExact(o)) {
@@ -725,7 +733,13 @@ tclayer_feed(tclayer *self, unsigned char *inbuf, Py_ssize_t inlen)
         inbuf++; inlen--;
     }
 
-    Py_RETURN_NONE;
+    if (self->enclen) {
+        return TO_ENCODE;
+    } else if (self->curmap != self->map) {
+        return TO_TRAVERSE;
+    } else {
+        return TO_NONE;
+    }
 }
 
 
@@ -735,14 +749,59 @@ tclayer_doRead(tclayer *self, PyObject *args)
 {
     unsigned char inbuf[IBUFSIZ];
     Py_ssize_t inlen;
-    PyObject *ret;
+    Timeout timo;
+    PyObject *ret, *o;
     
     inlen = read(self->ifd, inbuf, IBUFSIZ);
     if (inlen < 0) {
         return PyErr_SetFromErrno(PyExc_IOError);
     } else {
-        return tclayer_feed(self, inbuf, inlen);
+        timo = tclayer_feed(self, inbuf, inlen);
+        if (timo == TO_ERR) {
+            if (self->callback) {
+                ret = PyObject_CallMethod(self->callback, "cancel", "()");
+                if (ret) {
+                    Py_DECREF(ret);
+                } else {
+                    PyErr_Clear();
+                }
+
+                Py_DECREF(self->callback);
+                self->callback = NULL;
+            }
+            
+            return NULL;
+        } else {
+            if (self->callback) {
+                ret = PyObject_CallMethod(self->callback,
+                    "reset", "(d)", timeouts[timo]);
+                if (ret) {
+                    Py_DECREF(ret);
+                    
+                    Py_RETURN_NONE;
+                } else {
+                    PyErr_Clear();
+                    Py_DECREF(self->callback);
+                    self->callback = NULL;
+                }
+            }
+            
+            o = PyObject_GetAttrString((PyObject *)self, "timeout");
+            if (o) {
+                ret = PyObject_CallMethod(self->reactor,
+                    "callLater", "(dO)", timeouts[timo], o);
+                if (ret) {
+                    self->callback = ret;
+                } else {
+                    return NULL;
+                }
+            } else {
+                return NULL;
+            }
+        }
     }
+
+    Py_RETURN_NONE;
 }
 
 
@@ -768,9 +827,6 @@ tclayer_timeout(tclayer *self, PyObject *args)
 static PyMemberDef tclayer_members[] = {
     {"reactor", T_OBJECT, offsetof(tclayer, reactor),
         READONLY, "I/O reactor instance"},
-    
-    {"callback", T_OBJECT, offsetof(tclayer, callback),
-        0, "Timeout callback"},
     
     {"map", T_OBJECT, offsetof(tclayer, map),
         READONLY, "Input byte translation map tree"},

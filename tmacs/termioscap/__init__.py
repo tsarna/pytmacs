@@ -13,15 +13,6 @@ class TCLayer(_tclayer):
         _tclayer.__init__(self, ifd, ofd, reactor, term, termenc)
         self.ungotten = []
 
-    def doRead(self):
-        super(TCLayer, self).doRead()
-
-        r = self.reactor
-        if self.callback is None:
-            self.callback = r.callLater(0.2, self.timeout)
-        else:
-            self.callback.reset(0.2)
-
     def write(self, data):
         os.write(self.fileno(), data.encode('utf8'))
 

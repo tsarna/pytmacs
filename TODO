@@ -1,8 +1,8 @@
-$Id: TODO,v 1.50 2007-10-03 00:09:09 tsarna Exp $
+$Id: TODO,v 1.51 2007-10-03 02:58:53 tsarna Exp $
 
 termioscap:
-    implement doRead at the C level
-	need to get termenc from environment
+    need to get termenc from environment
+    cache timeout method pointer
     implement tclayer write w/ unicode encode
     docstrings
 
