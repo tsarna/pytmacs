@@ -1,4 +1,4 @@
-# $Id: reactor.py,v 1.3 2007-10-03 03:02:47 tsarna Exp $
+# $Id: reactor.py,v 1.4 2007-10-03 14:29:45 tsarna Exp $
 
 # The following is derived from the PEAK UntwistedReactor as of
 # 12/28/2003, which carried the following copyright:
@@ -165,3 +165,8 @@ class _DelayedCall(object):
             raise AlreadyCalled
         elif self.state == CANCELED:
             raise AlreadyCanceled
+
+    def getTime(self):
+        """When will the delayed call happen?"""
+        
+        return self.time

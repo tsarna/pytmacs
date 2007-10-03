@@ -1,8 +1,8 @@
-$Id: BACKLOG,v 1.5 2007-10-03 02:58:53 tsarna Exp $
+$Id: BACKLOG,v 1.6 2007-10-03 14:29:43 tsarna Exp $
 
 Needed for 2.0
 --------------
-termioscap -- move more to C, docstrings, write
+termioscap -- docstrings, write
 charcell unit tests
 scrolly commands (pageing and scroll up/down)
 buffer attributes work: set and sniff

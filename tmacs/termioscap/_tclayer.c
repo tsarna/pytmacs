@@ -1,4 +1,4 @@
-/* $Id: _tclayer.c,v 1.12 2007-10-03 03:02:49 tsarna Exp $ */
+/* $Id: _tclayer.c,v 1.13 2007-10-03 14:29:45 tsarna Exp $ */
 
 #include <Python.h>
 #include "structmember.h"
@@ -559,6 +559,13 @@ putpad(tclayer *self, const char *str)
 
 
 
+PyDoc_STRVAR(tclayer_moveto_doc,
+"Move cursor to position (x,y) on the display.\n\
+\n\
+Counting starts from (0,0) in the upper left hand corner.");
+
+
+
 static PyObject *
 tclayer_moveto(tclayer *self, PyObject *args)
 {
@@ -575,6 +582,11 @@ tclayer_moveto(tclayer *self, PyObject *args)
 
 
 
+PyDoc_STRVAR(tclayer_eeol_doc,
+"Erase from the current cursor position to the end of the line.");
+
+
+
 static PyObject *
 tclayer_eeol(tclayer *self, PyObject *args)
 {
@@ -582,6 +594,10 @@ tclayer_eeol(tclayer *self, PyObject *args)
     
     Py_RETURN_NONE;
 }
+
+
+PyDoc_STRVAR(tclayer_eeop_doc,
+"Erase from the current cursor position to the end of the screen.");
 
 
 
@@ -595,6 +611,11 @@ tclayer_eeop(tclayer *self, PyObject *args)
 
 
 
+PyDoc_STRVAR(tclayer_beep_doc,
+"Beep the terminal.");
+
+
+
 static PyObject *
 tclayer_beep(tclayer *self, PyObject *args)
 {
@@ -605,6 +626,11 @@ tclayer_beep(tclayer *self, PyObject *args)
 
 
 
+PyDoc_STRVAR(tclayer_standout_doc,
+"Enter 'standout' (generally reverse-video) mode.");
+
+
+
 static PyObject *
 tclayer_standout(tclayer *self, PyObject *args)
 {
@@ -612,6 +638,11 @@ tclayer_standout(tclayer *self, PyObject *args)
     
     Py_RETURN_NONE;
 }
+
+
+
+PyDoc_STRVAR(tclayer_nostandout_doc,
+"Leave 'standout' mode -- return to normal text.");
 
 
 
@@ -848,12 +879,23 @@ static PyMemberDef tclayer_members[] = {
 
 
 static PyMethodDef tclayer_methods[] = {
-    {"moveto",      (PyCFunction)tclayer_moveto,        METH_VARARGS},
-    {"eeol",        (PyCFunction)tclayer_eeol,          METH_NOARGS},
-    {"eeop",        (PyCFunction)tclayer_eeop,          METH_NOARGS},
-    {"beep",        (PyCFunction)tclayer_beep,          METH_NOARGS},
-    {"standout",    (PyCFunction)tclayer_standout,      METH_NOARGS},
-    {"nostandout",  (PyCFunction)tclayer_nostandout,    METH_NOARGS},
+    {"moveto",      (PyCFunction)tclayer_moveto,        METH_VARARGS,
+        tclayer_moveto_doc},
+        
+    {"eeol",        (PyCFunction)tclayer_eeol,          METH_NOARGS,
+        tclayer_eeol_doc},
+        
+    {"eeop",        (PyCFunction)tclayer_eeop,          METH_NOARGS,
+        tclayer_eeop_doc},
+        
+    {"beep",        (PyCFunction)tclayer_beep,          METH_NOARGS,
+        tclayer_beep_doc},
+        
+    {"standout",    (PyCFunction)tclayer_standout,      METH_NOARGS,
+        tclayer_standout_doc},
+        
+    {"nostandout",  (PyCFunction)tclayer_nostandout,    METH_NOARGS,
+        tclayer_nostandout_doc},
 
     {"cleanup",     (PyCFunction)tclayer_cleanup,       METH_NOARGS},
     {"fileno",      (PyCFunction)tclayer_fileno,        METH_NOARGS},
@@ -864,50 +906,61 @@ static PyMethodDef tclayer_methods[] = {
     {NULL,          NULL}
 };
 
+PyDoc_STRVAR(tclayer_doc,
+"tclayer(infd, outfd, reactor, [terminaltype, [termencoding]])\n\
+ -> termios/termcap based terminal I/O layer attached to the reactor\n\
+\n\
+Only one instance may be created due to POSIX API limitations\n\
+\n\
+'infd' and 'outfd' are file descriptors for input and output.\n\
+'reactor' is a Twisted-type reactor (or TMACS's \"untwisted\" alternative).\n\
+'terminaltype' is the terminal kind, defaulting to the value of $TERM.\n\
+'termencoding' is the encodding, defaulting to utf8.");
+
 
 static PyTypeObject tclayer_type = {
     PyObject_HEAD_INIT(NULL)
-    0,                              /*ob_size*/
-    "tmacs.termioscap._tclayer",    /*tp_name*/
-    sizeof(tclayer),                /*tp_basicsize*/
-    0,                              /*tp_itemsize*/
+    0,                                      /*ob_size*/
+    "tmacs.termioscap._tclayer",            /*tp_name*/
+    sizeof(tclayer),                        /*tp_basicsize*/
+    0,                                      /*tp_itemsize*/
     /* methods */
-    (destructor)tclayer_dealloc,    /*tp_dealloc*/
-    0,                              /*tp_print*/
-    0,                              /*tp_getattr*/
-    0,                              /*tp_setattr*/
-    0,                              /*tp_compare*/
-    0,                              /*tp_repr*/
-    0,                              /*tp_as_number*/
-    0,                              /*tp_as_sequence*/
-    0,                              /*tp_as_mapping*/
-    0,                              /*tp_hash*/
-    0,                              /*tp_call*/
-    0,                              /*tp_str*/
-    0,                              /*tp_getattro*/
-    0,                              /*tp_setattro*/
-    0,                              /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,     /*tp_flags*/
-    0,                              /*tp_doc*/ 
-    0,                              /*tp_traverse*/ 
-    0,                              /*tp_clear*/   
-    0,                              /*tp_richcompare*/
-    0,                              /*tp_weaklistoffset*/
-    0,                              /*tp_iter*/ 
-    0,                              /*tp_iternext*/
-    tclayer_methods,                /*tp_methods*/
-    tclayer_members,                /*tp_members*/
-    0,                              /*tp_getset*/
-    0,                              /*tp_base*/
-    0,                              /*tp_dict*/
-    0,                              /*tp_descr_get*/ 
-    0,                              /*tp_descr_set*/
-    0,                              /*tp_dictoffset*/
-    (initproc)tclayer_init,         /*tp_init*/
-    PyType_GenericAlloc,            /*tp_alloc*/
-    tclayer_new,                    /*tp_new*/
-    _PyObject_Del,                  /*tp_free*/
-    0,                              /*tp_is_gc*/
+    (destructor)tclayer_dealloc,            /*tp_dealloc*/
+    0,                                      /*tp_print*/
+    0,                                      /*tp_getattr*/
+    0,                                      /*tp_setattr*/
+    0,                                      /*tp_compare*/
+    0,                                      /*tp_repr*/
+    0,                                      /*tp_as_number*/
+    0,                                      /*tp_as_sequence*/
+    0,                                      /*tp_as_mapping*/
+    0,                                      /*tp_hash*/
+    0,                                      /*tp_call*/
+    0,                                      /*tp_str*/
+    0,                                      /*tp_getattro*/
+    0,                                      /*tp_setattro*/
+    0,                                      /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /*tp_flags*/
+    tclayer_doc,                            /*tp_doc*/ 
+    0,                                      /*tp_traverse*/ 
+    0,                                      /*tp_clear*/   
+    0,                                      /*tp_richcompare*/
+    0,                                      /*tp_weaklistoffset*/
+    0,                                      /*tp_iter*/ 
+    0,                                      /*tp_iternext*/
+    tclayer_methods,                        /*tp_methods*/
+    tclayer_members,                        /*tp_members*/
+    0,                                      /*tp_getset*/
+    0,                                      /*tp_base*/
+    0,                                      /*tp_dict*/
+    0,                                      /*tp_descr_get*/ 
+    0,                                      /*tp_descr_set*/
+    0,                                      /*tp_dictoffset*/
+    (initproc)tclayer_init,                 /*tp_init*/
+    PyType_GenericAlloc,                    /*tp_alloc*/
+    tclayer_new,                            /*tp_new*/
+    _PyObject_Del,                          /*tp_free*/
+    0,                                      /*tp_is_gc*/
 };
 
 
@@ -921,7 +974,7 @@ init_tclayer(void)
     if (PyType_Ready(&tclayer_type) < 0)
         return;
 
-    m = Py_InitModule3("_tclayer", _tclayerMethods, "termcap/termios layer");
+    m = Py_InitModule3("_tclayer", _tclayerMethods, "termcap/termios terminal interface layer for reactor");
     
     Py_INCREF(&tclayer_type);
     PyModule_AddObject(m, "_tclayer", (PyObject *)&tclayer_type);
