@@ -10,6 +10,7 @@
 
 #define MAXINHOLD       16      /* max length of encoded input seq */
 #define OBUFSIZ         64
+#define IBUFSIZ         64
 
 extern char PC, *BC, *UP;       /* termcap upgliness */
 extern short ospeed;
@@ -61,6 +62,8 @@ static tclayer *thelayer = NULL;
 
 
 static void putpad(tclayer *, const char *);
+static PyObject *tclayer_do_feed(tclayer *self, unsigned char *inbuf, Py_ssize_t inlen);
+
 
 
 
@@ -667,13 +670,22 @@ tclayer_got_SIGWINCH(tclayer *self, PyObject *args)
 static PyObject *
 tclayer_feed(tclayer *self, PyObject *args)
 {
-    PyObject *o, *ret;
     unsigned char *inbuf;
-    size_t inlen;
+    Py_ssize_t inlen;
     
     if (!PyArg_ParseTuple(args, "s#:feed", (char *)&inbuf, &inlen)) {
         return NULL;
     } 
+
+    return tclayer_do_feed(self, inbuf, inlen);
+}
+
+
+
+static PyObject *
+tclayer_do_feed(tclayer *self, unsigned char *inbuf, Py_ssize_t inlen)
+{
+    PyObject *o, *ret;
 
     while (inlen) {
         self->inhold[self->inholdlen++] = *inbuf; 
@@ -735,6 +747,22 @@ tclayer_feed(tclayer *self, PyObject *args)
 
 
 static PyObject *
+tclayer_doRead(tclayer *self, PyObject *args)
+{
+    unsigned char inbuf[IBUFSIZ];
+    Py_ssize_t inlen;
+    
+    inlen = read(self->ifd, inbuf, IBUFSIZ);
+    if (inlen < 0) {
+        return PyErr_SetFromErrno(PyExc_IOError);
+    } else {
+        return tclayer_do_feed(self, inbuf, inlen);
+    }
+}
+
+
+
+static PyObject *
 tclayer_timeout(tclayer *self, PyObject *args)
 {
     /* clear timeout since it expired*/
@@ -788,6 +816,7 @@ static PyMethodDef tclayer_methods[] = {
     {"fileno",      (PyCFunction)tclayer_fileno,        METH_NOARGS},
     {"got_SIGWINCH",(PyCFunction)tclayer_got_SIGWINCH,  METH_NOARGS},
     {"feed",        (PyCFunction)tclayer_feed,          METH_VARARGS},
+    {"doRead",      (PyCFunction)tclayer_doRead,        METH_NOARGS},
     {"timeout",     (PyCFunction)tclayer_timeout,       METH_NOARGS},
 
     {NULL,          NULL}

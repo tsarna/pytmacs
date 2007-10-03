@@ -15,8 +15,7 @@ class TCLayer(_tclayer):
 
     def doRead(self):
         try:
-            data = os.read(self.fileno(), 10)
-            self.feed(data)
+            super(TCLayer, self).doRead()
         except:
             sys.stderr.write(''.join(traceback.format_exception(*sys.exc_info())))
             self.reactor.crash()
