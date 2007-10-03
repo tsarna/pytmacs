@@ -1,3 +1,5 @@
+# $Id: __init__.py,v 1.15 2007-10-03 03:02:49 tsarna Exp $
+
 from tmacs.termioscap._tclayer import _tclayer
 from tmacs.ui.charcell import CharCellUI
 from tmacs.app.commands import *

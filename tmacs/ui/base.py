@@ -1,3 +1,5 @@
+# $Id: base.py,v 1.17 2007-10-03 03:02:49 tsarna Exp $
+
 from tmacs.edit.buffer import find_buffer
 from tmacs.app.commands import *
 from tmacs.ui.keys import keysym, repr_keysym, keymap

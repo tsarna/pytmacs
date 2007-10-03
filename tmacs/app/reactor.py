@@ -1,3 +1,5 @@
+# $Id: reactor.py,v 1.3 2007-10-03 03:02:47 tsarna Exp $
+
 # The following is derived from the PEAK UntwistedReactor as of
 # 12/28/2003, which carried the following copyright:
 #    
