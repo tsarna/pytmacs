@@ -67,3 +67,4 @@
 <^X><^Z>		shrinkwindow
 <^X>^			growwindow
 <^X>W			resizewindow
+<^Y>			yank

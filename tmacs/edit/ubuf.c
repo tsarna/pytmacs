@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.21 2007-09-29 04:19:28 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.22 2007-10-04 16:56:20 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -9,6 +9,7 @@
 
 PyObject *ReadOnlyBufferError = NULL;
 extern PyTypeObject marker_type;
+PyTypeObject ubuf_type;
 
 
 #if 0
@@ -438,6 +439,7 @@ ubuf_slice_indices(ubuf *self, PyObject *o, Py_ssize_t *s, Py_ssize_t *e)
  *  - NULL, special case deletion for setslice
  *  - a unicode object
  *  - an encodable (normally a str)
+ *  - a ubuf
  *
  * returns 1 on success, 0 on failure
  */
@@ -450,12 +452,19 @@ ubuf_parse_textarg(
     *tobefreed = NULL;
     *v1 = *v2 = NULL;
     *l1 = *l2 = 0;
+    ubuf *u;
     
     if (!v) {
         /* just leave replacement empty */
     } else if (PyUnicode_Check(v)) {
         *v1 = PyUnicode_AS_UNICODE(v);
         *l1 = PyUnicode_GET_SIZE(v);
+    } else if (ubuf_check(v)) {
+        u = (ubuf *)v;
+        *v1 = u->str;
+        *l1 = u->gapstart;
+        *v2 = &(u->str[u->gapstart + u->gapsize]);
+        *l2 = u->length - u->gapstart;
     } else {
         *tobefreed = PyUnicode_FromEncodedObject(
             v, UBUF_ENCODING(self), "strict");

@@ -1,4 +1,4 @@
-$Id: TODO,v 1.53 2007-10-03 15:07:48 tsarna Exp $
+$Id: TODO,v 1.54 2007-10-04 16:56:17 tsarna Exp $
 
 termioscap:
     implement tclayer write w/ unicode encode
@@ -7,12 +7,16 @@ baseui:
     bindkey unbindkey describe_bindings
     
 ubuf:
-    textarg		from ubuf
     efficient grow
     writelines
     file-like tests from Buffer
 
 marker:
+    killline
+    killregion
+    copyregion
+	ubuf_killcopy(ubuf *d, ubuf *s, start, end, copy, append)
+
     call?
     file:
 	readlines()

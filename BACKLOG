@@ -1,8 +1,8 @@
-$Id: BACKLOG,v 1.7 2007-10-03 14:54:50 tsarna Exp $
+$Id: BACKLOG,v 1.8 2007-10-04 16:56:17 tsarna Exp $
 
 Needed for 2.0
 --------------
-termioscap -- write
+kill/yank
 charcell unit tests
 scrolly commands (pageing and scroll up/down)
 buffer attributes work: set and sniff
@@ -17,7 +17,6 @@ modes mechanism
 python mode
 c mode
 wrap mode
-kill/yank
 
 Post-1.0 project story ideas
 ----------------------------

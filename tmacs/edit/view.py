@@ -1,5 +1,13 @@
 from tmacs.app.commands import *
 from tmacs.edit.buffer import make_buffer_list
+from tmacs.edit.ubuf import ubuf
+import __tmacs__
+
+__tmacs__._killbuf = _killbuf = ubuf()
+
+_killbuf.append(u"This is the text.")
+_killbuf[11:12] = u" killed "
+
 
 class BasicView(object):
     def lookup_cmd(self, cmdname):
@@ -114,6 +122,13 @@ class BasicView(object):
     def insertspace(self, n=True):
         self.dot.insertnext(u' ' * n)
 
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def yank(self, n=True):
+        for x in range(n):
+            self.dot.insert(_killbuf)
+
 
     
 class View(BasicView):
@@ -220,6 +235,7 @@ class View(BasicView):
         if self.mark is None:
             return "No mark in this window"
         self.dot, self.mark = self.mark, self.dot
+        self.dot.reset()
 
     @command
     @annotate(None)

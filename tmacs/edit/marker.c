@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.36 2007-09-28 22:26:13 tsarna Exp $ */
+/* $Id: marker.c,v 1.37 2007-10-04 16:56:20 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -29,6 +29,7 @@ static int marker_start(marker *self, Py_ssize_t v);
 static int marker_end(marker *self, Py_ssize_t v);
 static ubuf *marker_makewriteable(marker *self);
 static int marker_move_lines(marker *self, Py_ssize_t l, int toline);
+void marker_do_reset(marker *self);
 /* get/set */
 static PyObject *marker_get_buffer(marker *self, void *closure);
 static int marker_set_buffer(marker *self, PyObject *value, void *closure);
@@ -90,6 +91,7 @@ static PyObject *marker_insert(marker *self, PyObject *args);
 static PyObject *marker_insertnext(marker *self, PyObject *args);
 /* misc methods/
 static PyObject *marker_copy(marker *self, PyObject *args);
+static PyObject *marker_reset(marker *self, PyObject *args);
 
 
 /* Begin marker create/delete methods */
@@ -265,7 +267,7 @@ marker_to(marker *self, Py_ssize_t v)
     }            
 
     self->start = self->end = v;
-    self->colseek = -1;
+    marker_do_reset(self);
     
     return 1;
 }
@@ -294,7 +296,7 @@ marker_start(marker *self, Py_ssize_t v)
     }
     
     self->start = v;
-    self->colseek = -1;
+    marker_do_reset(self);
                 
     return 1;
 }
@@ -323,7 +325,7 @@ marker_end(marker *self, Py_ssize_t v)
     }
 
     self->end = v;
-    self->colseek = -1;
+    marker_do_reset(self);
                 
     return 1;
 }
@@ -344,7 +346,7 @@ marker_makewriteable(marker *self)
         return 0;
     }
 
-    self->colseek = -1;
+    marker_do_reset(self);
     
     return u;
 }
@@ -402,6 +404,13 @@ marker_move_lines(marker *self, Py_ssize_t l, int toline)
 }
 
 
+
+void
+marker_do_reset(marker *self)
+{
+    self->colseek = -1;
+    MARKER_CLEAR_LASTKILL(self);
+}
 
 
 /* Begin marker get/set methods */
@@ -1477,6 +1486,16 @@ marker_copy(marker *self, PyObject *v)
 
 
 
+static PyObject *
+marker_reset(marker *self, PyObject *v)
+{
+    marker_do_reset(self);
+    
+    Py_RETURN_NONE;
+}
+
+
+
 /* begin type structures */
 
 static PyMethodDef marker_methods[] = {
@@ -1517,6 +1536,7 @@ static PyMethodDef marker_methods[] = {
 
     /* misc methods */
     {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},
+    {"reset",       (PyCFunction)marker_reset,          METH_NOARGS},
   
     {NULL,          NULL}
 };
