@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.22 2007-10-04 16:56:20 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.23 2007-10-07 20:57:17 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -620,27 +620,52 @@ ubuf_do_truncate(ubuf *self, Py_ssize_t sz)
 
 
 int
-ubuf_do_cut(ubuf *self, Py_ssize_t s, Py_ssize_t e, PyObject **cut)
-{
-    /* assumes buffer is writeable */
+ubuf_do_kill(
+    ubuf *dest, ubuf *src, Py_ssize_t s, Py_ssize_t e, int copy, int append
+) {
+    Py_UNICODE *v1 = NULL, *v2 = NULL;
+    Py_ssize_t l1 = 0, l2 = 0;
     
-    if (!ubuf_gap_to(self, s)) {
+    if (!ubuf_makewriteable(dest)) {
+        return 0;
+    }
+    
+    if (!copy && !ubuf_makewriteable(src)) {
+        return 0;
+    }
+    
+    if (!append) {
+        /* clear out dest */
+        
+        if (!ubuf_assign_slice(dest, 0, dest->length, NULL, 0, NULL, 0)) {
+            return 0;
+        }
+    }
+
+    v1 = UBUF_CHARADDR(src, s);
+    if ((s < src->gapstart) && (e >= src->gapstart)) {
+        /* spans the gap */
+        l1 = src->gapstart - s;
+        v2 = UBUF_CHARADDR(src, src->gapstart);
+        l2 = e - s - l1;
+    } else {
+        l1 = e - s;
+    }
+    
+    if (!ubuf_assign_slice(dest, dest->length, dest->length, v1, l1, v2, l2)) {
         return 0;
     }
 
-    if (cut) {
-        *cut = PyUnicode_FromUnicode(&(self->str[s + self->gapsize]), e - s);
-    }
-    
-    self->gapsize += (e - s);
-    
-    if (cut && !*cut) {
-        return 0;
+    if (!copy) {
+        /* clear out src */
+        
+        if (!ubuf_assign_slice(src, s, e, NULL, 0, NULL, 0)) {
+            return 0;
+        }
     }
     
     return 1;
 }
-
 
 
 int

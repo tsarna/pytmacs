@@ -1,4 +1,4 @@
-$Id: TODO,v 1.54 2007-10-04 16:56:17 tsarna Exp $
+$Id: TODO,v 1.55 2007-10-07 20:57:14 tsarna Exp $
 
 termioscap:
     implement tclayer write w/ unicode encode
@@ -15,7 +15,6 @@ marker:
     killline
     killregion
     copyregion
-	ubuf_killcopy(ubuf *d, ubuf *s, start, end, copy, append)
 
     call?
     file:

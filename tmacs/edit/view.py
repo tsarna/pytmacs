@@ -3,10 +3,7 @@ from tmacs.edit.buffer import make_buffer_list
 from tmacs.edit.ubuf import ubuf
 import __tmacs__
 
-__tmacs__._killbuf = _killbuf = ubuf()
-
-_killbuf.append(u"This is the text.")
-_killbuf[11:12] = u" killed "
+__tmacs__._killbuf = killbuf = ubuf()
 
 
 class BasicView(object):
@@ -125,9 +122,18 @@ class BasicView(object):
     @command
     @annotate(None)
     @annotate(UniArg)
+    def killtext(self, n=True):
+        if n is True:
+            self.dot.killline(killbuf)
+        else:
+            self.dot.killtext(killbuf, n)
+            
+    @command
+    @annotate(None)
+    @annotate(UniArg)
     def yank(self, n=True):
         for x in range(n):
-            self.dot.insert(_killbuf)
+            self.dot.insert(killbuf)
 
 
     
@@ -241,6 +247,7 @@ class View(BasicView):
     @annotate(None)
     @returns(MessageToShow)
     def setmark(self):
+        self.dot.reset()
         self.mark = self.dot.copy()
         return "[Mark set]"
 
@@ -250,29 +257,35 @@ class View(BasicView):
 
     ### Region
 
-    def getregion(self, start, end):
-        if start is None:
-            start = self.mark
-        if end is None:
-            end = self.end
+    def getregion(self):
+        if not hasattr(self, 'mark'):
+            raise ValueError, "no mark set in this window"
+            
+        start = self.mark
+        end = self.dot
         if start is not None and start > end:
             start, end = end, start
 
         return start, end
         
+    def getregiontext(self):
+        s, e = self.getregion()
+        return self.buf[s:e]
+        
+    def setregiontext(self, text):
+        s, e = self.getregion()
+        self.buf[s:e] = text
+        
     @command
-    @returns(MessageToShow)
-    def regionlower(self, start=None, end=None):
-        start, end = self.getregion(start, end)
-        if start is None:
-            return "No mark set in this window"
-        self.buf[start:end] = self.buf[start:end].lower()
+    @annotate(None)
+    @annotate(SelectedText)
+    @returns(ReplacementText)
+    def regionlower(self, text):
+        return text.lower()
     
-    @command    
-    @returns(MessageToShow)
-    def regionupper(self, start=None, end=None):
-        start, end = self.getregion(start, end)
-        if self.mark is None:
-            return "No mark set in this window"
-        self.buf[start:end] = self.buf[start:end].upper()
-
+    @command
+    @annotate(None)
+    @annotate(SelectedText)
+    @returns(ReplacementText)
+    def regionupper(self, text):
+        return text.upper()

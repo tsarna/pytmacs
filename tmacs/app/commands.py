@@ -104,6 +104,24 @@ CmdLoopState = CmdLoopState()
 
 
 
+### Region annotations
+
+class SelectedText(object):
+    def gen_arg_code(self, arg, indents):
+        return ([
+            "%s%s = ui.curview.getregiontext()" % (indents, arg),
+        ], arg)
+
+SelectedText = SelectedText()
+
+
+class ReplacementText(object):
+    def gen_ret_code(self, arg, indents):
+        return "%sui.curview.setregiontext(%s)" % (indents, arg)
+
+ReplacementText = ReplacementText()
+
+
 ### UI-using interactive annotations for arguments
 
 class WithPrompt(object):

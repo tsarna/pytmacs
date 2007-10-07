@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.37 2007-10-04 16:56:20 tsarna Exp $ */
+/* $Id: marker.c,v 1.38 2007-10-07 20:57:17 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -400,6 +400,8 @@ marker_move_lines(marker *self, Py_ssize_t l, int toline)
 
     self->start = self->end = ubuf_to_display_col(u, s, self->colseek);
 
+    MARKER_CLEAR_LASTKILL(self);
+    
     return 1;
 }
 
@@ -1464,6 +1466,106 @@ marker_insertnext(marker *self, PyObject *v)
 
 
 
+/* Begin copy/kill methods */
+
+static PyObject *
+marker_killline(marker *self, PyObject *v)
+{
+    Py_ssize_t e;
+    int append;
+    ubuf *src;
+    
+    append = MARKER_IS_LASTKILL(self);
+    
+    if (!ubuf_check(v)) {
+        PyErr_SetString(PyExc_TypeError, "target must be a ubuf subclass");
+        return NULL;
+    }
+    
+    src = marker_makewriteable(self);
+    if (src) {
+        if (self->start < src->length) {
+            e = ubuf_get_line_end(src, self->start);
+            if (e == self->start) {
+                /* kill the newline */
+                e++;
+            }
+            
+            if (!ubuf_do_kill((ubuf *)v, src, self->start, e, 0, append)) {
+                return NULL;
+            }
+        }
+        
+        MARKER_SET_LASTKILL(self);
+        
+        Py_RETURN_NONE;
+    } else {
+        return NULL;
+    }
+}
+
+
+
+static PyObject *
+marker_killtext(marker *self, PyObject *v)
+{
+    Py_ssize_t s, e, n;
+    int append;
+    ubuf *src, *dest = NULL;
+    
+    append = MARKER_IS_LASTKILL(self);
+    
+    if (!PyArg_ParseTuple(v, "On:killtext", &dest, &n)) {
+        return NULL;
+    }
+
+    if (!ubuf_check(dest)) {
+        PyErr_SetString(PyExc_TypeError, "target must be a ubuf subclass");
+        return NULL;
+    }
+    
+    src = marker_makewriteable(self);
+    if (src) {
+        s = e = self->start;
+
+        if (n > 0) {
+ fprintf(stderr, "+ n=%d\n", (int)n);
+            /* kill n newlines forward */
+            while ((e < src->length) && n) {
+                if (Py_UNICODE_ISLINEBREAK(UBUF_CHARAT(src, e))) {
+                    n--;
+                }
+                e++;
+            }
+        } else {
+            /* kill backwards */
+            n = -n;
+ fprintf(stderr, "- n=%d\n", (int)n);
+
+            while ((s > 0) && n) {                
+                if (Py_UNICODE_ISLINEBREAK(UBUF_CHARAT(src, s))) {
+                    n--;
+                }
+                s--;
+            }
+            
+            s = ubuf_get_line_start(src, s);
+        }
+            
+        if (!ubuf_do_kill(dest, src, s, e, 0, append)) {
+            return NULL;
+        }
+        
+        MARKER_SET_LASTKILL(self);
+        
+        Py_RETURN_NONE;
+    } else {
+        return NULL;
+    }
+}
+
+
+
 /* Begin misc methods */
 
 static PyObject *
@@ -1534,6 +1636,10 @@ static PyMethodDef marker_methods[] = {
     {"insert",      (PyCFunction)marker_insert,         METH_O},
     {"insertnext",  (PyCFunction)marker_insertnext,     METH_O},
 
+    /* copy/kill methods */
+    {"killline",    (PyCFunction)marker_killline,       METH_O},
+    {"killtext",    (PyCFunction)marker_killtext,       METH_VARARGS},
+    
     /* misc methods */
     {"copy",        (PyCFunction)marker_copy,           METH_NOARGS},
     {"reset",       (PyCFunction)marker_reset,          METH_NOARGS},

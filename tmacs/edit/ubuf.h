@@ -1,4 +1,4 @@
-/* $Id: ubuf.h,v 1.15 2007-10-04 16:56:20 tsarna Exp $ */
+/* $Id: ubuf.h,v 1.16 2007-10-07 20:57:17 tsarna Exp $ */
 
 typedef struct marker marker;
 
@@ -32,7 +32,10 @@ typedef struct {
 #define UBUF_CLEAR_READONLY(u)  ((u)->flags &= ~UBUF_F_READONLY)
 
 #define UBUF_CHARAT(u, i) \
-    ((i)>=((u)->gapstart) ? (u)->str[(i)+((u)->gapsize)] : (u)->str[i])
+    (((i)>=((u)->gapstart) ? (u)->str[(i)+((u)->gapsize)] : (u)->str[i]))
+
+#define UBUF_CHARADDR(u, i) \
+    (((i)>=((u)->gapstart) ? &((u)->str[(i)+((u)->gapsize)]) : &((u)->str[i])))
 
 struct marker {
     PyObject_HEAD
@@ -68,8 +71,8 @@ int ubuf_grow(ubuf *self, Py_ssize_t grow_amt, Py_ssize_t gap_to);
 static int ubuf_slice_indices(ubuf *self, PyObject *o, Py_ssize_t *s, Py_ssize_t *e);
 int ubuf_parse_textarg(ubuf *self, PyObject *v, PyObject **tobefreed, Py_UNICODE **v1, Py_ssize_t *l1, Py_UNICODE **v2, Py_ssize_t *l2);
 int ubuf_assign_slice(ubuf *self, Py_ssize_t s, Py_ssize_t e, Py_UNICODE *u1, Py_ssize_t l1, Py_UNICODE *u2, Py_ssize_t l2);
+int ubuf_do_kill(ubuf *dest, ubuf *src, Py_ssize_t s, Py_ssize_t e, int copy, int append);
 int ubuf_do_truncate(ubuf *self, Py_ssize_t sz);
-int ubuf_do_cut(ubuf *self, Py_ssize_t s, Py_ssize_t e, PyObject **cut);
 PyObject *ubuf_get_range(ubuf *self, Py_ssize_t s, Py_ssize_t e);
 PyObject *ubuf_get_line(ubuf *self, Py_ssize_t *start, Py_ssize_t sz);
 Py_ssize_t ubuf_get_line_start(ubuf *self, Py_ssize_t s);

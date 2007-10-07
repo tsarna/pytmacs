@@ -68,3 +68,4 @@
 <^X>^			growwindow
 <^X>W			resizewindow
 <^Y>			yank
+<^K>			killtext

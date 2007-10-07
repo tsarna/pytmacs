@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.5 2007-10-04 16:56:17 tsarna Exp $
+$Id: COMMANDS,v 1.6 2007-10-07 20:57:14 tsarna Exp $
 
 Buffer				API
 
@@ -40,6 +40,7 @@ delete-previous-character^H	marker.delprev()			K
 delete-next-character    ^D	marker.delnext()			K
 delete-previous-word     M-^H	marker.delprevword()			K
 delete-next-word         M-D	marker.delnextword()			K
+kill-to-end-of-line      ^K	marker.killline()/killtext()		K
 trim-line                ^X^T			marker.trimline()
 detab-line               ^X^D
 entab-line
@@ -68,7 +69,6 @@ VIEW
 yank                     ^Y	view.yank()				K
 copy-region              M-W
 kill-region              ^W
-kill-to-end-of-line      ^K
 kill-paragraph           M-^W
 quote-character          ^Q
 case-region-lower        ^X^L	view.regionlower()			K
