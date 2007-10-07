@@ -81,7 +81,7 @@ def func_annotations(func):
 ### Annotation types
                 
 class UniArg(object):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([], '_state.uniarg')
 
 UniArg = UniArg()
@@ -89,7 +89,7 @@ UniArg = UniArg()
 
 
 class KeySeq(object):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([], '_state.keyseq')
 
 KeySeq = KeySeq()
@@ -97,7 +97,7 @@ KeySeq = KeySeq()
 
 
 class CmdLoopState(object):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([], "_state")
         
 CmdLoopState = CmdLoopState()
@@ -112,14 +112,14 @@ class WithPrompt(object):
     
 
 class PromptText(WithPrompt):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([
             "%s%s = ui.askstring(%s)" % (indents, arg, repr(self.prompt))
         ], arg)
     
 
 class ReadKeySeq(WithPrompt):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([
             "%s%s, %s_cmdname, %s_evtval = ui.readkeyseq(_state, %s)" % (
                 indents, arg, arg, arg, repr(self.prompt)),
@@ -131,7 +131,7 @@ class AskYesNo(WithPrompt):
 
 
 class AskAbandonChanged(WithPrompt):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([
             "%s%s = not tmacs.edit.buffer.changed_buffers_exist()" % (indents, arg),
             "%sif not %s:" % (indents, arg),
@@ -140,17 +140,17 @@ class AskAbandonChanged(WithPrompt):
 
 
 class AnyFileName(WithPrompt):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([], "'XXX'")
 
 
 class NewBufferName(WithPrompt):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([], "'XXX'")
 
 
 class UniArgOrInt(WithPrompt):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([
             "%s%s = _state.uniarg" % (indents, arg),
             "%sif %s is True:" % (indents, arg), 
@@ -159,7 +159,7 @@ class UniArgOrInt(WithPrompt):
 
 
 class ReadCmd(WithPrompt):
-    def gen_code(self, arg, indents):
+    def gen_arg_code(self, arg, indents):
         return ([
             "%s%s_str = ui.askstring(%s)" % (indents, arg, repr(self.prompt)),
             "%s%s = ui.lookup_cmd(_state, %s_str)" % (indents, arg, arg),
@@ -174,7 +174,7 @@ class ReadCmd(WithPrompt):
 ### UI-using interactive annotations for returns
 
 class MessageToShow(object):   
-    def gen_code(self, arg, indents):
+    def gen_ret_code(self, arg, indents):
         return "%sui.write_message(%s)" % (indents, arg)
                 
                     
@@ -183,7 +183,7 @@ MessageToShow = MessageToShow()
 
 
 class ErrorToShow(object):   
-    def gen_code(self, arg, indents):
+    def gen_ret_code(self, arg, indents):
         return "%sui.beep()\n%sui.write_message(%s)" % (indents, indents, arg)
                 
                     
@@ -192,7 +192,7 @@ ErrorToShow = ErrorToShow()
 
 
 class BufferToShow(object):
-    def gen_code(self, arg, indents):
+    def gen_ret_code(self, arg, indents):
         return "%sui.popupbuffer(%s)" % (indents, arg)
 
 BufferToShow = BufferToShow()
@@ -229,13 +229,13 @@ def command(func):
     
     for arg, anno in annos:
         if anno is not None:
-            code, argitem = anno.gen_code(arg, ' ')
+            code, argitem = anno.gen_arg_code(arg, ' ')
             cl.extend(code)
             al.append(argitem)
 
     cl.append('\n _r = _func(' + ', '.join(al) + ')')
     if retanno is not None:
-        cl.append(retanno.gen_code('_r', ' '))
+        cl.append(retanno.gen_ret_code('_r', ' '))
 
     cl.append('')
     cl = '\n'.join(cl)
