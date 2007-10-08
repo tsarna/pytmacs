@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.38 2007-10-07 20:57:17 tsarna Exp $ */
+/* $Id: marker.c,v 1.39 2007-10-08 02:30:00 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -1529,7 +1529,6 @@ marker_killtext(marker *self, PyObject *v)
         s = e = self->start;
 
         if (n > 0) {
- fprintf(stderr, "+ n=%d\n", (int)n);
             /* kill n newlines forward */
             while ((e < src->length) && n) {
                 if (Py_UNICODE_ISLINEBREAK(UBUF_CHARAT(src, e))) {
@@ -1540,7 +1539,6 @@ marker_killtext(marker *self, PyObject *v)
         } else {
             /* kill backwards */
             n = -n;
- fprintf(stderr, "- n=%d\n", (int)n);
 
             while ((s > 0) && n) {                
                 if (Py_UNICODE_ISLINEBREAK(UBUF_CHARAT(src, s))) {

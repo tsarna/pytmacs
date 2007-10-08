@@ -3,7 +3,7 @@ Marker Editing Methods
 ======================
 
 :Author: Ty Sarna
-:Version: $Id: MARKEDIT.txt,v 1.6 2007-09-20 01:00:51 tsarna Exp $
+:Version: $Id: MARKEDIT.txt,v 1.7 2007-10-08 02:30:00 tsarna Exp $
 
 .. contents ::
 
@@ -188,4 +188,107 @@ If in the middle of a word, the current position is assumed to be the end::
     >>> m.start
     14
 
+    
+Killing
+-------
+
+Killing (aka cutting) of text is supported by two different marker
+methods, `killline()` and `killtext()`, which together make up the
+killtext command in the editor.
+
+Killing puts the text into a buffer, so we will need a kill buffer to
+work with, as well as some example text::
+
+    >>> k = ubuf()
+    >>> b[:] = u'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\n'
+
+Killline kills from the current position up until (but not including)
+the next newline, and places it in the buffer::
+
+    >>> m.start = 2
+    >>> m.killline(k)
+    >>> b[:]
+    u'Li\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\n'
+    >>> k[:]
+    u'ne 1'
+
+Unless the next character is a newline, in which case it kills the newline::
+
+    >>> m.killline(k)
+    >>> b[:]
+    u'LiLine 2\nLine 3\nLine 4\nLine 5\nLine 6\n'
+    >>> k[:]
+    u'ne 1\n'
+
+Note that the kill buffer was appended to.  Kill operations append to
+the kill buffer if the last operation on the marker was a kill,
+otherwise they replace they kill text. Movement will reset the "last
+kill" flag::
+
+    >>> m.start = 0
+    >>> m.killline(k)
+    >>> b[:]
+    u'\nLine 3\nLine 4\nLine 5\nLine 6\n'
+    >>> k[:]
+    u'LiLine 2'
+
+As will editing::
+
+    >>> m.insert(u"hi")
+    >>> m.killline(k)
+    >>> b[:]
+    u'hiLine 3\nLine 4\nLine 5\nLine 6\n'
+    >>> k[:]
+    u'\n'
+        
+There is also an explicit `reset()` method (see elsewhere for its effect on
+line-oriented movement)::
+
+    >>> m.killline(k)
+    >>> m.reset()
+    >>> m.killline(k)
+    >>> b[:]
+    u'hiLine 4\nLine 5\nLine 6\n'
+    >>> k[:]
+    u'\n'
+    
+Let's reset and talk about `killtext()` next::
+
+    >>> m.start = 0
+    >>> m.killline(k)
+    >>> m.insert(u"Line 1\nLine 2\nLine 3\nLine 4")
+    >>> b[:]
+    u'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\n'    
+    
+Killtext deletes by whole lines. With a positive argument `n`, it
+deletes from dot through the next n lines, inclusive of their newlines::
+
+    >>> m.start = 0
+    >>> m.nextline(2)
+    >>> m += 2
+    >>> m.killtext(k, 2)
+    >>> b[:]
+    u'Line 1\nLine 2\nLiLine 5\nLine 6\n'
+    >>> k[:]
+    u'ne 3\nLine 4\n'
+
+With a 0 or negative argument, it deletes from dot to the beginning of
+the line and through the next n lines::
+
+    >>> m.insert(k)
+    >>> m.start = 0
+    >>> m.nextline(2)
+    >>> m += 2
+    >>> m.killtext(k, 0)
+    >>> b[:]
+    u'Line 1\nLine 2\nne 3\nLine 4\nLine 5\nLine 6\n'    
+    >>> k[:]
+    u'Li'
+    >>> m.insert(k)
+    >>> m.nextline()
+    >>> m.killtext(k, -2)
+    >>> b[:]
+    u'Line 1\nne 4\nLine 5\nLine 6\n'    
+    >>> k[:]
+    u'Line 2\nLine 3\nLi'
     

@@ -1,4 +1,4 @@
-$Id: TODO,v 1.55 2007-10-07 20:57:14 tsarna Exp $
+$Id: TODO,v 1.56 2007-10-08 02:29:58 tsarna Exp $
 
 termioscap:
     implement tclayer write w/ unicode encode
@@ -12,7 +12,6 @@ ubuf:
     file-like tests from Buffer
 
 marker:
-    killline
     killregion
     copyregion
 
