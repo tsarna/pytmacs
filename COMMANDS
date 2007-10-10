@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.6 2007-10-07 20:57:14 tsarna Exp $
+$Id: COMMANDS,v 1.7 2007-10-10 15:20:30 tsarna Exp $
 
 Buffer				API
 
@@ -145,7 +145,6 @@ describe-key             ^X?	describekey				K
 
 UNSORTED
 
-execute-command-line
 execute-file
 find-file                ^X^F
 help                     M-?
@@ -160,8 +159,9 @@ tag-word                 M-T
 view-file                ^X^V
 wrap-word                M-FNW
 
-NOT GOING TO IMPLEMENT
+NOT GOING TO IMPLEMENT OR IRRELEVANT
 
 save-window
 restore-window
+execute-command-line
 

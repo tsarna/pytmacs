@@ -1,4 +1,4 @@
-/* $Id: ubuf.h,v 1.16 2007-10-07 20:57:17 tsarna Exp $ */
+/* $Id: ubuf.h,v 1.17 2007-10-10 15:20:33 tsarna Exp $ */
 
 typedef struct marker marker;
 
@@ -48,7 +48,6 @@ struct marker {
 
     unsigned int    flags;      /* flags */
 #define MARKER_F_CHANGED        0x01
-#define MARKER_F_LASTKILL       0x02
 
     Py_ssize_t      colseek;
     
@@ -58,10 +57,6 @@ struct marker {
 #define MARKER_IS_CHANGED(m)      ((m)->flags & (MARKER_F_CHANGED))
 #define MARKER_SET_CHANGED(m)     ((m)->flags |= MARKER_F_CHANGED)
 #define MARKER_CLEAR_CHANGED(m)   ((m)->flags &= ~MARKER_F_CHANGED)
-
-#define MARKER_IS_LASTKILL(m)      ((m)->flags & (MARKER_F_LASTKILL))
-#define MARKER_SET_LASTKILL(m)     ((m)->flags |= MARKER_F_LASTKILL)
-#define MARKER_CLEAR_LASTKILL(m)   ((m)->flags &= ~MARKER_F_LASTKILL)
 
 /* ubuf methods */
 

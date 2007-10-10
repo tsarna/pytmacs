@@ -1,4 +1,4 @@
-# $Id: base.py,v 1.17 2007-10-03 03:02:49 tsarna Exp $
+# $Id: base.py,v 1.18 2007-10-10 15:20:34 tsarna Exp $
 
 from tmacs.edit.buffer import find_buffer
 from tmacs.app.commands import *
@@ -76,8 +76,9 @@ class UIBase(object):
         """
         
         state._quit = False
-        state.uniarg = None
+        state.uniarg = state.lastwaskill = None
         state.nextuniarg = True
+        state.thisiskill = False
     
         while not state._quit:
             state.keyseq, state.cmdname, state.evtval = self.readkeyseq(state)
@@ -86,8 +87,8 @@ class UIBase(object):
             state.thiscmd = self.lookup_cmd(state, state.cmdname)
             if state.thiscmd is None:
                 state.thiscmd = self.lookup_cmd(state, "unknowncommand")
-            state.prevuniarg, state.uniarg, state.nextuniarg = \
-                state.uniarg, state.nextuniarg, True
+            state.uniarg, state.nextuniarg = state.nextuniarg, True
+            state.lastwaskill, state.thisiskill = state.thisiskill, False
             self.executecmd(state.thiscmd, state)
             self.refresh()
         

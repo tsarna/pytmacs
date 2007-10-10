@@ -122,11 +122,13 @@ class BasicView(object):
     @command
     @annotate(None)
     @annotate(UniArg)
-    def killtext(self, n=True):
+    @annotate(CmdLoopState)
+    def killtext(self, n=True, state=__tmacs__):
         if n is True:
-            self.dot.killline(killbuf)
+            self.dot.killline(killbuf, state.lastwaskill)
         else:
-            self.dot.killtext(killbuf, n)
+            self.dot.killtext(killbuf, n, state.lastwaskill)
+        state.thisiskill = True
             
     @command
     @annotate(None)

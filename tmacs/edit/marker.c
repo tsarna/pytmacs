@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.39 2007-10-08 02:30:00 tsarna Exp $ */
+/* $Id: marker.c,v 1.40 2007-10-10 15:20:33 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -400,8 +400,6 @@ marker_move_lines(marker *self, Py_ssize_t l, int toline)
 
     self->start = self->end = ubuf_to_display_col(u, s, self->colseek);
 
-    MARKER_CLEAR_LASTKILL(self);
-    
     return 1;
 }
 
@@ -411,7 +409,6 @@ void
 marker_do_reset(marker *self)
 {
     self->colseek = -1;
-    MARKER_CLEAR_LASTKILL(self);
 }
 
 
@@ -1471,13 +1468,16 @@ marker_insertnext(marker *self, PyObject *v)
 static PyObject *
 marker_killline(marker *self, PyObject *v)
 {
+    int append = 0;
+    PyObject *dest;
     Py_ssize_t e;
-    int append;
     ubuf *src;
     
-    append = MARKER_IS_LASTKILL(self);
-    
-    if (!ubuf_check(v)) {
+    if (!PyArg_ParseTuple(v, "O|i:killtext", &dest, &append)) {
+        return NULL;
+    }
+
+    if (!ubuf_check(dest)) {
         PyErr_SetString(PyExc_TypeError, "target must be a ubuf subclass");
         return NULL;
     }
@@ -1491,12 +1491,10 @@ marker_killline(marker *self, PyObject *v)
                 e++;
             }
             
-            if (!ubuf_do_kill((ubuf *)v, src, self->start, e, 0, append)) {
+            if (!ubuf_do_kill((ubuf *)dest, src, self->start, e, 0, append)) {
                 return NULL;
             }
         }
-        
-        MARKER_SET_LASTKILL(self);
         
         Py_RETURN_NONE;
     } else {
@@ -1510,12 +1508,10 @@ static PyObject *
 marker_killtext(marker *self, PyObject *v)
 {
     Py_ssize_t s, e, n;
-    int append;
+    int append = 0;
     ubuf *src, *dest = NULL;
     
-    append = MARKER_IS_LASTKILL(self);
-    
-    if (!PyArg_ParseTuple(v, "On:killtext", &dest, &n)) {
+    if (!PyArg_ParseTuple(v, "On|i:killtext", &dest, &n, &append)) {
         return NULL;
     }
 
@@ -1553,8 +1549,6 @@ marker_killtext(marker *self, PyObject *v)
         if (!ubuf_do_kill(dest, src, s, e, 0, append)) {
             return NULL;
         }
-        
-        MARKER_SET_LASTKILL(self);
         
         Py_RETURN_NONE;
     } else {
@@ -1635,7 +1629,7 @@ static PyMethodDef marker_methods[] = {
     {"insertnext",  (PyCFunction)marker_insertnext,     METH_O},
 
     /* copy/kill methods */
-    {"killline",    (PyCFunction)marker_killline,       METH_O},
+    {"killline",    (PyCFunction)marker_killline,       METH_VARARGS},
     {"killtext",    (PyCFunction)marker_killtext,       METH_VARARGS},
     
     /* misc methods */

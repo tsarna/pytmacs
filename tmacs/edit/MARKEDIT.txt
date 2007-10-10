@@ -3,7 +3,7 @@ Marker Editing Methods
 ======================
 
 :Author: Ty Sarna
-:Version: $Id: MARKEDIT.txt,v 1.7 2007-10-08 02:30:00 tsarna Exp $
+:Version: $Id: MARKEDIT.txt,v 1.8 2007-10-10 15:20:33 tsarna Exp $
 
 .. contents ::
 
@@ -214,49 +214,19 @@ the next newline, and places it in the buffer::
 
 Unless the next character is a newline, in which case it kills the newline::
 
-    >>> m.killline(k)
+    >>> m.killline(k, True)
     >>> b[:]
     u'LiLine 2\nLine 3\nLine 4\nLine 5\nLine 6\n'
     >>> k[:]
     u'ne 1\n'
 
-Note that the kill buffer was appended to.  Kill operations append to
-the kill buffer if the last operation on the marker was a kill,
-otherwise they replace they kill text. Movement will reset the "last
-kill" flag::
+Note that the kill buffer was appended to in this case because we
+specified True as the second argument.  Let's reset and talk about
+`killtext()` next::
 
     >>> m.start = 0
     >>> m.killline(k)
-    >>> b[:]
-    u'\nLine 3\nLine 4\nLine 5\nLine 6\n'
-    >>> k[:]
-    u'LiLine 2'
-
-As will editing::
-
-    >>> m.insert(u"hi")
-    >>> m.killline(k)
-    >>> b[:]
-    u'hiLine 3\nLine 4\nLine 5\nLine 6\n'
-    >>> k[:]
-    u'\n'
-        
-There is also an explicit `reset()` method (see elsewhere for its effect on
-line-oriented movement)::
-
-    >>> m.killline(k)
-    >>> m.reset()
-    >>> m.killline(k)
-    >>> b[:]
-    u'hiLine 4\nLine 5\nLine 6\n'
-    >>> k[:]
-    u'\n'
-    
-Let's reset and talk about `killtext()` next::
-
-    >>> m.start = 0
-    >>> m.killline(k)
-    >>> m.insert(u"Line 1\nLine 2\nLine 3\nLine 4")
+    >>> m.insert(u"Line 1\nLine 2")
     >>> b[:]
     u'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\n'    
     
