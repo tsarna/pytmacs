@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.7 2007-10-10 15:20:30 tsarna Exp $
+$Id: COMMANDS,v 1.8 2007-10-13 16:57:35 tsarna Exp $
 
 Buffer				API
 
@@ -67,8 +67,8 @@ replace-string           M-R
 VIEW
 
 yank                     ^Y	view.yank()				K
-copy-region              M-W
-kill-region              ^W
+copy-region              M-W	view.copyregion()			K
+kill-region              ^W	view.killregion()			K
 kill-paragraph           M-^W
 quote-character          ^Q
 case-region-lower        ^X^L	view.regionlower()			K

@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.23 2007-10-07 20:57:17 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.24 2007-10-13 16:57:38 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -45,6 +45,9 @@ static PyObject *ubuf_iter(PyObject *self);
 /* file-like methods */
 /* add-on methods */
 static PyObject *ubuf_append(PyObject *selfo, PyObject *arg);
+static PyObject *ubuf_du_cutcopy(PyObject *selfo, PyObject *arg, int copy);
+static PyObject *ubuf_copyfrom(PyObject *selfo, PyObject *arg);
+static PyObject *ubuf_cutfrom(PyObject *selfo, PyObject *arg);
 
 /* Begin ubuf create/delete methods */
 
@@ -922,14 +925,65 @@ not be read_only.");
 
 
 
+static PyObject *
+ubuf_do_cutcopy(PyObject *selfo, PyObject *args, int copy)
+{
+    ubuf *self = (ubuf *)selfo, *src;
+    Py_ssize_t s, e;
+    int append = 0;
+        
+    if (!PyArg_ParseTuple(args, "Onn|i", &src, &s, &e, &append)) {
+        return 0; 
+    }
+                
+    if (!ubuf_check((PyObject *)src)) {
+        PyErr_SetString(PyExc_TypeError, "source must be a ubuf subclass");
+        return 0;
+    }
+
+    if (!ubuf_do_kill(self, src, s, e, copy, append)) {
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+
+
+static PyObject *
+ubuf_copyfrom(PyObject *self, PyObject *v) {
+    return ubuf_do_cutcopy(self, v, 1);
+}
+
+PyDoc_STRVAR(ubuf_copyfrom_doc,
+"Copy a subregion of another ubuf into this one. By default this\n\
+ubuf's text is replaced with the copied text. With a true final\n\
+argument, it is appended to.");
+
+
+
+static PyObject *
+ubuf_cutfrom(PyObject *self, PyObject *v) {
+    return ubuf_do_cutcopy(self, v, 0);
+}
+
+PyDoc_STRVAR(ubuf_cutfrom_doc,
+"Cut a subregion of another ubuf into this one. By default this\n\
+ubuf's text is replaced with the copied text. With a true final\n\
+argument, it is appended to.");
+
+
+
 static PyMethodDef ubuf_methods[] = {
     /* file-like methods */
-    {"flush",       (PyCFunction)ubuf_flush,    METH_NOARGS, ubuf_flush_doc},
-    {"write",       (PyCFunction)ubuf_append,   METH_O, ubuf_append_doc},
-    {"xreadlines",  (PyCFunction)ubuf_iter,     METH_NOARGS, ubuf_xreadlines_doc},
+    {"flush",       (PyCFunction)ubuf_flush,        METH_NOARGS, ubuf_flush_doc},
+    {"write",       (PyCFunction)ubuf_append,       METH_O, ubuf_append_doc},
+    {"xreadlines",  (PyCFunction)ubuf_iter,         METH_NOARGS, ubuf_xreadlines_doc},
         
     /* add-on methods */
-    {"append",      (PyCFunction)ubuf_append,   METH_O, ubuf_append_doc},
+    {"append",      (PyCFunction)ubuf_append,       METH_O, ubuf_append_doc},
+    {"copyfrom",    (PyCFunction)ubuf_copyfrom,     METH_VARARGS, ubuf_copyfrom_doc},
+    {"cutfrom",     (PyCFunction)ubuf_cutfrom,      METH_VARARGS, ubuf_cutfrom_doc},
 
     {NULL,          NULL}
 };

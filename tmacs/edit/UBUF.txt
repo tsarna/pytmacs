@@ -284,4 +284,47 @@ Normally this is 8::
 This value is used in computations such as of how many display columns
 from the start of a line the cursor is. Changing this value is not
 recommended as it leads to files that show differently in the editor
-than in other people's editors than with `cat`, `more`, etc.
+than in other people's editors and with `cat`, `more`, etc.
+
+
+Cut and Copy
+------------
+
+There are method to cut or copy directly from a ubuf into a another,
+usually dedicated purpose (yank buffer) ubuf::
+
+    >>> u[:] = u"Hello there world.\n"
+    >>> y = ubuf()
+    >>> y.copyfrom(u, 6, 12)
+    >>> u[:]
+    u'Hello there world.\n'
+    >>> y[:]
+    u'there '
+
+By default the text is appended to the target buffer.  When the optional
+boolean 4th argument is true, the text is appended to the yank buffer
+instead::
+
+    >>> y.copyfrom(u, 6, 12, True)
+    >>> u[:]
+    u'Hello there world.\n'
+    >>> y[:]
+    u'there there '
+
+Instead of copying, we can also kill (cut) from the source::
+
+    >>> y.cutfrom(u, 6, 12)
+    >>> u[:]
+    u'Hello world.\n'
+    >>> y[:]
+    u'there '
+
+Let's put the cut test back and then show that cut too supports appending::
+
+    >>> u[6:6] = y
+    >>> y.cutfrom(u, 11, 17, True)
+    >>> u[:]
+    u'Hello there.\n'
+    >>> y[:]
+    u'there  world'
+

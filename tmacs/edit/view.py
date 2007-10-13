@@ -132,6 +132,24 @@ class BasicView(object):
             
     @command
     @annotate(None)
+    @annotate(SelectionStart)
+    @annotate(SelectionEnd)
+    @annotate(CmdLoopState)
+    def copyregion(self, s, e, state=__tmacs__):
+        killbuf.copyfrom(self.buf, s, e, state.lastwaskill)
+        state.thisiskill = True
+            
+    @command
+    @annotate(None)
+    @annotate(SelectionStart)
+    @annotate(SelectionEnd)
+    @annotate(CmdLoopState)
+    def killregion(self, s, e, state=__tmacs__):
+        killbuf.cutfrom(self.buf, s, e, state.lastwaskill)
+        state.thisiskill = True
+            
+    @command
+    @annotate(None)
     @annotate(UniArg)
     def yank(self, n=True):
         for x in range(n):

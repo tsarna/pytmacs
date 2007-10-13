@@ -69,3 +69,5 @@
 <^X>W			resizewindow
 <^Y>			yank
 <^K>			killtext
+<^W>			killregion
+<Esc>W			copyregion
