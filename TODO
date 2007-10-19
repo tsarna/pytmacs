@@ -1,4 +1,4 @@
-$Id: TODO,v 1.58 2007-10-13 16:57:35 tsarna Exp $
+$Id: TODO,v 1.59 2007-10-19 12:15:58 tsarna Exp $
 
 termioscap:
     implement tclayer write w/ unicode encode
@@ -21,7 +21,6 @@ marker:
     searching:
     editing:
 	trimline
-	twiddle
 	tab
     nonzero -- returns changed flag?
 	

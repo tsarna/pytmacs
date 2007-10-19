@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.8 2007-10-13 16:57:35 tsarna Exp $
+$Id: COMMANDS,v 1.9 2007-10-19 12:15:58 tsarna Exp $
 
 Buffer				API
 
@@ -50,7 +50,7 @@ newline                  ^M	marker.insert(u'\n')			K
 newline-and-indent       ^J
 open-line                ^O	marker.insertnext(u'\n')		K
 handle-tab               ^I			tab
-transpose-characters     ^T			marker.twiddle()
+transpose-characters     ^T	view.twiddle()				K
 delete-blank-lines       ^X^O
 
 SEARCHING
@@ -70,7 +70,7 @@ yank                     ^Y	view.yank()				K
 copy-region              M-W	view.copyregion()			K
 kill-region              ^W	view.killregion()			K
 kill-paragraph           M-^W
-quote-character          ^Q
+quote-character          ^Q	view.quotenext()			K
 case-region-lower        ^X^L	view.regionlower()			K
 case-region-upper        ^X^U	view.regionupper()			K
 count-words              M-^C

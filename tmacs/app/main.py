@@ -55,7 +55,7 @@ def main(argv, environ):
     if not __tmacs__.buffers:
         ui.add_window(Buffer('__scratch__'))
             
-    for mod in ('tmacs.ui.defmaps', 'tmacs.edit.buffer'):
+    for mod in ('tmacs.ui.defmaps', 'tmacs.edit.buffer', 'tmacs.ui.keys'):
         exec "import %s" % mod in __tmacs__.__dict__
         
     from threading import Thread

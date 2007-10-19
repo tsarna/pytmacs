@@ -415,7 +415,7 @@ class CharCellUI(UIBase):
         """
         Set the status line to display a message.
         Unlike write_message() this will always stay displayed until
-        cleared (explicitly or by readind new keys) or a new message is set.
+        cleared (explicitly or by reading new keys) or a new message is set.
         """
         self._message = message
         self._message_upd = True

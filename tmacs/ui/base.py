@@ -1,4 +1,4 @@
-# $Id: base.py,v 1.18 2007-10-10 15:20:34 tsarna Exp $
+# $Id: base.py,v 1.19 2007-10-19 12:16:05 tsarna Exp $
 
 from tmacs.edit.buffer import find_buffer
 from tmacs.app.commands import *
@@ -127,6 +127,24 @@ class UIBase(object):
             self.clear_message()
     
         return seq, cmdname, evtval
+
+    def promptforevent(self, prompt=""):
+        """
+        Read one event. The optional prompt is used by the
+        SeqPromptedEvent annotation.
+        
+        Returns: the event
+        """
+           
+        if prompt:
+            self.set_message(prompt)
+
+        e = self.getevent()
+
+        if prompt:
+            self.clear_message()
+        
+        return e
 
     def lookup_cmd(self, state, cmdname):
         """

@@ -71,3 +71,8 @@
 <^K>			killtext
 <^W>			killregion
 <Esc>W			copyregion
+<^T>			twiddle
+<^Q>			quotenext
+<Esc><^C>		countwords
+<Esc><Esc>		bufferpos
+<^X>=			bufferpos

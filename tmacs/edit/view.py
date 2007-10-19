@@ -1,6 +1,7 @@
 from tmacs.app.commands import *
 from tmacs.edit.buffer import make_buffer_list
 from tmacs.edit.ubuf import ubuf
+import unicodedata
 import __tmacs__
 
 __tmacs__._killbuf = killbuf = ubuf()
@@ -155,6 +156,12 @@ class BasicView(object):
         for x in range(n):
             self.dot.insert(killbuf)
 
+    @command
+    @annotate(None)
+    @annotate(SeqPromptedEvent)
+    def quotenext(self, ev):
+        self.dot.insert(ev[0])
+
 
     
 class View(BasicView):
@@ -238,6 +245,46 @@ class View(BasicView):
     def nextline(self, n=True):
         self.dot.nextline(n)
 
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    @returns(MessageToShow)
+    def bufferpos(self, n=True):
+        d = self.dot
+        l = len(self.buf)
+
+        if n is True:
+            if l:
+                p = u"%d" % (d * 100.0 / l)
+            else:
+                p = '-'
+            
+            if d == l:
+                cd = u'(End)'
+            else:
+                c = self.buf[d]
+                ct = unicodedata.category(c)
+                if ct[0] == 'N':
+                    dv = unicodedata.numeric(c, u'?')
+                    ct += (u"=%g" % dv)
+                cd = u"U+%04X (%s)" % (ord(c), ct)
+            
+            return u"Line ?/? Col ?/? Char %d/%d (%s%%) %s" % (
+                d, l, p, cd
+            )
+        else:
+            if d == l:
+                cd = u'(End)'
+            else:
+                c = self.buf[d]
+                cd = unicodedata.name(c, None)
+                if cd is None:
+                    cd = u"(no name, category %s)" % unicodedata.category(c)
+                
+                cd = "U+%04X %s" % (ord(c), cd)
+        
+            return cd
+            
     ### Editing
 
     @command
@@ -252,16 +299,52 @@ class View(BasicView):
     def openline(self, n=True):
         self.dot.insertnext(u'\n' * n)
 
-    ### View
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def twiddle(self, n=True):
+        d = self.dot
+        b = self.buf
+        if d > 0:
+            while n:
+                if d == len(b):
+                    d -= 1
+                t = b[d-1:d+1]
+                b[d-1:d+1] = t[1] + t[0]
+                n -= 1
+                d += 1 # XXX?
+        else:
+            raise IndexError, "Beginning of buffer"
+            
+    ### Regions
     
     @command
     @annotate(None)
+    @annotate(SelectionStart)
+    @annotate(SelectionEnd)
     @returns(MessageToShow)
+    def countwords(self, s, e):
+        lines = words = 0
+        chars = (e - s)
+        
+        m = e.copy()
+        m.tolinestart()
+        while m > s:
+            m.prevline()
+            lines += 1
+            
+        return "Words %d Chars %d Lines %d Avg chars/word %g" % (
+            words, chars, lines, 0.0
+        )
+
+    
+    @command
     def swapdotandmark(self):
-        if self.mark is None:
-            return "No mark in this window"
+        if not hasattr(self, 'mark'):
+            raise IndexError, "No mark in this window"
         self.dot, self.mark = self.mark, self.dot
         self.dot.reset()
+
 
     @command
     @annotate(None)
@@ -274,8 +357,6 @@ class View(BasicView):
     @command
     def nextbuffer(self):
         self.setbuffer(self.buf.next_buffer())
-
-    ### Region
 
     def getregion(self):
         if not hasattr(self, 'mark'):

@@ -100,6 +100,22 @@ KeySeq = KeySeq()
 
 
 
+class SeqPromptedEvent(object):
+    """
+    Argument will recieve the next event, prompt will
+    be the current event sequence. Rather specialized for quotenext.
+    """
+    
+    def gen_arg_code(self, arg, indents):
+        return ([
+            "%s%s = ui.promptforevent(tmacs.ui.keys.repr_keysym(_state.keyseq))" % (
+                indents, arg
+        )], arg)
+
+SeqPromptedEvent = SeqPromptedEvent()
+
+
+
 class CmdLoopState(object):
     """Argument will receieve the current event loop state object."""
     

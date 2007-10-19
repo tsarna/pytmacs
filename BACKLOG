@@ -1,13 +1,14 @@
-$Id: BACKLOG,v 1.10 2007-10-13 16:57:34 tsarna Exp $
+$Id: BACKLOG,v 1.11 2007-10-19 12:15:57 tsarna Exp $
 
 Needed for 2.0
 --------------
 paragraphs
-twiddle, fence, quote, countwords
+fence, countwords
 view docstrings and view unit tests
 marker doc strings
 charcell unit tests
 scrolly commands (pageing and scroll up/down)
+suspendy commands (^X!, suspend, etc)
 buffer attributes work: set and sniff
 marker work: displaycol attr and tab and bufferpos and finish autoadjust
 searching

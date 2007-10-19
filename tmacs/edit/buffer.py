@@ -1,4 +1,4 @@
-# $Id: buffer.py,v 1.14 2007-09-28 01:13:49 tsarna Exp $
+# $Id: buffer.py,v 1.15 2007-10-19 12:16:01 tsarna Exp $
 
 import os, codecs
 from tmacs.edit.sniff import preSniff, postSniff
@@ -70,6 +70,7 @@ class Buffer(ubuf):
         return dn
             
     def is_hidden(self):
+        return False # XXX
         n = self.name
         return n.startswith('__') and n.endswith('__')
         
