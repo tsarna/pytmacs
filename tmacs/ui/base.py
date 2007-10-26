@@ -1,4 +1,4 @@
-# $Id: base.py,v 1.19 2007-10-19 12:16:05 tsarna Exp $
+# $Id: base.py,v 1.20 2007-10-26 17:06:44 tsarna Exp $
 
 from tmacs.edit.buffer import find_buffer
 from tmacs.app.commands import *
@@ -13,6 +13,7 @@ def set_exception(exctuple):
     """
     
     b = find_buffer('__error__')
+    b.read_only = False
     del b[:]
     b.append(u''.join(traceback.format_exception(*exctuple)))
     b.changed = False
@@ -32,6 +33,8 @@ class UIBase(object):
         super(UIBase, self).__init__()
         self.default_sit = 3
 
+        self.ungotten = []
+        
         # the stack of minibuffers
         self.minibufs = []
         
@@ -92,6 +95,33 @@ class UIBase(object):
             self.executecmd(state.thiscmd, state)
             self.refresh()
         
+
+    def getevent(self):
+        if self.ungotten:
+            return self.ungotten.pop()  
+                                        
+        return self._getevent()
+                                                                
+    def ungetevent(self, ev):
+        self.ungotten.append(ev)
+                        
+    def waitevent(self, secs):
+        if self.ungotten:
+            return True
+        
+        ev = self._waitevent(self, secs)
+        if ev is None:
+            return False
+        else:
+            self.ungetevent(ev)
+            return True
+
+    def evpending(self):
+        if self.ungotten:
+            return True
+        else:
+            return self._evpending()
+
     def readkeyseq(self, state, prompt=""):
         """
         Read a key sequence. The optional prompt is used by the
@@ -156,6 +186,9 @@ class UIBase(object):
         if c is None:
             c = getattr(self, cmdname, None)
 
+        if c is None and cmdname[0] in '[<':
+            c = self.lookup_cmd(state, "inputkeysym")
+            
         if c and not hasattr(c, '__tmacs_cmd__'):
             # not really a command
             return None
@@ -173,6 +206,15 @@ class UIBase(object):
         """Execute a named command."""
         cmd.__tmacs_cmd__(cmd, state)
 
+
+    @command
+    @annotate(None)
+    @annotate(CmdLoopState)
+    def inputkeysym(self, state=__tmacs__):
+        """Simulate unicode input, for bindings to keysyms."""
+        c = state.cmdname
+        ev = (keysym(c), None)
+        self.ungetevent(ev)
 
     @command
     @annotate(None)

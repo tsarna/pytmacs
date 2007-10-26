@@ -1,4 +1,4 @@
-$Id: TODO,v 1.59 2007-10-19 12:15:58 tsarna Exp $
+$Id: TODO,v 1.60 2007-10-26 17:06:43 tsarna Exp $
 
 termioscap:
     implement tclayer write w/ unicode encode
@@ -23,6 +23,7 @@ marker:
 	trimline
 	tab
     nonzero -- returns changed flag?
+    words -- use same inword logic as countwords? buffer "inword" hook?
 	
 Buffer:
 	tests:

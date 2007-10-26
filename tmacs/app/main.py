@@ -18,7 +18,7 @@ def main(argv, environ):
 
     exc = runRCFile(__tmacs__)
     if exc is not None:
-        set_exception(exc)
+        ui.add_window(set_exception(exc))
 
     encoding = None
     line = None

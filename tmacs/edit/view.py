@@ -326,15 +326,38 @@ class View(BasicView):
     def countwords(self, s, e):
         lines = words = 0
         chars = (e - s)
-        
+        letters = 0
+
+        category = unicodedata.category
+                
         m = e.copy()
         m.tolinestart()
         while m > s:
             m.prevline()
             lines += 1
             
-        return "Words %d Chars %d Lines %d Avg chars/word %g" % (
-            words, chars, lines, 0.0
+        b = e.buffer
+        lw = False
+        while m < e:
+            c = b[m]
+            cc = category(c)
+            inw = cc[0] in 'LM' # in a word?
+            if inw:
+                letters += 1
+                if not lw:
+                    words += 1
+
+            lw = inw
+            m += 1
+            
+        if words:
+            cw = "%g" % (float(chars) / words)
+            lw = "%g" % (float(letters) / words)
+        else:
+            cw = lw = "-"
+        
+        return "chr %d letters %d words %d lines %d Avg chr/word %s ltr/wd %s" % (
+            chars, letters, words, lines, cw, lw
         )
 
     

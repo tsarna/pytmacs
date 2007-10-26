@@ -3,7 +3,7 @@ Termioscap Translation Layer
 ============================
 
 :Author: Ty Sarna
-:Version: $Id: TCLAYER.txt,v 1.2 2007-10-02 23:45:18 tsarna Exp $
+:Version: $Id: TCLAYER.txt,v 1.3 2007-10-26 17:06:44 tsarna Exp $
 
 .. contents ::
 
@@ -58,19 +58,19 @@ The TCLayer will have a Queue for events::
 
 There will be an event pending at the start::
 
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
 
 Which is a the initial `<WindowResize>`::
 
     >>> from tmacs.ui.keys import repr_keysym
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> (repr_keysym(ev[0]), ev[1])
     (u'<WindowResize>', (80, 24))
 
 Now that we got it, there will not be another event pending::
 
-    >>> tc.evpending()
+    >>> tc._evpending()
     False
     
 Simple characters input translate thrrough directly::
@@ -78,28 +78,14 @@ Simple characters input translate thrrough directly::
     >>> os.write(f2, "x")
     1
     >>> tc.doRead()
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> ev
     (u'x', None)
 
 Events are always a 2-tuple of a single unicode character event code and
 an associated value or None.
-
-There is an "unget" facility for peeking ahead input. If we unget this
-event, it will become pending again and we can re-read it::
-
-    >>> tc.evpending()
-    False
-    >>> tc.ungetevent(ev)
-    >>> tc.evpending()
-    True
-    >>> ev = tc.getevent()
-    >>> ev
-    (u'x', None)
-    >>> tc.evpending()
-    False
 
 Since we set utf8 as the terminal encoding, we can feed the layer utf8
 byte sequences and receive back the single character::
@@ -108,12 +94,12 @@ byte sequences and receive back the single character::
     >>> os.write(f2, seq)
     3
     >>> tc.doRead()
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> ev
     (u'\u2550', None)
-    >>> tc.evpending()
+    >>> tc._evpending()
     False
      
 The bytes don't have to all arrive at once, either::
@@ -124,12 +110,12 @@ The bytes don't have to all arrive at once, either::
     >>> os.write(f2, seq[1:])
     2
     >>> tc.doRead()
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> ev
     (u'\u2550', None)
-    >>> tc.evpending()
+    >>> tc._evpending()
     False
 
 Although they must arrive before the timeout fires::
@@ -141,17 +127,17 @@ Although they must arrive before the timeout fires::
     >>> os.write(f2, seq[2:])
     1
     >>> tc.doRead()
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> (repr_keysym(ev[0]), ev[1])
     (u'<IllegalSequence>', '\xe2\x95')
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> (repr_keysym(ev[0]), ev[1])
     (u'<IllegalSequence>', '\x90')
-    >>> tc.evpending()
+    >>> tc._evpending()
     False
 
 Cursor (and other special) key sequences work similarly::
@@ -160,12 +146,12 @@ Cursor (and other special) key sequences work similarly::
     >>> os.write(f2, seq)
     3
     >>> tc.doRead()
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> (repr_keysym(ev[0]), ev[1])
     (u'<Down>', None)
-    >>> tc.evpending()
+    >>> tc._evpending()
     False
 
 These bytes don't have to all arrive at once, either::
@@ -176,12 +162,12 @@ These bytes don't have to all arrive at once, either::
     >>> os.write(f2, seq[1:])
     2
     >>> tc.doRead()
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> (repr_keysym(ev[0]), ev[1])
     (u'<Down>', None)
-    >>> tc.evpending()
+    >>> tc._evpending()
     False
 
 But they too must arrive before the timeout fires::
@@ -193,20 +179,20 @@ But they too must arrive before the timeout fires::
     >>> os.write(f2, seq[2:])
     1
     >>> tc.doRead()
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> (repr_keysym(ev[0]), ev[1])
     (u'<ESC>', None)
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> (repr_keysym(ev[0]), ev[1])
     (u'<[>', None)
-    >>> tc.evpending()
+    >>> tc._evpending()
     True
-    >>> ev = tc.getevent()
+    >>> ev = tc._getevent()
     >>> (repr_keysym(ev[0]), ev[1])
     (u'B', None)
-    >>> tc.evpending()
+    >>> tc._evpending()
     False

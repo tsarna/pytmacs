@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.9 2007-10-19 12:15:58 tsarna Exp $
+$Id: COMMANDS,v 1.10 2007-10-26 17:06:43 tsarna Exp $
 
 Buffer				API
 
@@ -73,7 +73,7 @@ kill-paragraph           M-^W
 quote-character          ^Q	view.quotenext()			K
 case-region-lower        ^X^L	view.regionlower()			K
 case-region-upper        ^X^U	view.regionupper()			K
-count-words              M-^C
+count-words              M-^C	view.countwords()			K
 exchange-point-and-mark  ^X^X	view.swapdotandmark()			K
 set-mark                 M- 	view.setmark()				K
 buffer-position          M-^[

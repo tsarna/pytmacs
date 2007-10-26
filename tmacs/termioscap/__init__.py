@@ -1,4 +1,4 @@
-# $Id: __init__.py,v 1.16 2007-10-03 15:02:06 tsarna Exp $
+# $Id: __init__.py,v 1.17 2007-10-26 17:06:44 tsarna Exp $
 
 from tmacs.termioscap._tclayer import _tclayer
 from tmacs.ui.charcell import CharCellUI
@@ -12,7 +12,6 @@ class TCLayer(_tclayer):
     def __init__(self, ifd, ofd, reactor, term=None, termenc=None):
         self.queue = Queue(500)
         _tclayer.__init__(self, ifd, ofd, reactor, term, termenc)
-        self.ungotten = []
 
     def write(self, data):
         os.write(self.fileno(), data.encode('utf8'))
@@ -28,30 +27,18 @@ class TCLayer(_tclayer):
             __tmacs__._quit = True
             self.reactor.crash()
 
-    def getevent(self):
-        if self.ungotten:
-            return self.ungotten.pop()
-                        
+    def _getevent(self):
         ev = self.queue.get()
         self.queue.task_done()
         return ev
 
-    def ungetevent(self, ev):
-        self.ungotten.append(ev)
-
-    def waitevent(self, secs):
-        if self.ungotten:
-            return True
+    def _waitevent(self, secs):
         try:
-            ev = self.queue.get(timeout=secs)
-            self.ungetevent(ev)
-            return True
+            return self.queue.get(timeout=secs)
         except Empty:
-            return False
+            return None
             
-    def evpending(self):
-        if self.ungotten:
-            return True
+    def _evpending(self):
         return not self.queue.empty()
 
                 
