@@ -1,4 +1,4 @@
-# $Id: base.py,v 1.23 2007-10-27 04:58:59 tsarna Exp $
+# $Id: base.py,v 1.24 2007-10-27 05:09:14 tsarna Exp $
 
 from tmacs.edit.buffer import find_buffer, ubuf, marker
 from tmacs.app.commands import *
@@ -483,10 +483,9 @@ class UIBase(object):
         
         if state is not None:
             # remove the end-macro sequence from the recording!
-            k = state.keyseq
-            while k and b and k[-1] == b[-1]:
-                k = k[:-1]
-                del b[-1]
+            k = state.keyseq; l = len(k)
+            if b[-l:] == k:
+                del b[-l:]
         
         b.read_only = True
         b.changed = False
