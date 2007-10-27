@@ -1,6 +1,6 @@
-# $Id: base.py,v 1.22 2007-10-27 04:38:00 tsarna Exp $
+# $Id: base.py,v 1.23 2007-10-27 04:58:59 tsarna Exp $
 
-from tmacs.edit.buffer import find_buffer, ubuf
+from tmacs.edit.buffer import find_buffer, ubuf, marker
 from tmacs.app.commands import *
 from tmacs.ui.keys import keysym, repr_keysym, keymap
 import sys, traceback, __tmacs__
@@ -63,7 +63,7 @@ class UIBase(object):
                 self.beep()
                 self.write_message('[%s]' % msg)
                 set_exception(sys.exc_info())
-                self.refresh()
+                self.refresh(force=True)
         
         self.cleanup()
         self.reactor.stop()
@@ -121,12 +121,21 @@ class UIBase(object):
     def pushplayback(self, o):
         """Push an object for playback"""
 
-        # XXX check for dups!
-        
         if isinstance(o, ubuf):
-            o = o.marker()
-             
-        self.playback.append(o)
+            m = o.marker()
+            if o is self.recording:
+                raise RuntimeError, "Macro already active"
+
+            for p in self.playback:
+                if isinstance(p, marker) and p.buffer is o:
+                    raise RuntimeError, "Macro already active"
+                    
+            self.playback.append(m)
+        else:
+            if o in self.playback:
+                raise RuntimeError, "Playback already active"
+                
+            self.playback.append(o)
         
     # Events
 
@@ -430,6 +439,7 @@ class UIBase(object):
             b.save()
         
         state._quit = True
+
                                 
     @command
     @annotate(None)
@@ -438,24 +448,8 @@ class UIBase(object):
         """Execute a macro"""
         b = self.buffer_for_macro(n)
         if b:
-            b.read_only = True
             self.pushplayback(b)
 
-    @command
-    @annotate(None)
-    @annotate(UniArg)
-    @returns(MessageToShow)
-    def beginmacro(self, n=True):
-        """Begin recording a macro"""
-
-        if self.recording is not None:
-            raise RuntimeWarning, "Macro already active"
-            
-        b = self.buffer_for_macro(n, create=True)
-        b.read_only = False
-        self.recording = b
-        
-        return "[Start macro]"
 
     @command
     @annotate(None)

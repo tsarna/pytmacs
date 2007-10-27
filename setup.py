@@ -9,7 +9,7 @@ from setuptools import setup, Extension, Feature, find_packages
 
 # Metadata
 PACKAGE_NAME = "TMACS"
-PACKAGE_VERSION = "2.0dev5"
+PACKAGE_VERSION = "2.0dev6"
 
 extensions = [
     Extension("tmacs.termioscap._tclayer",
