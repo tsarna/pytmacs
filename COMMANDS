@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.10 2007-10-26 17:06:43 tsarna Exp $
+$Id: COMMANDS,v 1.11 2007-10-27 04:37:56 tsarna Exp $
 
 Buffer				API
 
@@ -111,6 +111,12 @@ update-screen			ui.refresh()				K
 nop                      M-FNC	ui.nop()				K
 write-message			ui.write_message() (needs anno)		C
 
+MACROS
+
+begin-macro              ^X(	ui.beginmacro()				K
+end-macro                ^X)	ui.endmacro()				K
+execute-macro            ^XE    ui.executemacro()			K
+
 MODES
 
 add-global-mode          M-M
@@ -125,14 +131,6 @@ apropos                  M-A
 UNKNOWN
 
 back-from-tag-word       M-^T
-
-MACROS
-
-begin-macro              ^X(
-end-macro                ^X)
-execute-macro            ^XE
-execute-macro-1..40
-store-macro
 
 BINDINGS
 
@@ -164,4 +162,5 @@ NOT GOING TO IMPLEMENT OR IRRELEVANT
 save-window
 restore-window
 execute-command-line
+store-macro
 

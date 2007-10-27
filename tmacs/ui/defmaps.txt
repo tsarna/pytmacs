@@ -77,6 +77,9 @@
 <Esc><Esc>		bufferpos
 <^X>=			bufferpos
 <Esc><^L>		lorem-ipsum
+<^X>E			executemacro
+<^X>(			beginmacro
+<^X>)			endmacro
 :accentmap
 `			[U+0300]
 '			[U+0301]

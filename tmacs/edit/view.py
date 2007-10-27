@@ -363,7 +363,7 @@ class View(BasicView):
     
     @command
     def swapdotandmark(self):
-        if not hasattr(self, 'mark'):
+        if self.mark is None:
             raise IndexError, "No mark in this window"
         self.dot, self.mark = self.mark, self.dot
         self.dot.reset()

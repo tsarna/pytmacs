@@ -1,4 +1,4 @@
-$Id: BACKLOG,v 1.13 2007-10-27 03:56:20 tsarna Exp $
+$Id: BACKLOG,v 1.14 2007-10-27 04:37:56 tsarna Exp $
 
 Needed for 2.0
 --------------
@@ -12,7 +12,7 @@ suspendy commands (^X!, suspend, etc)
 buffer attributes work: set and sniff
 marker work: displaycol attr and tab and bufferpos and finish autoadjust
 searching
-macros
+macros -- don't allow recursive push!
 window resize works
 true buffer display
 minibuffer

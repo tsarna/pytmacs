@@ -1,6 +1,6 @@
-# $Id: base.py,v 1.21 2007-10-27 03:56:24 tsarna Exp $
+# $Id: base.py,v 1.22 2007-10-27 04:38:00 tsarna Exp $
 
-from tmacs.edit.buffer import find_buffer
+from tmacs.edit.buffer import find_buffer, ubuf
 from tmacs.app.commands import *
 from tmacs.ui.keys import keysym, repr_keysym, keymap
 import sys, traceback, __tmacs__
@@ -35,6 +35,7 @@ class UIBase(object):
 
         self.ungotten = []
         self.playback = []
+        self.recording = None
 
         self.cmd_cache = {}
         
@@ -100,23 +101,31 @@ class UIBase(object):
 
     # Macro support
     
-    def buffer_for_macro(self, n=True):
+    def buffer_for_macro(self, n=True, create=False):
         """Return the buffer for a numbered (or not) macro"""
+
+        dn = "Keyboard Macro"
         if n is True:
             name = "__macro__"
         else:
             name = "__macro%d__" % n
+            dn += " Number %d" % n
        
-        b = find_buffer(name)
-        b.read_only = False
-        
-        return b
-        
-    def record(self, event):
-        """Record an event in the active recording macro"""
+        if create:
+            b = find_buffer(name)
+            b.display_name = dn
+            return b
+        else:
+            return __tmacs__.buffers.get(name)
         
     def pushplayback(self, o):
-        """Push a 'file'-like for playback"""
+        """Push an object for playback"""
+
+        # XXX check for dups!
+        
+        if isinstance(o, ubuf):
+            o = o.marker()
+             
         self.playback.append(o)
         
     # Events
@@ -134,6 +143,9 @@ class UIBase(object):
                 return (ev, None)
 
         ev = self._getevent()
+
+        if self.recording is not None:
+            self.recording.append(ev[0])
 
         return ev
 
@@ -280,7 +292,7 @@ class UIBase(object):
                     return c
 
 
-    ### Commands
+    ### Special commands
     
     @command
     @annotate(None)
@@ -383,6 +395,19 @@ class UIBase(object):
         """
         return "[Key %s not bound]" % repr_keysym(state.keyseq)
         
+
+    @command
+    def abort(self):
+        """Abort the current operation."""
+        raise KeyboardInterrupt
+
+    @command
+    def nop(self):
+        """This command does nothing."""
+        pass
+
+    # Regular Commands
+
     @command
     @annotate(None)
     @annotate(CmdLoopState)
@@ -407,14 +432,73 @@ class UIBase(object):
         state._quit = True
                                 
     @command
-    def abort(self):
-        """Abort the current operation."""
-        raise KeyboardInterrupt
+    @annotate(None)
+    @annotate(UniArg)
+    def executemacro(self, n=True):
+        """Execute a macro"""
+        b = self.buffer_for_macro(n)
+        if b:
+            b.read_only = True
+            self.pushplayback(b)
 
     @command
-    def nop(self):
-        """This command does nothing."""
-        pass
+    @annotate(None)
+    @annotate(UniArg)
+    @returns(MessageToShow)
+    def beginmacro(self, n=True):
+        """Begin recording a macro"""
+
+        if self.recording is not None:
+            raise RuntimeWarning, "Macro already active"
+            
+        b = self.buffer_for_macro(n, create=True)
+        b.read_only = False
+        self.recording = b
+        
+        return "[Start macro]"
+
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    @returns(MessageToShow)
+    def beginmacro(self, n=True):
+        """Begin recording a macro"""
+
+        if self.recording is not None:
+            raise RuntimeError, "Macro already active"
+            
+        b = self.buffer_for_macro(n, create=True)
+        b.read_only = False
+        self.recording = b
+        
+        return "[Start macro]"
+
+
+    @command
+    @annotate(None)
+    @annotate(CmdLoopState)
+    @returns(MessageToShow)
+    def endmacro(self, state=None):
+        """End recording a macro"""
+
+        b = self.recording
+        if b is None:
+            raise RuntimeError, "Macro not active"
+            
+        self.recording = None
+        
+        if state is not None:
+            # remove the end-macro sequence from the recording!
+            k = state.keyseq
+            while k and b and k[-1] == b[-1]:
+                k = k[:-1]
+                del b[-1]
+        
+        b.read_only = True
+        b.changed = False
+
+        return "[End macro]"
+
 
     ### binding commands
     

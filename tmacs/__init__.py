@@ -11,7 +11,7 @@ __tmacs__.__version__ = "2.0dev5"
 from tmacs.ui.keys import *
 
 __tmacs__.basemap = basemap = keymap('basemap')
-__tmacs__.accentmap = accentmap = keymap('accentmap')
+__tmacs__.accentmap = accentmap = keymap('accentmap', nocase=True)
 __tmacs__.escmap = escmap = keymap('escmap', nocase=True, mapping={
     u"'" : accentmap
 })
