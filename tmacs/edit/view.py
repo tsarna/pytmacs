@@ -382,12 +382,13 @@ class View(BasicView):
         self.setbuffer(self.buf.next_buffer())
 
     def getregion(self):
-        if not hasattr(self, 'mark'):
-            raise ValueError, "no mark set in this window"
-            
         start = self.mark
         end = self.dot
-        if start is not None and start > end:
+
+        if start is None:
+            raise ValueError, "no mark set in this window"
+            
+        if start > end:
             start, end = end, start
 
         return start, end

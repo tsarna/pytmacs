@@ -1,4 +1,4 @@
-$Id: BACKLOG,v 1.12 2007-10-26 17:06:43 tsarna Exp $
+$Id: BACKLOG,v 1.13 2007-10-27 03:56:20 tsarna Exp $
 
 Needed for 2.0
 --------------
@@ -25,7 +25,6 @@ combine minor mode
 Post-1.0 project story ideas
 ----------------------------
 
-add-ons mechanism
 undo
 horizontal window splitting
 command-oriented macros (record commands not keystrokes, produce a new

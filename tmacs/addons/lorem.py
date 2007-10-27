@@ -8,8 +8,8 @@ voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
 sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
 mollit anim id est laborum."""
 
-# This is some of the rest of the text that Lorem Ipsum was taken from
-# we don't generate this, but use it to enrich the probabilities table.
+# This is some of the rest of the text that Lorem Ipsum was taken from.
+# We don't generate this, but use it to enrich the probabilities table.
 
 _more = """Sed ut perspiciatis, unde omnis iste natus error sit
 voluptatem accusantium doloremque laudantium, totam rem aperiam eaque
@@ -56,6 +56,7 @@ def _mkprobs(s, probs, starts):
 
 
 _probs, _starts = _mkprobs(__doc__, {}, [])
+_defaultnwords = len(_starts)
 _probs, _starts = _mkprobs(_more, _probs, _starts)
     
 
@@ -98,6 +99,58 @@ def loremwords():
 
         yield w
 
-l = loremwords()
 
-print ' '.join([l.next() for x in range(2100)])
+class WordUnicodeFile(object):
+    def __init__(self):
+        self.left = 0
+        self.buf = []
+        self.gen = loremwords()
+
+    def reset(self):
+        self.gen = loremwords()
+
+    def want(self, n=True):
+        """
+        If n is True, EOF will be after one sentence.
+        else EOF will be after n words.
+        """
+        
+        self.left = n
+        
+    def read(self, n):
+        if n != 1:
+            raise ValueError, \
+                "This cheezy file-like only supports reading one char at a time"
+            
+        if not self.buf and self.left:
+            w = self.gen.next()
+            self.buf = [unicode(c) for c in w]
+            if self.left is True:
+                if self.buf[-1] in u'.?':
+                    self.left = 0 # Force EOF at end of sentence 
+            else:
+                self.left -= 1
+            self.buf.append(u' ')
+
+        if self.buf:
+            return self.buf.pop(0)
+        else:
+            return u""
+
+
+_wf = WordUnicodeFile()
+
+
+from tmacs.app.commands import *
+import __tmacs__
+
+@command
+@annotate(UniArg)
+def ipsum(n=True):
+    if not n:
+        # reset generator
+        _wf.reset()
+        return
+        
+    _wf.want(n)
+    __tmacs__.ui.pushplayback(_wf)

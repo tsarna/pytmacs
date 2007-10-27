@@ -1,4 +1,4 @@
-# $Id: base.py,v 1.20 2007-10-26 17:06:44 tsarna Exp $
+# $Id: base.py,v 1.21 2007-10-27 03:56:24 tsarna Exp $
 
 from tmacs.edit.buffer import find_buffer
 from tmacs.app.commands import *
@@ -34,6 +34,9 @@ class UIBase(object):
         self.default_sit = 3
 
         self.ungotten = []
+        self.playback = []
+
+        self.cmd_cache = {}
         
         # the stack of minibuffers
         self.minibufs = []
@@ -94,19 +97,54 @@ class UIBase(object):
             state.lastwaskill, state.thisiskill = state.thisiskill, False
             self.executecmd(state.thiscmd, state)
             self.refresh()
+
+    # Macro support
+    
+    def buffer_for_macro(self, n=True):
+        """Return the buffer for a numbered (or not) macro"""
+        if n is True:
+            name = "__macro__"
+        else:
+            name = "__macro%d__" % n
+       
+        b = find_buffer(name)
+        b.read_only = False
         
+        return b
+        
+    def record(self, event):
+        """Record an event in the active recording macro"""
+        
+    def pushplayback(self, o):
+        """Push a 'file'-like for playback"""
+        self.playback.append(o)
+        
+    # Events
 
     def getevent(self):
+        """Get next event, blocking if necessary"""
         if self.ungotten:
             return self.ungotten.pop()  
-                                        
-        return self._getevent()
-                                                                
+
+        while self.playback:
+            ev = self.playback[-1].read(1)
+            if ev == u"":
+                self.playback.pop()
+            else:
+                return (ev, None)
+
+        ev = self._getevent()
+
+        return ev
+
     def ungetevent(self, ev):
+        """Cause the given event to be returned by the next getevent()"""
         self.ungotten.append(ev)
                         
     def waitevent(self, secs):
-        if self.ungotten:
+        """Wait up to 'secs' seconds for an event to be available"""
+        
+        if self.evpending():
             return True
         
         ev = self._waitevent(self, secs)
@@ -117,10 +155,19 @@ class UIBase(object):
             return True
 
     def evpending(self):
+        """True if an event is waiting to be gotten"""
         if self.ungotten:
             return True
-        else:
-            return self._evpending()
+
+        while self.playback:
+            ev = self.playback[-1].read(1)
+            if ev == u"":
+                self.playback.pop()
+            else:
+                self.ungetevent((ev, None))
+                return True
+            
+        return self._evpending()
 
     def readkeyseq(self, state, prompt=""):
         """
@@ -176,24 +223,61 @@ class UIBase(object):
         
         return e
 
+    # Command lookup
+    
     def lookup_cmd(self, state, cmdname):
         """
         Look up a command by name. Delegates to the current view,
         then we look in ourself for UI-wide commands. Returns None
         on command not found.
         """
+        # check the view
         c = self.curview.lookup_cmd(cmdname)
+
         if c is None:
+            # Then check us
             c = getattr(self, cmdname, None)
 
-        if c is None and cmdname[0] in '[<':
-            c = self.lookup_cmd(state, "inputkeysym")
-            
+            if c is None:
+                # check .tmacsrc                
+                c = getattr(__tmacs__, cmdname, None)
+
+                if c is None:
+                    # check cache
+                    c = self.cmd_cache.get(cmdname)
+
+                    if c is None:
+                        if cmdname[0] in '[<':
+                            c = self.lookup_cmd(state, "inputkeysym")
+                        elif '-' in cmdname:
+                            c = self.lookup_addon(cmdname)
+
         if c and not hasattr(c, '__tmacs_cmd__'):
             # not really a command
             return None
 
         return c
+
+    
+    def lookup_addon(self, cmdname):
+        """Lookup a command in an addon module"""
+        parts = cmdname.split('-')
+        n = len(parts)
+
+        # ensure alphanumeric parts
+        if len([True for p in parts if p.isalnum()]) == n:
+            if n == 2:
+                s = "from tmacs.addons.%s import %s as func" % tuple(parts)
+                d = {}
+                try:
+                    exec s in d
+                except ImportError:
+                    return None
+            
+                c = d.get('func')
+                if c is not None:
+                    self.cmd_cache[cmdname] = c
+                    return c
 
 
     ### Commands
