@@ -1,12 +1,11 @@
-$Id: BACKLOG,v 1.15 2007-10-27 04:58:53 tsarna Exp $
+$Id: BACKLOG,v 1.16 2007-11-03 20:44:53 tsarna Exp $
 
 Needed for 2.0
 --------------
 paragraphs
 fence
-view docstrings and view unit tests
 marker doc strings
-charcell unit tests
+view unit tests and charcell unit tests
 scrolly commands (pageing and scroll up/down)
 suspendy commands (^X!, suspend, etc)
 buffer attributes work: set and sniff
