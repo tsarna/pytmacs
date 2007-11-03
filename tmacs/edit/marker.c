@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.40 2007-10-10 15:20:33 tsarna Exp $ */
+/* $Id: marker.c,v 1.41 2007-11-03 20:45:32 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -65,7 +65,7 @@ static PyObject *marker_read(marker *self, PyObject *args);
 static PyObject *marker_readline(marker *self, PyObject *args);
 static PyObject *marker_write(marker *self, PyObject *arg);
 static PyObject *marker_writelines(marker *self, PyObject *arg);
-/* movement methods/
+/* movement methods */
 static PyObject *marker_tobufstart(marker *self, PyObject *args);
 static PyObject *marker_tobufend(marker *self, PyObject *args);
 static PyObject *marker_tolinestart(marker *self, PyObject *args);
@@ -89,7 +89,7 @@ static PyObject *marker_delnextword(marker *self, PyObject *args);
 static PyObject *marker_do_insert(marker *self, PyObject *v, int next);
 static PyObject *marker_insert(marker *self, PyObject *args);
 static PyObject *marker_insertnext(marker *self, PyObject *args);
-/* misc methods/
+/* misc methods */
 static PyObject *marker_copy(marker *self, PyObject *args);
 static PyObject *marker_reset(marker *self, PyObject *args);
 
@@ -842,11 +842,6 @@ marker_seek(marker *self, PyObject *args)
         return 0; 
     }
                     
-    if ((whence < 0) || (whence > 2)) {
-        PyErr_SetString(PyExc_IOError, "invalid whence argument value");
-        return 0;
-    }
-    
     switch (whence) {
     case 0:
         r = marker_to(m, off);
@@ -862,6 +857,9 @@ marker_seek(marker *self, PyObject *args)
             r = marker_to(m, m->buffer->length + off);
         }
         break;
+    default:
+        PyErr_SetString(PyExc_IOError, "invalid whence argument value");
+        return 0;
     }
     
     if (r) {
@@ -1181,7 +1179,7 @@ marker_nextword(marker *self, PyObject *args)
 static PyObject *
 marker_prevline(marker *self, PyObject *args)
 {
-    Py_ssize_t d, n = 1;
+    Py_ssize_t n = 1;
     
     if (!PyArg_ParseTuple(args, "|n:prevline", &n)) {
         return 0; 
@@ -1199,7 +1197,7 @@ marker_prevline(marker *self, PyObject *args)
 static PyObject *
 marker_nextline(marker *self, PyObject *args)
 {
-    Py_ssize_t d, n = 1;
+    Py_ssize_t n = 1;
     
     if (!PyArg_ParseTuple(args, "|n:nextline", &n)) {
         return 0; 
@@ -1217,7 +1215,7 @@ marker_nextline(marker *self, PyObject *args)
 static PyObject *
 marker_toline(marker *self, PyObject *args)
 {
-    Py_ssize_t d, n = 1;
+    Py_ssize_t n = 1;
     
     if (!PyArg_ParseTuple(args, "|n:toline", &n)) {
         return 0; 

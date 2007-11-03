@@ -3,7 +3,7 @@ File-like interface to Markers
 ==============================
 
 :Author: Ty Sarna
-:Version: $Id: MARKFILE.txt,v 1.7 2007-08-27 15:04:16 tsarna Exp $
+:Version: $Id: MARKFILE.txt,v 1.8 2007-11-03 20:45:32 tsarna Exp $
 
 .. contents ::
 
@@ -46,6 +46,12 @@ a file::
     >>> m.tell()
     26
     >>> m.seek(-4, 2)
+    >>> m.tell()
+    22
+    >>> m.seek(0, 4)
+    Traceback (most recent call last):
+        ...
+    IOError: invalid whence argument value
     >>> m.tell()
     22
 

@@ -1,4 +1,4 @@
-/* $Id: ubuf.c,v 1.24 2007-10-13 16:57:38 tsarna Exp $ */
+/* $Id: ubuf.c,v 1.25 2007-11-03 20:45:33 tsarna Exp $ */
 
 /* 6440931 */
 
@@ -23,6 +23,7 @@ PyTypeObject ubuf_type;
 static int ubuf_set_encoding(ubuf *self, PyObject *value, void *closure);
 static void ubuf_dealloc(ubuf *self);
 static int ubuf_init(ubuf *self, PyObject *args, PyObject *kwds);
+static int ubuf_slice_indices(ubuf *self, PyObject *o, Py_ssize_t *s, Py_ssize_t *e);
 /* get/set methods */
 static int ubuf_set_err_notallowed(ubuf *self, PyObject *value, void *closure);
 static PyObject *ubuf_get_changed(ubuf *self, void *closure);
@@ -45,7 +46,7 @@ static PyObject *ubuf_iter(PyObject *self);
 /* file-like methods */
 /* add-on methods */
 static PyObject *ubuf_append(PyObject *selfo, PyObject *arg);
-static PyObject *ubuf_du_cutcopy(PyObject *selfo, PyObject *arg, int copy);
+static PyObject *ubuf_do_cutcopy(PyObject *selfo, PyObject *arg, int copy);
 static PyObject *ubuf_copyfrom(PyObject *selfo, PyObject *arg);
 static PyObject *ubuf_cutfrom(PyObject *selfo, PyObject *arg);
 
@@ -764,7 +765,7 @@ ubuf_get_display_col(ubuf *self, Py_ssize_t p)
 Py_ssize_t
 ubuf_to_display_col(ubuf *self, Py_ssize_t s, Py_ssize_t tocol)
 {
-    Py_ssize_t i, col = 0;
+    Py_ssize_t col = 0;
     Py_UNICODE c;
     
     while (s < self->length) {
@@ -1098,7 +1099,7 @@ PyTypeObject ubuf_type = {
 PyMODINIT_FUNC
 initubuf(void)
 {
-    PyObject *m, *d;
+    PyObject *m;
 
     ubuf_type.tp_new = PyType_GenericNew;
     if (PyType_Ready(&ubuf_type) < 0)

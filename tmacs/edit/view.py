@@ -9,6 +9,8 @@ __tmacs__._killbuf = killbuf = ubuf()
 
 class BasicView(object):
     def lookup_cmd(self, cmdname):
+        """Find a command by name."""
+        
         return getattr(self, cmdname, None)
 
     ### Cursor Movement
@@ -17,44 +19,52 @@ class BasicView(object):
     @annotate(None)
     @annotate(UniArg)
     def prev(self, n=True):
+        """Move cursor backwards by n characters."""
         self.dot -= n
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def next(self, n=True):
+        """Move cursor forwards by n characters."""
         self.dot += n
 
     @command
     @annotate(None)
     def tobufstart(self):
+        """Move cursor to beginning of buffer."""
         self.dot.tobufstart()
 
     @command
     @annotate(None)
     def tobufend(self):
+        """Move cursor to the end of the buffer."""
         self.dot.tobufend()
 
     @command
     @annotate(None)
     def tolinestart(self):
+        """Move the cursor to the start of the line."""
         self.dot.tolinestart()
         
     @command
     @annotate(None)
     def tolineend(self):
+        """Move the cursor to the end of the line."""
         self.dot.tolineend()
         
     @command
     @annotate(None)
     @annotate(UniArg)
     def prevword(self, n=True):
+        """Move cursor backwards over n words."""
         self.dot.prevword(n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def nextword(self, n=True):
+        """Move cursor forwards over n words."""
         self.dot.nextword(n)
 
     ### Editing
@@ -63,24 +73,28 @@ class BasicView(object):
     @annotate(None)
     @annotate(UniArg)
     def wordtitle(self, n=True):
+        """Convert n words forward from cursor to title (initial caps) case."""
         self.dot.wordtitle(n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def wordlower(self, n=True):
+        """Convert n words forward from cursor to lower case."""
         self.dot.wordlower(n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def wordupper(self, n=True):
+        """Convert n words forward from cursor to upper case."""
         self.dot.wordupper(n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def insertspace(self, n=True):
+        """Insert n spaces"""
         self.dot.insertnext(u' ' * n)
 
     @command
@@ -88,43 +102,57 @@ class BasicView(object):
     @annotate(KeySeq)
     @annotate(UniArg)
     def insert(self, text, n=True):
+        """Insert text n times at cursor position."""
         self.dot.insert(text * n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def delprev(self, n=True):
+        """Delete n characters to the left."""
         self.dot.delprev(n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def delnext(self, n=True):
+        """Delete n characters to the right."""
         self.dot.delnext(n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def delprevword(self, n=True):
+        """Delete n words to the left."""
         self.dot.delprevword(n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def delnextword(self, n=True):
+        """Delete n words to the right."""
         self.dot.delnextword(n)
-
-    @command
-    @annotate(None)
-    @annotate(UniArg)
-    def insertspace(self, n=True):
-        self.dot.insertnext(u' ' * n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     @annotate(CmdLoopState)
     def killtext(self, n=True, state=__tmacs__):
+        """
+        With default argument, delete up to the end of line not including
+        the newline, or if at the end of the line, delete the newline.
+
+        With a positive numeric argument, deletes from dot through the
+        next n lines, inclusive of their newlines. With a 0 or negative 
+        argument, it deletes from dot to the beginning of the line and
+        through the next n lines.
+        
+        The deleted text will be put in the kill buffer. If the last
+        command was also a kill-type command the kill buffer will be
+        appended to, otherwise it will replace the previous contents
+        of the kill bufer.
+        """
+            
         if n is True:
             self.dot.killline(killbuf, state.lastwaskill)
         else:
@@ -137,6 +165,13 @@ class BasicView(object):
     @annotate(SelectionEnd)
     @annotate(CmdLoopState)
     def copyregion(self, s, e, state=__tmacs__):
+        """
+        Copy the selected region (dot-mark) into the kill buffer,
+        appending if the last command was a kill-type command, replacing
+        the contents of the kill buffer otherwise. This command is
+        considered a kill-type command.
+        """
+        
         killbuf.copyfrom(self.buf, s, e, state.lastwaskill)
         state.thisiskill = True
             
@@ -146,6 +181,13 @@ class BasicView(object):
     @annotate(SelectionEnd)
     @annotate(CmdLoopState)
     def killregion(self, s, e, state=__tmacs__):
+        """
+        Delete the selected region (dot-mark) and copy into the kill buffer,
+        appending if the last command was a kill-type command, replacing
+        the contents of the kill buffer otherwise. This command is
+        considered a kill-type command.
+        """
+
         killbuf.cutfrom(self.buf, s, e, state.lastwaskill)
         state.thisiskill = True
             
@@ -153,6 +195,8 @@ class BasicView(object):
     @annotate(None)
     @annotate(UniArg)
     def yank(self, n=True):
+        """Insert n copies of the kill buffer at the cursor position."""
+
         for x in range(n):
             self.dot.insert(killbuf)
 
@@ -160,6 +204,11 @@ class BasicView(object):
     @annotate(None)
     @annotate(SeqPromptedEvent)
     def quotenext(self, ev):
+        """
+        Quote the next character for input. This allows inputting
+        characters that are normally bound to commands.
+        """
+        
         self.dot.insert(ev[0])
 
 
@@ -173,6 +222,8 @@ class View(BasicView):
             self.setbuffer(buffer)
 
     def copy(self):
+        """Make c copy of this view. Used when splitting a view."""
+        
         n = self.__class__(self.ui, None)
         n.buf = self.buf
         n.dot = self.dot.copy()
@@ -185,6 +236,8 @@ class View(BasicView):
         return n
         
     def setbuffer(self, buffer):
+        """Set the buffer that this view manipulates/displays."""
+        
         self.buf = buffer
         self.dot = buffer.marker()
         self.mark = None
@@ -200,16 +253,22 @@ class View(BasicView):
     @annotate(None)
     @annotate(AnyFileName("Name: "))
     def setfilename(self, name):
+        """Set the filename for this buffer."""
+        
         self.buf.filename = name
 
     @command
     def markunchanged(self):
+        """Mark this buffer as unchanged."""
+        
         self.buf.changed = False
 
     @command
     @annotate(None)
     @annotate(NewBufferName("Change buffer name to: "))
     def renamebuffer(self, name):
+        """Rename this buffer."""
+        
         self.buf.name = name
 
     @command
@@ -217,12 +276,16 @@ class View(BasicView):
     @annotate(UniArg)
     @returns(MessageToShow)
     def setfillcolumn(self, n=True):
+        """Set the fill column of this buffer for wrapping."""
+        
         self.buf.fillcolumn = n
         return "[Fill column is %d]" % n
         
     @command
     @returns(BufferToShow)
     def bufferlist(self):
+        """Display a list of buffers."""
+        
         return make_buffer_list()
         
     ### Cursor Movement
@@ -231,18 +294,23 @@ class View(BasicView):
     @annotate(None)
     @annotate(UniArgOrInt("Line to GOTO: "))
     def toline(self, n):
+        """Go to the nth line in the buffer. The first line is line 1.
+        With a negative argument, counts lines backwards from the end."""
+
         self.dot.toline(n)
         
     @command
     @annotate(None)
     @annotate(UniArg)
     def prevline(self, n=True):
+        """Move the cursor backwards (upwards) n lines."""
         self.dot.prevline(n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def nextline(self, n=True):
+        """Move the cursor forwards (downwards) n lines."""
         self.dot.nextline(n)
 
     @command
@@ -250,6 +318,12 @@ class View(BasicView):
     @annotate(UniArg)
     @returns(MessageToShow)
     def bufferpos(self, n=True):
+        """
+        Display information about the current position in the buffer.
+        With a non-default argument, display the unicode name
+        of the current character.
+        """
+        
         d = self.dot
         l = len(self.buf)
 
@@ -291,18 +365,25 @@ class View(BasicView):
     @annotate(None)
     @annotate(UniArg)
     def newline(self, n=True):
+        """Insert n newlines."""
         self.dot.insert(u'\n' * n)
         
     @command
     @annotate(None)
     @annotate(UniArg)
     def openline(self, n=True):
+        """Insert n newlines after the cursor."""
         self.dot.insertnext(u'\n' * n)
 
     @command
     @annotate(None)
     @annotate(UniArg)
     def twiddle(self, n=True):
+        """
+        Swap characters on either side of the cursor, and advance
+        one character. Repeat n times.
+        """
+        
         d = self.dot
         b = self.buf
         if d > 0:
@@ -324,6 +405,10 @@ class View(BasicView):
     @annotate(SelectionEnd)
     @returns(MessageToShow)
     def countwords(self, s, e):
+        """
+        Count charcters, words, and more in the selected region.
+        """
+        
         lines = words = 0
         chars = (e - s)
         letters = 0
@@ -363,6 +448,8 @@ class View(BasicView):
     
     @command
     def swapdotandmark(self):
+        """Swap the dot (cursor position) with the mark."""
+        
         if self.mark is None:
             raise IndexError, "No mark in this window"
         self.dot, self.mark = self.mark, self.dot
@@ -373,15 +460,26 @@ class View(BasicView):
     @annotate(None)
     @returns(MessageToShow)
     def setmark(self):
+        """Set the mark at the current cursor position ("dot")."""
+        
         self.dot.reset()
         self.mark = self.dot.copy()
         return "[Mark set]"
 
     @command
     def nextbuffer(self):
+        """Change this view's buffer to the next buffer in sequence."""
+        
         self.setbuffer(self.buf.next_buffer())
 
     def getregion(self):
+        """
+        Helper method returns a tuple of two markers representing
+        the begining and end of the selected region. The markers
+        are always in start, end order regardless of the relative
+        positions of dot and mark.
+        """
+        
         start = self.mark
         end = self.dot
 
@@ -394,10 +492,14 @@ class View(BasicView):
         return start, end
         
     def getregiontext(self):
+        """Get the text within the selected region."""
+        
         s, e = self.getregion()
         return self.buf[s:e]
         
     def setregiontext(self, text):
+        """Replace the text in the selected region with new text."""
+        
         s, e = self.getregion()
         self.buf[s:e] = text
         
@@ -406,6 +508,7 @@ class View(BasicView):
     @annotate(SelectedText)
     @returns(ReplacementText)
     def regionlower(self, text):
+        """Lowercase the text in the selected region."""
         return text.lower()
     
     @command
@@ -413,4 +516,5 @@ class View(BasicView):
     @annotate(SelectedText)
     @returns(ReplacementText)
     def regionupper(self, text):
+        """Uppercase the text in the selected region."""
         return text.upper()
