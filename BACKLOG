@@ -1,4 +1,4 @@
-$Id: BACKLOG,v 1.16 2007-11-03 20:44:53 tsarna Exp $
+$Id: BACKLOG,v 1.17 2009-02-25 14:47:12 tsarna Exp $
 
 Needed for 2.0
 --------------
@@ -9,7 +9,7 @@ view unit tests and charcell unit tests
 scrolly commands (pageing and scroll up/down)
 suspendy commands (^X!, suspend, etc)
 buffer attributes work: set and sniff
-marker work: displaycol attr and tab and bufferpos and finish autoadjust
+marker work: bufferpos and finish autoadjust / displaycol unit test
 searching
 window resize works
 true buffer display

@@ -80,6 +80,7 @@
 <^X>E			executemacro
 <^X>(			beginmacro
 <^X>)			endmacro
+<^I>			tab
 :accentmap
 `			[U+0300]
 '			[U+0301]

@@ -1,4 +1,4 @@
-$Id: COMMANDS,v 1.11 2007-10-27 04:37:56 tsarna Exp $
+$Id: COMMANDS,v 1.12 2009-02-25 14:47:12 tsarna Exp $
 
 Buffer				API
 
@@ -49,7 +49,7 @@ insert				marker.insert()				K
 newline                  ^M	marker.insert(u'\n')			K
 newline-and-indent       ^J
 open-line                ^O	marker.insertnext(u'\n')		K
-handle-tab               ^I			tab
+handle-tab               ^I	view.tab()				K
 transpose-characters     ^T	view.twiddle()				K
 delete-blank-lines       ^X^O
 

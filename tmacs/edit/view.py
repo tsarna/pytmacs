@@ -211,6 +211,25 @@ class BasicView(object):
         
         self.dot.insert(ev[0])
 
+    @command
+    @annotate(None)
+    @annotate(UniArg)
+    def tab(self, n=True):
+        """
+        With universal argument, set the tab stop.
+        Otherwise, handle inserting space until the next tab stop.
+        If the tab stop is 0, insert a hard tab, otherwise insert
+        enoough spaces to end on a stop.
+        """
+        if n is True:
+            t = self.buf.tab_stop
+            if t:
+                n = t - (self.dot.display_col % t)
+                self.insert(u" " * n)
+            else:
+                self.insert("\t")
+        else:
+            self.buf.tab_stop = abs(n)
 
     
 class View(BasicView):

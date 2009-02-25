@@ -1,4 +1,4 @@
-/* $Id: marker.c,v 1.41 2007-11-03 20:45:32 tsarna Exp $ */
+/* $Id: marker.c,v 1.42 2009-02-25 14:47:17 tsarna Exp $ */
 
 #include <Python.h>
 #include <structmember.h>
@@ -39,6 +39,7 @@ static PyObject *marker_get_end(marker *self, void *closure);
 static int marker_set_end(marker *self, PyObject *value, void *closure);
 static PyObject *marker_get_start(marker *self, void *closure);
 static int marker_set_start(marker *self, PyObject *value, void *closure);
+static PyObject *marker_get_display_col(marker *self, void *closure);
 /* sequence protocol */
 static Py_ssize_t marker_sq_length(PyObject *self);
 static int marker_sq_contains(PyObject *self, PyObject *other);
@@ -223,7 +224,7 @@ marker_adjust(marker *self, Py_ssize_t s, Py_ssize_t e, Py_ssize_t l)
 cases:
                . . . . X X X X X . . . . .  
                         A         B
-  before                . . . .                 e <= A                  X
+  before       . . . .                          e <= A                  X
 * Aspan             . . X X                     s <= A, A < e < B
 * inside                  X X X                 s >= A, e < B  
 * Bspan                       X X . .           A <= S < B, e >= B 
@@ -537,6 +538,14 @@ marker_set_start(marker *self, PyObject *value, void *closure)
     }
 
     return 0;
+}
+
+
+
+static PyObject *
+marker_get_display_col(marker *self, void *closure)
+{
+    return PyInt_FromSsize_t(ubuf_get_display_col(self->buffer, self->start));
 }
 
 
@@ -1670,6 +1679,11 @@ static PyGetSetDef marker_getset[] = {
     {"changed",     (getter)marker_get_changed,
                     (setter)marker_set_changed,
                     "Have changes occured within marked range?",
+                    NULL},
+
+    {"display_col", (getter)marker_get_display_col,
+                    (setter)NULL,
+                    "current display column",
                     NULL},
 
     {"end",         (getter)marker_get_end,
